@@ -5,6 +5,8 @@ namespace Meteorite {
 	static class Biomes {
 		public static Dictionary<int32, Biome> BIOMES = new .() ~ DeleteDictionaryAndValues!(_);
 
+		public static Biome VOID;
+
 		public static void Register() {
 			Json json = JsonParser.ParseFile("assets/biomes.json");
 
@@ -16,6 +18,8 @@ namespace Meteorite {
 				Color waterColor = .((int32) e["water_color"].AsNumber);
 
 				BIOMES[id] = new .(temperature, downfall, waterColor);
+
+				if (id == 0) VOID = BIOMES[id];
 			}
 
 			json.Dispose();

@@ -13,7 +13,7 @@ namespace Meteorite {
 		}
 
 		private static void RenderFluid(World world, Chunk chunk, int x, int y, int z, BlockState blockState, Biome biome) {
-			/*Block b = chunk.Get(x, y + 1, z).block;
+			Block b = chunk.Get(x, y + 1, z).block;
 			if (b == Blocks.WATER || b == Blocks.LAVA || IsFilledWithWater(b)) return;
 
 			Quad quad = blockState.model.quads[0];
@@ -28,7 +28,7 @@ namespace Meteorite {
 				m.Vec3(.(x + quad.vertices[1].x, y + quad.vertices[1].y, z + quad.vertices[1].z)).Vec2(.(quad.region.x2, quad.region.y1)).Color(c.MulWithoutA(quad.light)).Next(),
 				m.Vec3(.(x + quad.vertices[2].x, y + quad.vertices[2].y, z + quad.vertices[2].z)).Vec2(.(quad.region.x2, quad.region.y2)).Color(c.MulWithoutA(quad.light)).Next(),
 				m.Vec3(.(x + quad.vertices[3].x, y + quad.vertices[3].y, z + quad.vertices[3].z)).Vec2(.(quad.region.x1, quad.region.y2)).Color(c.MulWithoutA(quad.light)).Next()
-			);*/
+			);
 		}
 
 		public static void Render(World world, Chunk chunk, int x, int y, int z, BlockState blockState, Biome biome) {
@@ -197,7 +197,8 @@ namespace Meteorite {
 			Chunk c = world.GetChunk(bx >> 4, bz >> 4);
 			if (c == null) return null;
 
-			return c.GetSection(y >> 4).GetBiome(x, y % world.SectionCount, z);
+			Section s = c.GetSection(y >> 4);
+			return s == null ? null : s.GetBiome(x, y % world.SectionCount, z);
 		}
 
 		private static Block GetBlock(World world, Chunk chunk, int x, int y, int z) {

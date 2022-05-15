@@ -20,7 +20,7 @@ namespace Meteorite{
 		}
 
 		public static void CreateGlobalIndices() {
-			const int count = 8192 * 16;
+			const int count = 8192 * 32;
 			uint32* buffer = new uint32[6 * count]*;
 			uint32 v = 0;
 
