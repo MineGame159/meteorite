@@ -8,9 +8,6 @@ namespace Meteorite {
 
 		private Dictionary<int, Entity> entities = new .() ~ DeleteDictionaryAndValues!(_);
 
-		private static VertexFormat FORMAT = new .(.(.Float, 3), .(.Float, 2), .(.UByte, 4, true)) ~ delete _;
-		private static VertexFormat FORMAT_ENTITIES = new .(.(.Float, 3), .(.UByte, 4, true)) ~ delete _;
-
 		private Mesh meshEntities ~ delete _;
 		private Mesh meshLines ~ delete _;
 

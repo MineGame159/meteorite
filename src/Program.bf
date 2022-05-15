@@ -5,8 +5,6 @@ using GLFW;
 using ImGui;
 using Wgpu;
 
-using static Meteorite.GL;
-
 namespace Meteorite {
 	class Program {
 		public static bool AO = true;

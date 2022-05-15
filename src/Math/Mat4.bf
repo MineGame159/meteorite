@@ -55,6 +55,11 @@ namespace Meteorite {
 			m.vecs[2].z = far / (far - near);
 			m.vecs[2].w = 1;
 			m.vecs[3].z = -(far * near) / (far - near);
+
+			// TODO: Uhhh
+			m.vecs[2].z = -m.vecs[2].z;
+			m.vecs[2].w = -m.vecs[2].w;
+
 			return m;
 		}
 

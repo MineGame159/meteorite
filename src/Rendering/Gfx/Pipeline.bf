@@ -191,7 +191,7 @@ namespace Meteorite {
 				primitive = .() {
 					topology = topology,
 					stripIndexFormat = .Undefined,
-					frontFace = .CCW,
+					frontFace = .CW,
 					cullMode = cull ? .Back : .None,
 				},
 				depthStencil = depth ? &depthStencil : null,

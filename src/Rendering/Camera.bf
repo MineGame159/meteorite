@@ -101,8 +101,8 @@ namespace Meteorite {
 		public void FlightMovement(float delta) {
 			// Rotation
 			if (window.MouseHidden) {
-				yaw -= Input.mouseDelta.x / 7;
-				pitch += Input.mouseDelta.y / 7;
+				yaw += Input.mouseDelta.x / 7;
+				pitch -= Input.mouseDelta.y / 7;
 
 				pitch = Math.Clamp(pitch, -89.5f, 89.5f);
 			}
@@ -117,8 +117,8 @@ namespace Meteorite {
 			forward *= speed;
 			right *= speed;
 
-			if (Input.IsKeyDown(.W)) pos += forward;
-			if (Input.IsKeyDown(.S)) pos -= forward;
+			if (Input.IsKeyDown(.W)) pos -= forward;
+			if (Input.IsKeyDown(.S)) pos += forward;
 			if (Input.IsKeyDown(.D)) pos -= right;
 			if (Input.IsKeyDown(.A)) pos += right;
 			if (Input.IsKeyDown(.Space)) pos.y += speed;
