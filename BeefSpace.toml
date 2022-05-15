@@ -1,0 +1,9 @@
+FileVersion = 1
+Projects = {meteorite = {Path = "."}, GLFW = "*", ImGui = "*", ImGuiImplGlfw = "*", StbImageBeef = "*", MiniZ = "*", Wgpu = {Path = "D:/Wgpu"}, Wgpu-Glfw = {Path = "D:/Wgpu/wgpu-glfw"}, Wgpu-Imgui = {Path = "D:/Wgpu/wgpu-imgui"}}
+Unlocked = ["ImGuiImplGlfw"]
+
+[Workspace]
+StartupProject = "meteorite"
+
+[Configs.Debug.Win64]
+AllocStackTraceDepth = 10

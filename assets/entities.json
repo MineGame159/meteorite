@@ -1,0 +1,793 @@
+[
+  {
+    "id": "minecraft:area_effect_cloud",
+    "raw_id": 0,
+    "group": "misc",
+    "width": 6.0,
+    "height": 0.5
+  },
+  {
+    "id": "minecraft:armor_stand",
+    "raw_id": 1,
+    "group": "misc",
+    "width": 0.5,
+    "height": 1.975
+  },
+  {
+    "id": "minecraft:arrow",
+    "raw_id": 2,
+    "group": "misc",
+    "width": 0.5,
+    "height": 0.5
+  },
+  {
+    "id": "minecraft:axolotl",
+    "raw_id": 3,
+    "group": "water",
+    "width": 0.75,
+    "height": 0.42
+  },
+  {
+    "id": "minecraft:bat",
+    "raw_id": 4,
+    "group": "ambient",
+    "width": 0.5,
+    "height": 0.9
+  },
+  {
+    "id": "minecraft:bee",
+    "raw_id": 5,
+    "group": "creature",
+    "width": 0.7,
+    "height": 0.6
+  },
+  {
+    "id": "minecraft:blaze",
+    "raw_id": 6,
+    "group": "monster",
+    "width": 0.6,
+    "height": 1.8
+  },
+  {
+    "id": "minecraft:boat",
+    "raw_id": 7,
+    "group": "misc",
+    "width": 1.375,
+    "height": 0.5625
+  },
+  {
+    "id": "minecraft:cat",
+    "raw_id": 8,
+    "group": "creature",
+    "width": 0.6,
+    "height": 0.7
+  },
+  {
+    "id": "minecraft:cave_spider",
+    "raw_id": 9,
+    "group": "monster",
+    "width": 0.7,
+    "height": 0.5
+  },
+  {
+    "id": "minecraft:chicken",
+    "raw_id": 10,
+    "group": "creature",
+    "width": 0.4,
+    "height": 0.7
+  },
+  {
+    "id": "minecraft:cod",
+    "raw_id": 11,
+    "group": "water",
+    "width": 0.5,
+    "height": 0.3
+  },
+  {
+    "id": "minecraft:cow",
+    "raw_id": 12,
+    "group": "creature",
+    "width": 0.9,
+    "height": 1.4
+  },
+  {
+    "id": "minecraft:creeper",
+    "raw_id": 13,
+    "group": "monster",
+    "width": 0.6,
+    "height": 1.7
+  },
+  {
+    "id": "minecraft:dolphin",
+    "raw_id": 14,
+    "group": "water",
+    "width": 0.9,
+    "height": 0.6
+  },
+  {
+    "id": "minecraft:donkey",
+    "raw_id": 15,
+    "group": "creature",
+    "width": 1.3964844,
+    "height": 1.5
+  },
+  {
+    "id": "minecraft:dragon_fireball",
+    "raw_id": 16,
+    "group": "misc",
+    "width": 1.0,
+    "height": 1.0
+  },
+  {
+    "id": "minecraft:drowned",
+    "raw_id": 17,
+    "group": "monster",
+    "width": 0.6,
+    "height": 1.95
+  },
+  {
+    "id": "minecraft:elder_guardian",
+    "raw_id": 18,
+    "group": "monster",
+    "width": 1.9975,
+    "height": 1.9975
+  },
+  {
+    "id": "minecraft:end_crystal",
+    "raw_id": 19,
+    "group": "misc",
+    "width": 2.0,
+    "height": 2.0
+  },
+  {
+    "id": "minecraft:ender_dragon",
+    "raw_id": 20,
+    "group": "monster",
+    "width": 16.0,
+    "height": 8.0
+  },
+  {
+    "id": "minecraft:enderman",
+    "raw_id": 21,
+    "group": "monster",
+    "width": 0.6,
+    "height": 2.9
+  },
+  {
+    "id": "minecraft:endermite",
+    "raw_id": 22,
+    "group": "monster",
+    "width": 0.4,
+    "height": 0.3
+  },
+  {
+    "id": "minecraft:evoker",
+    "raw_id": 23,
+    "group": "monster",
+    "width": 0.6,
+    "height": 1.95
+  },
+  {
+    "id": "minecraft:evoker_fangs",
+    "raw_id": 24,
+    "group": "misc",
+    "width": 0.5,
+    "height": 0.8
+  },
+  {
+    "id": "minecraft:experience_orb",
+    "raw_id": 25,
+    "group": "misc",
+    "width": 0.5,
+    "height": 0.5
+  },
+  {
+    "id": "minecraft:eye_of_ender",
+    "raw_id": 26,
+    "group": "misc",
+    "width": 0.25,
+    "height": 0.25
+  },
+  {
+    "id": "minecraft:falling_block",
+    "raw_id": 27,
+    "group": "misc",
+    "width": 0.98,
+    "height": 0.98
+  },
+  {
+    "id": "minecraft:firework_rocket",
+    "raw_id": 28,
+    "group": "misc",
+    "width": 0.25,
+    "height": 0.25
+  },
+  {
+    "id": "minecraft:fox",
+    "raw_id": 29,
+    "group": "creature",
+    "width": 0.6,
+    "height": 0.7
+  },
+  {
+    "id": "minecraft:ghast",
+    "raw_id": 30,
+    "group": "monster",
+    "width": 4.0,
+    "height": 4.0
+  },
+  {
+    "id": "minecraft:giant",
+    "raw_id": 31,
+    "group": "monster",
+    "width": 3.6,
+    "height": 12.0
+  },
+  {
+    "id": "minecraft:glow_item_frame",
+    "raw_id": 32,
+    "group": "misc",
+    "width": 0.5,
+    "height": 0.5
+  },
+  {
+    "id": "minecraft:glow_squid",
+    "raw_id": 33,
+    "group": "water",
+    "width": 0.8,
+    "height": 0.8
+  },
+  {
+    "id": "minecraft:goat",
+    "raw_id": 34,
+    "group": "creature",
+    "width": 0.9,
+    "height": 1.3
+  },
+  {
+    "id": "minecraft:guardian",
+    "raw_id": 35,
+    "group": "monster",
+    "width": 0.85,
+    "height": 0.85
+  },
+  {
+    "id": "minecraft:hoglin",
+    "raw_id": 36,
+    "group": "monster",
+    "width": 1.3964844,
+    "height": 1.4
+  },
+  {
+    "id": "minecraft:horse",
+    "raw_id": 37,
+    "group": "creature",
+    "width": 1.3964844,
+    "height": 1.6
+  },
+  {
+    "id": "minecraft:husk",
+    "raw_id": 38,
+    "group": "monster",
+    "width": 0.6,
+    "height": 1.95
+  },
+  {
+    "id": "minecraft:illusioner",
+    "raw_id": 39,
+    "group": "monster",
+    "width": 0.6,
+    "height": 1.95
+  },
+  {
+    "id": "minecraft:iron_golem",
+    "raw_id": 40,
+    "group": "misc",
+    "width": 1.4,
+    "height": 2.7
+  },
+  {
+    "id": "minecraft:item",
+    "raw_id": 41,
+    "group": "misc",
+    "width": 0.25,
+    "height": 0.25
+  },
+  {
+    "id": "minecraft:item_frame",
+    "raw_id": 42,
+    "group": "misc",
+    "width": 0.5,
+    "height": 0.5
+  },
+  {
+    "id": "minecraft:fireball",
+    "raw_id": 43,
+    "group": "misc",
+    "width": 1.0,
+    "height": 1.0
+  },
+  {
+    "id": "minecraft:leash_knot",
+    "raw_id": 44,
+    "group": "misc",
+    "width": 0.375,
+    "height": 0.5
+  },
+  {
+    "id": "minecraft:lightning_bolt",
+    "raw_id": 45,
+    "group": "misc",
+    "width": 0.0,
+    "height": 0.0
+  },
+  {
+    "id": "minecraft:llama",
+    "raw_id": 46,
+    "group": "creature",
+    "width": 0.9,
+    "height": 1.87
+  },
+  {
+    "id": "minecraft:llama_spit",
+    "raw_id": 47,
+    "group": "misc",
+    "width": 0.25,
+    "height": 0.25
+  },
+  {
+    "id": "minecraft:magma_cube",
+    "raw_id": 48,
+    "group": "monster",
+    "width": 2.04,
+    "height": 2.04
+  },
+  {
+    "id": "minecraft:marker",
+    "raw_id": 49,
+    "group": "misc",
+    "width": 0.0,
+    "height": 0.0
+  },
+  {
+    "id": "minecraft:minecart",
+    "raw_id": 50,
+    "group": "misc",
+    "width": 0.98,
+    "height": 0.7
+  },
+  {
+    "id": "minecraft:chest_minecart",
+    "raw_id": 51,
+    "group": "misc",
+    "width": 0.98,
+    "height": 0.7
+  },
+  {
+    "id": "minecraft:command_block_minecart",
+    "raw_id": 52,
+    "group": "misc",
+    "width": 0.98,
+    "height": 0.7
+  },
+  {
+    "id": "minecraft:furnace_minecart",
+    "raw_id": 53,
+    "group": "misc",
+    "width": 0.98,
+    "height": 0.7
+  },
+  {
+    "id": "minecraft:hopper_minecart",
+    "raw_id": 54,
+    "group": "misc",
+    "width": 0.98,
+    "height": 0.7
+  },
+  {
+    "id": "minecraft:spawner_minecart",
+    "raw_id": 55,
+    "group": "misc",
+    "width": 0.98,
+    "height": 0.7
+  },
+  {
+    "id": "minecraft:tnt_minecart",
+    "raw_id": 56,
+    "group": "misc",
+    "width": 0.98,
+    "height": 0.7
+  },
+  {
+    "id": "minecraft:mule",
+    "raw_id": 57,
+    "group": "creature",
+    "width": 1.3964844,
+    "height": 1.6
+  },
+  {
+    "id": "minecraft:mooshroom",
+    "raw_id": 58,
+    "group": "creature",
+    "width": 0.9,
+    "height": 1.4
+  },
+  {
+    "id": "minecraft:ocelot",
+    "raw_id": 59,
+    "group": "creature",
+    "width": 0.6,
+    "height": 0.7
+  },
+  {
+    "id": "minecraft:painting",
+    "raw_id": 60,
+    "group": "misc",
+    "width": 0.5,
+    "height": 0.5
+  },
+  {
+    "id": "minecraft:panda",
+    "raw_id": 61,
+    "group": "creature",
+    "width": 1.3,
+    "height": 1.25
+  },
+  {
+    "id": "minecraft:parrot",
+    "raw_id": 62,
+    "group": "creature",
+    "width": 0.5,
+    "height": 0.9
+  },
+  {
+    "id": "minecraft:phantom",
+    "raw_id": 63,
+    "group": "monster",
+    "width": 0.9,
+    "height": 0.5
+  },
+  {
+    "id": "minecraft:pig",
+    "raw_id": 64,
+    "group": "creature",
+    "width": 0.9,
+    "height": 0.9
+  },
+  {
+    "id": "minecraft:piglin",
+    "raw_id": 65,
+    "group": "monster",
+    "width": 0.6,
+    "height": 1.95
+  },
+  {
+    "id": "minecraft:piglin_brute",
+    "raw_id": 66,
+    "group": "monster",
+    "width": 0.6,
+    "height": 1.95
+  },
+  {
+    "id": "minecraft:pillager",
+    "raw_id": 67,
+    "group": "monster",
+    "width": 0.6,
+    "height": 1.95
+  },
+  {
+    "id": "minecraft:polar_bear",
+    "raw_id": 68,
+    "group": "creature",
+    "width": 1.4,
+    "height": 1.4
+  },
+  {
+    "id": "minecraft:tnt",
+    "raw_id": 69,
+    "group": "misc",
+    "width": 0.98,
+    "height": 0.98
+  },
+  {
+    "id": "minecraft:pufferfish",
+    "raw_id": 70,
+    "group": "water",
+    "width": 0.7,
+    "height": 0.7
+  },
+  {
+    "id": "minecraft:rabbit",
+    "raw_id": 71,
+    "group": "creature",
+    "width": 0.4,
+    "height": 0.5
+  },
+  {
+    "id": "minecraft:ravager",
+    "raw_id": 72,
+    "group": "monster",
+    "width": 1.95,
+    "height": 2.2
+  },
+  {
+    "id": "minecraft:salmon",
+    "raw_id": 73,
+    "group": "water",
+    "width": 0.7,
+    "height": 0.4
+  },
+  {
+    "id": "minecraft:sheep",
+    "raw_id": 74,
+    "group": "creature",
+    "width": 0.9,
+    "height": 1.3
+  },
+  {
+    "id": "minecraft:shulker",
+    "raw_id": 75,
+    "group": "monster",
+    "width": 1.0,
+    "height": 1.0
+  },
+  {
+    "id": "minecraft:shulker_bullet",
+    "raw_id": 76,
+    "group": "misc",
+    "width": 0.3125,
+    "height": 0.3125
+  },
+  {
+    "id": "minecraft:silverfish",
+    "raw_id": 77,
+    "group": "monster",
+    "width": 0.4,
+    "height": 0.3
+  },
+  {
+    "id": "minecraft:skeleton",
+    "raw_id": 78,
+    "group": "monster",
+    "width": 0.6,
+    "height": 1.99
+  },
+  {
+    "id": "minecraft:skeleton_horse",
+    "raw_id": 79,
+    "group": "creature",
+    "width": 1.3964844,
+    "height": 1.6
+  },
+  {
+    "id": "minecraft:slime",
+    "raw_id": 80,
+    "group": "monster",
+    "width": 2.04,
+    "height": 2.04
+  },
+  {
+    "id": "minecraft:small_fireball",
+    "raw_id": 81,
+    "group": "misc",
+    "width": 0.3125,
+    "height": 0.3125
+  },
+  {
+    "id": "minecraft:snow_golem",
+    "raw_id": 82,
+    "group": "misc",
+    "width": 0.7,
+    "height": 1.9
+  },
+  {
+    "id": "minecraft:snowball",
+    "raw_id": 83,
+    "group": "misc",
+    "width": 0.25,
+    "height": 0.25
+  },
+  {
+    "id": "minecraft:spectral_arrow",
+    "raw_id": 84,
+    "group": "misc",
+    "width": 0.5,
+    "height": 0.5
+  },
+  {
+    "id": "minecraft:spider",
+    "raw_id": 85,
+    "group": "monster",
+    "width": 1.4,
+    "height": 0.9
+  },
+  {
+    "id": "minecraft:squid",
+    "raw_id": 86,
+    "group": "water",
+    "width": 0.8,
+    "height": 0.8
+  },
+  {
+    "id": "minecraft:stray",
+    "raw_id": 87,
+    "group": "monster",
+    "width": 0.6,
+    "height": 1.99
+  },
+  {
+    "id": "minecraft:strider",
+    "raw_id": 88,
+    "group": "creature",
+    "width": 0.9,
+    "height": 1.7
+  },
+  {
+    "id": "minecraft:egg",
+    "raw_id": 89,
+    "group": "misc",
+    "width": 0.25,
+    "height": 0.25
+  },
+  {
+    "id": "minecraft:ender_pearl",
+    "raw_id": 90,
+    "group": "misc",
+    "width": 0.25,
+    "height": 0.25
+  },
+  {
+    "id": "minecraft:experience_bottle",
+    "raw_id": 91,
+    "group": "misc",
+    "width": 0.25,
+    "height": 0.25
+  },
+  {
+    "id": "minecraft:potion",
+    "raw_id": 92,
+    "group": "misc",
+    "width": 0.25,
+    "height": 0.25
+  },
+  {
+    "id": "minecraft:trident",
+    "raw_id": 93,
+    "group": "misc",
+    "width": 0.5,
+    "height": 0.5
+  },
+  {
+    "id": "minecraft:trader_llama",
+    "raw_id": 94,
+    "group": "creature",
+    "width": 0.9,
+    "height": 1.87
+  },
+  {
+    "id": "minecraft:tropical_fish",
+    "raw_id": 95,
+    "group": "water",
+    "width": 0.5,
+    "height": 0.4
+  },
+  {
+    "id": "minecraft:turtle",
+    "raw_id": 96,
+    "group": "creature",
+    "width": 1.2,
+    "height": 0.4
+  },
+  {
+    "id": "minecraft:vex",
+    "raw_id": 97,
+    "group": "monster",
+    "width": 0.4,
+    "height": 0.8
+  },
+  {
+    "id": "minecraft:villager",
+    "raw_id": 98,
+    "group": "misc",
+    "width": 0.6,
+    "height": 1.95
+  },
+  {
+    "id": "minecraft:vindicator",
+    "raw_id": 99,
+    "group": "monster",
+    "width": 0.6,
+    "height": 1.95
+  },
+  {
+    "id": "minecraft:wandering_trader",
+    "raw_id": 100,
+    "group": "creature",
+    "width": 0.6,
+    "height": 1.95
+  },
+  {
+    "id": "minecraft:witch",
+    "raw_id": 101,
+    "group": "monster",
+    "width": 0.6,
+    "height": 1.95
+  },
+  {
+    "id": "minecraft:wither",
+    "raw_id": 102,
+    "group": "monster",
+    "width": 0.9,
+    "height": 3.5
+  },
+  {
+    "id": "minecraft:wither_skeleton",
+    "raw_id": 103,
+    "group": "monster",
+    "width": 0.7,
+    "height": 2.4
+  },
+  {
+    "id": "minecraft:wither_skull",
+    "raw_id": 104,
+    "group": "misc",
+    "width": 0.3125,
+    "height": 0.3125
+  },
+  {
+    "id": "minecraft:wolf",
+    "raw_id": 105,
+    "group": "creature",
+    "width": 0.6,
+    "height": 0.85
+  },
+  {
+    "id": "minecraft:zoglin",
+    "raw_id": 106,
+    "group": "monster",
+    "width": 1.3964844,
+    "height": 1.4
+  },
+  {
+    "id": "minecraft:zombie",
+    "raw_id": 107,
+    "group": "monster",
+    "width": 0.6,
+    "height": 1.95
+  },
+  {
+    "id": "minecraft:zombie_horse",
+    "raw_id": 108,
+    "group": "creature",
+    "width": 1.3964844,
+    "height": 1.6
+  },
+  {
+    "id": "minecraft:zombie_villager",
+    "raw_id": 109,
+    "group": "monster",
+    "width": 0.6,
+    "height": 1.95
+  },
+  {
+    "id": "minecraft:zombified_piglin",
+    "raw_id": 110,
+    "group": "monster",
+    "width": 0.6,
+    "height": 1.95
+  },
+  {
+    "id": "minecraft:player",
+    "raw_id": 111,
+    "group": "misc",
+    "width": 0.6,
+    "height": 1.8
+  },
+  {
+    "id": "minecraft:fishing_bobber",
+    "raw_id": 112,
+    "group": "misc",
+    "width": 0.25,
+    "height": 0.25
+  }
+]

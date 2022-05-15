@@ -1,0 +1,7 @@
+FileVersion = 1
+Dependencies = {corlib = "*", GLFW = "*", ImGui = "*", ImGuiImplGlfw = "*", StbImageBeef = "*", MiniZ = "*", Wgpu = "*", Wgpu-Glfw = "*", Wgpu-Imgui = "*"}
+
+[Project]
+Name = "meteorite"
+StartupObject = "Meteorite.Program"
+DefaultNamespace = "Meteorite"
