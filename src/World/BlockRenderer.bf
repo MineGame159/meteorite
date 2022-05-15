@@ -23,11 +23,14 @@ namespace Meteorite {
 			if (blockState.block == Blocks.WATER) Tint(chunk, blockState, x, y, z, ref c);
 			c.a = 255;
 
+			Property p = blockState.GetProperty("level");
+			float yOffset = (p.value == 0 ? 15 : 15 - p.value) / 16f;
+
 			m.Quad(
-				m.Vec3(.(x + quad.vertices[0].x, y + quad.vertices[0].y, z + quad.vertices[0].z)).Vec2(.(quad.region.x1, quad.region.y1)).Color(c.MulWithoutA(quad.light)).Next(),
-				m.Vec3(.(x + quad.vertices[1].x, y + quad.vertices[1].y, z + quad.vertices[1].z)).Vec2(.(quad.region.x2, quad.region.y1)).Color(c.MulWithoutA(quad.light)).Next(),
-				m.Vec3(.(x + quad.vertices[2].x, y + quad.vertices[2].y, z + quad.vertices[2].z)).Vec2(.(quad.region.x2, quad.region.y2)).Color(c.MulWithoutA(quad.light)).Next(),
-				m.Vec3(.(x + quad.vertices[3].x, y + quad.vertices[3].y, z + quad.vertices[3].z)).Vec2(.(quad.region.x1, quad.region.y2)).Color(c.MulWithoutA(quad.light)).Next()
+				m.Vec3(.(x + 0, y + yOffset, z + 0)).Vec2(.(quad.region.x1, quad.region.y1)).Color(c).Next(),
+				m.Vec3(.(x + 1, y + yOffset, z + 0)).Vec2(.(quad.region.x2, quad.region.y1)).Color(c).Next(),
+				m.Vec3(.(x + 1, y + yOffset, z + 1)).Vec2(.(quad.region.x2, quad.region.y2)).Color(c).Next(),
+				m.Vec3(.(x + 0, y + yOffset, z + 1)).Vec2(.(quad.region.x1, quad.region.y2)).Color(c).Next()
 			);
 		}
 
