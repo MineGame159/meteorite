@@ -172,15 +172,8 @@ namespace Meteorite{
 					uv[2] = (.) uvJson[2].AsNumber;
 					uv[3] = (.) uvJson[3].AsNumber;
 				}
-				else {
-					switch (direction) {
-					case .Up, .Down: uv = .(fromX, fromZ, toX, toZ);
-					case .North, .South: uv = .(16 - toX, 16 - toY, 16 - toX + toX - fromX, 16 - toY + toY - fromY);
-					case .East, .West: uv = .(16 - toZ, 16 - toY, 16 - toZ + toZ - fromZ, 16 - toY + toY - fromY);
-					}
-				}
 
-				// Block state Rotate
+				// Block state rotation
 				/*if (blockStateRotation.y != 0) {
 					// Vertices
 					Vec3f origin = .(0.5f, 0.5f, 0.5f);

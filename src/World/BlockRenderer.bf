@@ -124,7 +124,6 @@ namespace Meteorite {
 				Color c = .(255, 255, 255);
 				if (quad.tint && biome != null) Tint(chunk, blockState, x, y, z, ref c);
 
-				// TODO: Fix this mess (different order of UVs)
 				switch (quad.direction) {
 				case .Up:
 					m.Quad(
@@ -135,10 +134,10 @@ namespace Meteorite {
 					);
 				case .Down:
 					m.Quad(
-						m.Vec3(.(x + quad.vertices[0].x, y + quad.vertices[0].y, z + quad.vertices[0].z)).Vec2(.(quad.region.x1, quad.region.y1)).Color(c.MulWithoutA(quad.light * ao1)).Next(),
-						m.Vec3(.(x + quad.vertices[1].x, y + quad.vertices[1].y, z + quad.vertices[1].z)).Vec2(.(quad.region.x1, quad.region.y2)).Color(c.MulWithoutA(quad.light * ao2)).Next(),
-						m.Vec3(.(x + quad.vertices[2].x, y + quad.vertices[2].y, z + quad.vertices[2].z)).Vec2(.(quad.region.x2, quad.region.y2)).Color(c.MulWithoutA(quad.light * ao3)).Next(),
-						m.Vec3(.(x + quad.vertices[3].x, y + quad.vertices[3].y, z + quad.vertices[3].z)).Vec2(.(quad.region.x2, quad.region.y1)).Color(c.MulWithoutA(quad.light * ao4)).Next()
+						m.Vec3(.(x + quad.vertices[0].x, y + quad.vertices[0].y, z + quad.vertices[0].z)).Vec2(.(quad.region.x1, quad.region.y2)).Color(c.MulWithoutA(quad.light * ao1)).Next(),
+						m.Vec3(.(x + quad.vertices[1].x, y + quad.vertices[1].y, z + quad.vertices[1].z)).Vec2(.(quad.region.x1, quad.region.y1)).Color(c.MulWithoutA(quad.light * ao2)).Next(),
+						m.Vec3(.(x + quad.vertices[2].x, y + quad.vertices[2].y, z + quad.vertices[2].z)).Vec2(.(quad.region.x2, quad.region.y1)).Color(c.MulWithoutA(quad.light * ao3)).Next(),
+						m.Vec3(.(x + quad.vertices[3].x, y + quad.vertices[3].y, z + quad.vertices[3].z)).Vec2(.(quad.region.x2, quad.region.y2)).Color(c.MulWithoutA(quad.light * ao4)).Next()
 					);
 				case .North, .East:
 					m.Quad(
@@ -149,10 +148,10 @@ namespace Meteorite {
 					);
 				case .South, .West:
 					m.Quad(
-						m.Vec3(.(x + quad.vertices[0].x, y + quad.vertices[0].y, z + quad.vertices[0].z)).Vec2(.(quad.region.x2, quad.region.y2)).Color(c.MulWithoutA(quad.light * ao1)).Next(),
-						m.Vec3(.(x + quad.vertices[1].x, y + quad.vertices[1].y, z + quad.vertices[1].z)).Vec2(.(quad.region.x2, quad.region.y1)).Color(c.MulWithoutA(quad.light * ao2)).Next(),
-						m.Vec3(.(x + quad.vertices[2].x, y + quad.vertices[2].y, z + quad.vertices[2].z)).Vec2(.(quad.region.x1, quad.region.y1)).Color(c.MulWithoutA(quad.light * ao3)).Next(),
-						m.Vec3(.(x + quad.vertices[3].x, y + quad.vertices[3].y, z + quad.vertices[3].z)).Vec2(.(quad.region.x1, quad.region.y2)).Color(c.MulWithoutA(quad.light * ao4)).Next()
+						m.Vec3(.(x + quad.vertices[0].x, y + quad.vertices[0].y, z + quad.vertices[0].z)).Vec2(.(quad.region.x1, quad.region.y2)).Color(c.MulWithoutA(quad.light * ao1)).Next(),
+						m.Vec3(.(x + quad.vertices[1].x, y + quad.vertices[1].y, z + quad.vertices[1].z)).Vec2(.(quad.region.x1, quad.region.y1)).Color(c.MulWithoutA(quad.light * ao2)).Next(),
+						m.Vec3(.(x + quad.vertices[2].x, y + quad.vertices[2].y, z + quad.vertices[2].z)).Vec2(.(quad.region.x2, quad.region.y1)).Color(c.MulWithoutA(quad.light * ao3)).Next(),
+						m.Vec3(.(x + quad.vertices[3].x, y + quad.vertices[3].y, z + quad.vertices[3].z)).Vec2(.(quad.region.x2, quad.region.y2)).Color(c.MulWithoutA(quad.light * ao4)).Next()
 					);
 				default:
 				}
