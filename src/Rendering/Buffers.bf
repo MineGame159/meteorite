@@ -1,13 +1,18 @@
 using System;
 using System.Collections;
+using System.Threading;
 
 namespace Meteorite{
 	static class Buffers {
 		public static WBuffer QUAD_INDICES ~ delete _;
 
 		private static List<Buffer> BUFFERS = new .() ~ DeleteContainerAndItems!(_);
+		private static Monitor MONITOR = new .() ~ delete _;
 
 		public static Buffer Get() {
+			MONITOR.Enter();
+			defer MONITOR.Exit();
+
 			if (BUFFERS.IsEmpty) return new .(1024);
 
 			Buffer buffer = BUFFERS[BUFFERS.Count - 1];
@@ -16,7 +21,11 @@ namespace Meteorite{
 		}
 
 		public static void Return(Buffer buffer) {
+			MONITOR.Enter();
+
 			BUFFERS.Add(buffer);
+
+			MONITOR.Exit();
 		}
 
 		public static void CreateGlobalIndices() {

@@ -95,11 +95,6 @@ namespace Meteorite {
 					//GenerateChunkMesh(chunk);
 					a++;
 				}
-				/*else */if (chunk.status == .Upload) {
-					chunk.meshTransparent.End();
-					chunk.mesh.End();
-					chunk.status = .Ready;
-				}
 
 				if (chunk.status == .Ready && camera.IsBoxVisible(chunk.min, chunk.max)) {
 					if (chunk.mesh != null) {
@@ -226,8 +221,11 @@ namespace Meteorite {
 				}
 			}
 
-			chunk.status = .Upload;
 			chunk.dirty = false;
+
+			chunk.meshTransparent.End();
+			chunk.mesh.End();
+			chunk.status = .Ready;
 		}
 	}
 }
