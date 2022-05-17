@@ -5,7 +5,7 @@ using System.Diagnostics;
 namespace Meteorite {
 	class World {
 		private Dictionary<ChunkPos, Chunk> chunks ~ DeleteDictionaryAndValues!(_);
-		private List<Chunk> b = new .() ~ delete _;
+		private List<Chunk> visibleChunks = new .() ~ delete _;
 
 		private Dictionary<int, Entity> entities = new .() ~ DeleteDictionaryAndValues!(_);
 
@@ -64,22 +64,12 @@ namespace Meteorite {
 			for (Entity entity in entities.Values) entity.Tick();
 		}
 
-		public void Render(Camera camera, double tickDelta, bool mipmaps) {
+		public void Render(Camera camera, double tickDelta, bool mipmaps, bool sortChunks) {
 			Gfx.PushDebugGroup("World");
 
-			// Chunks solid
-			ChunkPushConstants pc = .();
-			pc.projectionView = camera.proj * camera.view;
-
-			Gfx.PushDebugGroup("Chunks - Solid");
-			Gfxa.CHUNK_PIPELINE.Bind();
-
-			if (mipmaps) Gfxa.CHUNK_MIPMAP_BIND_GROUP.Bind();
-			else Gfxa.CHUNK_BIND_GROUP.Bind();
-
+			// Gather visible chunks
+			visibleChunks.Clear();
 			renderedChunks = 0;
-
-			b.Clear();
 
 			for (Chunk chunk in chunks.Values) {
 				if (chunk.dirty && chunk.status == .Ready && IsChunkLoaded(chunk.pos.x + 1, chunk.pos.z) && IsChunkLoaded(chunk.pos.x - 1, chunk.pos.z) && IsChunkLoaded(chunk.pos.x, chunk.pos.z + 1) && IsChunkLoaded(chunk.pos.x, chunk.pos.z - 1)) {
@@ -99,15 +89,43 @@ namespace Meteorite {
 				}
 
 				if (chunk.status == .Ready && camera.IsBoxVisible(chunk.min, chunk.max)) {
-					if (chunk.mesh != null) {
-						pc.chunkPos = .(chunk.pos.x * Section.SIZE, chunk.pos.z * Section.SIZE);
-						Gfx.SetPushConstants(.Vertex, 0, sizeof(ChunkPushConstants), &pc);
-						chunk.mesh.Render();
-					}
-
+					visibleChunks.Add(chunk);
 					renderedChunks++;
-					b.Add(chunk);
 				}
+			}
+
+			// Sort chunks
+			if (sortChunks) {
+				visibleChunks.Sort(scope (lhs, rhs) => {
+					double x1 = (lhs.pos.x + 0.5) * 16 - camera.pos.x;
+					double z1 = (lhs.pos.z + 0.5) * 16 - camera.pos.z;
+					double dist1 = x1 * x1 + z1 * z1;
+
+					double x2 = (rhs.pos.x + 0.5) * 16 - camera.pos.x;
+					double z2 = (rhs.pos.z + 0.5) * 16 - camera.pos.z;
+					double dist2 = x2 * x2 + z2 * z2;
+
+					return dist2.CompareTo(dist1);
+				});
+			}
+
+			// Chunks solid
+			ChunkPushConstants pc = .();
+			pc.projectionView = camera.proj * camera.view;
+
+			Gfx.PushDebugGroup("Chunks - Solid");
+			Gfxa.CHUNK_PIPELINE.Bind();
+
+			if (mipmaps) Gfxa.CHUNK_MIPMAP_BIND_GROUP.Bind();
+			else Gfxa.CHUNK_BIND_GROUP.Bind();
+
+
+			for (Chunk chunk in visibleChunks) {
+				if (chunk.mesh == null) continue;
+
+				pc.chunkPos = .(chunk.pos.x * Section.SIZE, chunk.pos.z * Section.SIZE);
+				Gfx.SetPushConstants(.Vertex, 0, sizeof(ChunkPushConstants), &pc);
+				chunk.mesh.Render();
 			}
 
 			Gfx.PopDebugGroup();
@@ -133,7 +151,7 @@ namespace Meteorite {
 			Gfx.PushDebugGroup("Chunks - Transparent");
 			Gfxa.CHUNK_TRANSPARENT_PIPELINE.Bind();
 
-			for (Chunk chunk in b) {
+			for (Chunk chunk in visibleChunks) {
 				if (chunk.meshTransparent == null) continue;
 
 				pc.chunkPos = .(chunk.pos.x * Section.SIZE, chunk.pos.z * Section.SIZE);

@@ -36,6 +36,7 @@ namespace Meteorite {
 
 			bool wireframe = false;
 			bool mipmaps = true;
+			bool sortChunks = true;
 			bool chunkBoundaries = false;
 
 			double lastTime = Glfw.GetTime();
@@ -77,7 +78,7 @@ namespace Meteorite {
 						int tickCount = tickCounter.BeginRenderTick();
 						for (int i < Math.Min(10, tickCount)) c.world.Tick();
 
-						c.world.Render(camera, tickCounter.tickDelta, mipmaps);
+						c.world.Render(camera, tickCounter.tickDelta, mipmaps, sortChunks);
 						if (chunkBoundaries) c.world.RenderChunkBoundaries(camera);
 					}
 	
@@ -97,6 +98,7 @@ namespace Meteorite {
 					if (AO != preAO) c.world.ReloadChunks();
 
 					ImGui.Checkbox("Mipmaps", &mipmaps);
+					ImGui.Checkbox("Sort Chunks", &sortChunks);
 					ImGui.Checkbox("Chunk Boundaries", &chunkBoundaries);
 					ImGui.End();
 				}
