@@ -4,7 +4,7 @@ using System.Collections;
 namespace Meteorite {
 	static class Blocks {
 		public static Texture ATLAS ~ delete _;
-		public static Dictionary<int32, BlockState> BLOCKSTATES = new .() ~ delete _;
+		public static BlockState[] BLOCKSTATES ~ delete _;
 
 		private static Dictionary<StringView, int32> STARTING_IDS;
 
@@ -199,6 +199,7 @@ namespace Meteorite {
 		public static void Register() {
 			// Get starting ids
 			Json json = JsonParser.ParseFile("assets/blocks.json");
+			BLOCKSTATES = new .[(.) json["__max_id__"].AsNumber];
 			STARTING_IDS = new .((.) json.AsObject.Count);
 			for (let pair in json.AsObject) STARTING_IDS[pair.key.Substring(10)] = (.) pair.value.AsNumber;
 

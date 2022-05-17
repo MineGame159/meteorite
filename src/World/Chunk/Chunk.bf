@@ -20,8 +20,10 @@ namespace Meteorite {
 		public PalettedContainer<BlockState> blocks ~ delete _;
 		public PalettedContainer<Biome> biomes ~ delete _;
 
+		[Inline]
 		public BlockState Get(int x, int y, int z) => blocks.Get(x, y, z);
-
+		
+		[Inline]
 		public Biome GetBiome(int x, int y, int z) => biomes.Get((x >> 2) & 3, (y >> 2) & 3, (z >> 2) & 3);
 	}
 
@@ -61,11 +63,13 @@ namespace Meteorite {
 
 			delete sections;
 		}
-
+		
+		[Inline]
 		public BlockState Get(int x, int y, int z) {
 			return sections[y / Section.SIZE].Get(x, y % Section.SIZE, z);
 		}
 
+		[Inline]
 		public Section GetSection(int i) => sections[i];
 
 		public void Load(NetBuffer packet) {
@@ -116,7 +120,7 @@ namespace Meteorite {
 								    for (int k < entries) {
 								        int32 blockIndex = (.) ((l >> k * bitsPerEntry) & dataBitmask);
 
-								        BlockState blockState = Blocks.BLOCKSTATES.GetValueOrDefault(palette[blockIndex]);
+								        BlockState blockState = Blocks.BLOCKSTATES[palette[blockIndex]];
 								        if (blockState == null) blockState = Blocks.AIR.defaultBlockState;
 
 								        if (blockState.block != Blocks.AIR) {

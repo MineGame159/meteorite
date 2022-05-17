@@ -5,7 +5,7 @@ namespace Meteorite {
 		private static bool IsFilledWithWater(Block block) {
 			return block == Blocks.SEAGRASS || block == Blocks.TALL_SEAGRASS || block == Blocks.KELP || block == Blocks.KELP_PLANT;
 		}
-
+		
 		private static void RenderFluid(World world, Chunk chunk, int x, int y, int z, BlockState blockState, Biome biome) {
 			Block b = chunk.Get(x, y + 1, z).block;
 			if (b == Blocks.WATER || b == Blocks.LAVA || IsFilledWithWater(b)) return;
@@ -27,7 +27,7 @@ namespace Meteorite {
 				m.Vec3(.(x + 0, y + yOffset, z + 1)).Vec2(.(quad.region.x1, quad.region.y2)).Color(c).Next()
 			);
 		}
-
+		
 		public static void Render(World world, Chunk chunk, int x, int y, int z, BlockState blockState, Biome biome) {
 			if (blockState.model == null) return;
 
@@ -159,7 +159,7 @@ namespace Meteorite {
 			color.g = (.) (g / count);
 			color.b = (.) (b / count);
 		}
-
+		
 		private static Biome GetBiome(Chunk chunk, int x, int y, int z) {
 			World world = chunk.world;
 
@@ -175,7 +175,7 @@ namespace Meteorite {
 			Section s = c.GetSection(y >> 4);
 			return s == null ? null : s.GetBiome(x, y % world.SectionCount, z);
 		}
-
+		
 		private static BlockState GetBlock(World world, Chunk chunk, int x, int y, int z) {
 			if (y < 0) return Blocks.AIR.defaultBlockState;
 			if (y >= Section.SIZE * 16) return Blocks.AIR.defaultBlockState;
@@ -194,7 +194,6 @@ namespace Meteorite {
 			if (foo.y < 0) return false;
 			if (foo.y >= Section.SIZE * 16) return true;
 
-			[Unchecked]
 			BlockState blockState = foo.Get(direction);
 
 			if (foo.chunk.pos.x * 16 + foo.x == 1422 && foo.y == 179 && foo.chunk.pos.z * 16 + foo.z == -427 && quad.direction == .West) {
@@ -210,7 +209,7 @@ namespace Meteorite {
 
 			return true;
 		}
-
+		
 		private static mixin TestQuads(Quad quad, Vec3f min, Vec3f max) {
 			bool a = false;
 
@@ -222,17 +221,17 @@ namespace Meteorite {
 
 			a
 		}
-
+		
 		private static bool CanOcclude(World world, Chunk chunk, int x, int y, int z) {
 			Model model = GetBlock(world, chunk, x, y, z).model;
 		    return model != null && model.fullBlock;
 		}
-
+		
 		private static int Idk(bool side1, bool side2, bool corner) {
 		    if (side1 && side2) return 0;
 		    return 3 - ((side1 ? 1 : 0) + (side2 ? 1 : 0) + (corner ? 1 : 0));
 		}
-
+		
 		private static float AoY(World world, Chunk chunk, int x, int y, int z, int vx, int vy, int vz) {
 			var vx, vy, vz;
 
@@ -242,7 +241,7 @@ namespace Meteorite {
 
 		    return Idk(CanOcclude(world, chunk, x + vx, y + vy, z), CanOcclude(world, chunk, x, y + vy, z + vz), CanOcclude(world, chunk, x + vx, y + vy, z + vz)) / 3.0f;
 		}
-
+		
 		private static float AoX(World world, Chunk chunk, int x, int y, int z, int vx, int vy, int vz) {
 			var vx, vy, vz;
 
@@ -252,7 +251,7 @@ namespace Meteorite {
 
 		    return Idk(CanOcclude(world, chunk, x + vx, y + vy, z), CanOcclude(world, chunk, x + vx, y, z + vz), CanOcclude(world, chunk, x + vx, y + vy, z + vz)) / 3.0f;
 		}
-
+		
 		private static float AoZ(World world, Chunk chunk, int x, int y, int z, int vx, int vy, int vz) {
 			var vx, vy, vz;
 
@@ -279,7 +278,6 @@ namespace Meteorite {
 				this.blockStates = default;
 			}
 
-			[Unchecked]
 			public BlockState Get(Direction direction) mut {
 				BlockState blockState = blockStates[direction.Underlying];
 

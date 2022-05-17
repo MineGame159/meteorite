@@ -1,16 +1,15 @@
 using System;
-using System.Collections;
 
 namespace Meteorite {
 	class PalettedContainer<T> {
-		private Dictionary<int32, T> ids;
+		private T[] ids;
 		private T defaultValue;
 		private int32[] palette ~ delete _;
 		private uint64[] data ~ delete _;
 		private int bitsPerEntry, valuesPerLong, edgeBits;
 		private uint64 individualValueMask;
 
-		public this(Dictionary<int32, T> ids, T defaultValue, int32[] palette, uint64[] data, int bitsPerEntry, int edgeBits) {
+		public this(T[] ids, T defaultValue, int32[] palette, uint64[] data, int bitsPerEntry, int edgeBits) {
 			this.ids = ids;
 			this.defaultValue = defaultValue;
 			this.palette = palette;
@@ -34,7 +33,7 @@ namespace Meteorite {
 				entry = (data[startLong] >> startOffset) & individualValueMask;
 			}
 
-			T value = ids.GetValueOrDefault(palette[(.) entry]);
+			T value = ids[palette[(.) entry]];
 			return value != null ? value : defaultValue;
 		}
 	}

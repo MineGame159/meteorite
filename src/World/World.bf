@@ -78,23 +78,19 @@ namespace Meteorite {
 			else Gfxa.CHUNK_BIND_GROUP.Bind();
 
 			renderedChunks = 0;
-			int a = 0;
 
 			b.Clear();
 
 			for (Chunk chunk in chunks.Values) {
-				if (chunk.dirty && chunk.status == .Ready && chunkBuilderThread.TaskCount < 2 && a < 8 && IsChunkLoaded(chunk.pos.x + 1, chunk.pos.z) && IsChunkLoaded(chunk.pos.x - 1, chunk.pos.z) && IsChunkLoaded(chunk.pos.x, chunk.pos.z + 1) && IsChunkLoaded(chunk.pos.x, chunk.pos.z - 1)) {
+				if (chunk.dirty && chunk.status == .Ready && IsChunkLoaded(chunk.pos.x + 1, chunk.pos.z) && IsChunkLoaded(chunk.pos.x - 1, chunk.pos.z) && IsChunkLoaded(chunk.pos.x, chunk.pos.z + 1) && IsChunkLoaded(chunk.pos.x, chunk.pos.z - 1)) {
 					chunk.status = .Building;
 					if (chunk.mesh == null) {
 						chunk.mesh = new Mesh(Buffers.QUAD_INDICES);
 						chunk.meshTransparent = new Mesh(Buffers.QUAD_INDICES);
 					}
-					chunk.mesh.Begin();
-					chunk.meshTransparent.Begin();
 					//chunkBuilderThread.Add(new () => GenerateChunkMesh(chunk));
 					System.Threading.ThreadPool.QueueUserWorkItem(new () => GenerateChunkMesh(chunk));
 					//GenerateChunkMesh(chunk);
-					a++;
 				}
 				if (chunk.status == .Upload) {
 					chunk.meshTransparent.End();
@@ -208,6 +204,9 @@ namespace Meteorite {
 		}
 
 		private void GenerateChunkMesh(Chunk chunk) {
+			chunk.mesh.Begin();
+			chunk.meshTransparent.Begin();
+
 			for (int i < SectionCount) {
 				Section section = chunk.GetSection(i);
 				if (section == null) continue;

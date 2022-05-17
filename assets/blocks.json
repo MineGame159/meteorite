@@ -896,5 +896,6 @@
   "minecraft:raw_copper_block": 20338,
   "minecraft:raw_gold_block": 20339,
   "minecraft:potted_azalea_bush": 20340,
-  "minecraft:potted_flowering_azalea_bush": 20341
+  "minecraft:potted_flowering_azalea_bush": 20341,
+  "__max_id__": 20341
 }
