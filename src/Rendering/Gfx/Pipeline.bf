@@ -2,27 +2,27 @@ using System;
 using Wgpu;
 
 namespace Meteorite {
-	enum VertexAttributeType {
-		UByte,
-		Float
-	}
+	enum VertexAttribute {
+		case UByte4;
 
-	struct VertexAttribute : this(VertexAttributeType type, int count) {
+		case Float2;
+		case Float3;
+
 		public uint64 GetSize() {
-			uint64 typeSize = 0;
-			
-			switch (type) {
-			case .UByte: typeSize = sizeof(uint8);
-			case .Float: typeSize = sizeof(float);
-			}
+			switch (this) {
+			case .UByte4: return sizeof(uint8) * 4;
 
-			return typeSize * (.) count;
+			case .Float2: return sizeof(float) * 2;
+			case .Float3: return sizeof(float) * 3;
+			}
 		}
 
 		public Wgpu.VertexFormat GetFormat() {
-			switch (type) {
-			case .UByte: return .Unorm8x2 + count - 3;
-			case .Float: return .Float32 + count - 1;
+			switch (this) {
+			case .UByte4: return .Unorm8x4;
+
+			case .Float2: return .Float32x2;
+			case .Float3: return .Float32x3;
 			}
 		}
 	}

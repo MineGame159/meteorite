@@ -21,10 +21,10 @@ namespace Meteorite {
 			float yOffset = (p.value == 0 ? 15 : 15 - p.value) / 16f;
 
 			m.Quad(
-				m.Vec3(.(x + 0, y + yOffset, z + 0)).Vec2(.(quad.region.x1, quad.region.y1)).Color(c).Next(),
-				m.Vec3(.(x + 1, y + yOffset, z + 0)).Vec2(.(quad.region.x2, quad.region.y1)).Color(c).Next(),
-				m.Vec3(.(x + 1, y + yOffset, z + 1)).Vec2(.(quad.region.x2, quad.region.y2)).Color(c).Next(),
-				m.Vec3(.(x + 0, y + yOffset, z + 1)).Vec2(.(quad.region.x1, quad.region.y2)).Color(c).Next()
+				Vertex!(m, x + 0, y + yOffset, z + 0, quad.region.x1, quad.region.y1, c),
+				Vertex!(m, x + 1, y + yOffset, z + 0, quad.region.x2, quad.region.y1, c),
+				Vertex!(m, x + 1, y + yOffset, z + 1, quad.region.x2, quad.region.y2, c),
+				Vertex!(m, x + 0, y + yOffset, z + 1, quad.region.x1, quad.region.y2, c)
 			);
 		}
 		
@@ -101,34 +101,38 @@ namespace Meteorite {
 				switch (quad.direction) {
 				case .Up:
 					m.Quad(
-						m.Vec3(.(x + quad.vertices[0].x, y + quad.vertices[0].y, z + quad.vertices[0].z)).Vec2(.(quad.region.x1, quad.region.y1)).Color(c.MulWithoutA(quad.light * ao1)).Next(),
-						m.Vec3(.(x + quad.vertices[1].x, y + quad.vertices[1].y, z + quad.vertices[1].z)).Vec2(.(quad.region.x2, quad.region.y1)).Color(c.MulWithoutA(quad.light * ao2)).Next(),
-						m.Vec3(.(x + quad.vertices[2].x, y + quad.vertices[2].y, z + quad.vertices[2].z)).Vec2(.(quad.region.x2, quad.region.y2)).Color(c.MulWithoutA(quad.light * ao3)).Next(),
-						m.Vec3(.(x + quad.vertices[3].x, y + quad.vertices[3].y, z + quad.vertices[3].z)).Vec2(.(quad.region.x1, quad.region.y2)).Color(c.MulWithoutA(quad.light * ao4)).Next()
+						Vertex!(m, x + quad.vertices[0].x, y + quad.vertices[0].y, z + quad.vertices[0].z, quad.region.x1, quad.region.y1, c.MulWithoutA(quad.light * ao1)),
+						Vertex!(m, x + quad.vertices[1].x, y + quad.vertices[1].y, z + quad.vertices[1].z, quad.region.x2, quad.region.y1, c.MulWithoutA(quad.light * ao2)),
+						Vertex!(m, x + quad.vertices[2].x, y + quad.vertices[2].y, z + quad.vertices[2].z, quad.region.x2, quad.region.y2, c.MulWithoutA(quad.light * ao3)),
+						Vertex!(m, x + quad.vertices[3].x, y + quad.vertices[3].y, z + quad.vertices[3].z, quad.region.x1, quad.region.y2, c.MulWithoutA(quad.light * ao4))
 					);
 				case .Down:
 					m.Quad(
-						m.Vec3(.(x + quad.vertices[0].x, y + quad.vertices[0].y, z + quad.vertices[0].z)).Vec2(.(quad.region.x1, quad.region.y2)).Color(c.MulWithoutA(quad.light * ao1)).Next(),
-						m.Vec3(.(x + quad.vertices[1].x, y + quad.vertices[1].y, z + quad.vertices[1].z)).Vec2(.(quad.region.x1, quad.region.y1)).Color(c.MulWithoutA(quad.light * ao2)).Next(),
-						m.Vec3(.(x + quad.vertices[2].x, y + quad.vertices[2].y, z + quad.vertices[2].z)).Vec2(.(quad.region.x2, quad.region.y1)).Color(c.MulWithoutA(quad.light * ao3)).Next(),
-						m.Vec3(.(x + quad.vertices[3].x, y + quad.vertices[3].y, z + quad.vertices[3].z)).Vec2(.(quad.region.x2, quad.region.y2)).Color(c.MulWithoutA(quad.light * ao4)).Next()
+						Vertex!(m, x + quad.vertices[0].x, y + quad.vertices[0].y, z + quad.vertices[0].z, quad.region.x1, quad.region.y2, c.MulWithoutA(quad.light * ao1)),
+						Vertex!(m, x + quad.vertices[1].x, y + quad.vertices[1].y, z + quad.vertices[1].z, quad.region.x1, quad.region.y1, c.MulWithoutA(quad.light * ao2)),
+						Vertex!(m, x + quad.vertices[2].x, y + quad.vertices[2].y, z + quad.vertices[2].z, quad.region.x2, quad.region.y1, c.MulWithoutA(quad.light * ao3)),
+						Vertex!(m, x + quad.vertices[3].x, y + quad.vertices[3].y, z + quad.vertices[3].z, quad.region.x2, quad.region.y2, c.MulWithoutA(quad.light * ao4))
 					);
 				case .North, .East:
 					m.Quad(
-						m.Vec3(.(x + quad.vertices[0].x, y + quad.vertices[0].y, z + quad.vertices[0].z)).Vec2(.(quad.region.x2, quad.region.y2)).Color(c.MulWithoutA(quad.light * ao1)).Next(),
-						m.Vec3(.(x + quad.vertices[1].x, y + quad.vertices[1].y, z + quad.vertices[1].z)).Vec2(.(quad.region.x1, quad.region.y2)).Color(c.MulWithoutA(quad.light * ao2)).Next(),
-						m.Vec3(.(x + quad.vertices[2].x, y + quad.vertices[2].y, z + quad.vertices[2].z)).Vec2(.(quad.region.x1, quad.region.y1)).Color(c.MulWithoutA(quad.light * ao3)).Next(),
-						m.Vec3(.(x + quad.vertices[3].x, y + quad.vertices[3].y, z + quad.vertices[3].z)).Vec2(.(quad.region.x2, quad.region.y1)).Color(c.MulWithoutA(quad.light * ao4)).Next()
+						Vertex!(m, x + quad.vertices[0].x, y + quad.vertices[0].y, z + quad.vertices[0].z, quad.region.x2, quad.region.y2, c.MulWithoutA(quad.light * ao1)),
+						Vertex!(m, x + quad.vertices[1].x, y + quad.vertices[1].y, z + quad.vertices[1].z, quad.region.x1, quad.region.y2, c.MulWithoutA(quad.light * ao2)),
+						Vertex!(m, x + quad.vertices[2].x, y + quad.vertices[2].y, z + quad.vertices[2].z, quad.region.x1, quad.region.y1, c.MulWithoutA(quad.light * ao3)),
+						Vertex!(m, x + quad.vertices[3].x, y + quad.vertices[3].y, z + quad.vertices[3].z, quad.region.x2, quad.region.y1, c.MulWithoutA(quad.light * ao4))
 					);
 				case .South, .West:
 					m.Quad(
-						m.Vec3(.(x + quad.vertices[0].x, y + quad.vertices[0].y, z + quad.vertices[0].z)).Vec2(.(quad.region.x1, quad.region.y2)).Color(c.MulWithoutA(quad.light * ao1)).Next(),
-						m.Vec3(.(x + quad.vertices[1].x, y + quad.vertices[1].y, z + quad.vertices[1].z)).Vec2(.(quad.region.x1, quad.region.y1)).Color(c.MulWithoutA(quad.light * ao2)).Next(),
-						m.Vec3(.(x + quad.vertices[2].x, y + quad.vertices[2].y, z + quad.vertices[2].z)).Vec2(.(quad.region.x2, quad.region.y1)).Color(c.MulWithoutA(quad.light * ao3)).Next(),
-						m.Vec3(.(x + quad.vertices[3].x, y + quad.vertices[3].y, z + quad.vertices[3].z)).Vec2(.(quad.region.x2, quad.region.y2)).Color(c.MulWithoutA(quad.light * ao4)).Next()
+						Vertex!(m, x + quad.vertices[0].x, y + quad.vertices[0].y, z + quad.vertices[0].z, quad.region.x1, quad.region.y2, c.MulWithoutA(quad.light * ao1)),
+						Vertex!(m, x + quad.vertices[1].x, y + quad.vertices[1].y, z + quad.vertices[1].z, quad.region.x1, quad.region.y1, c.MulWithoutA(quad.light * ao2)),
+						Vertex!(m, x + quad.vertices[2].x, y + quad.vertices[2].y, z + quad.vertices[2].z, quad.region.x2, quad.region.y1, c.MulWithoutA(quad.light * ao3)),
+						Vertex!(m, x + quad.vertices[3].x, y + quad.vertices[3].y, z + quad.vertices[3].z, quad.region.x2, quad.region.y2, c.MulWithoutA(quad.light * ao4))
 					);
 				}
 			}
+		}
+
+		private static mixin Vertex(Mesh mesh, float x, float y, float z, float u, float v, Color color) {
+			mesh.Vec3(.(x, y, z)).Vec2(.(u, v)).Color(color).Next()
 		}
 
 		private static void Tint(Chunk chunk, BlockState blockState, int x, int y, int z, ref Color color) {

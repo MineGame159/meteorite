@@ -48,7 +48,7 @@ namespace Meteorite {
 			// Pipelines
 			CHUNK_PIPELINE = Gfx.NewPipeline()
 				.BindGroupLayouts(TEXTURE_SAMPLER_LAYOUT)
-				.Attributes(.(.Float, 3), .(.Float, 2), .(.UByte, 4))
+				.Attributes(.Float3, .Float2, .UByte4)
 				.VertexShader(CHUNK_SHADER, "vs_main")
 				.FragmentShader(CHUNK_SHADER, "fs_main")
 				.PushConstants(.Vertex, 0, sizeof(ChunkPushConstants))
@@ -57,7 +57,7 @@ namespace Meteorite {
 				.Create();
 			CHUNK_TRANSPARENT_PIPELINE = Gfx.NewPipeline()
 				.BindGroupLayouts(TEXTURE_SAMPLER_LAYOUT)
-				.Attributes(.(.Float, 3), .(.Float, 2), .(.UByte, 4))
+				.Attributes(.Float3, .Float2, .UByte4)
 				.VertexShader(CHUNK_TRANSPARENT_SHADER, "vs_main")
 				.FragmentShader(CHUNK_TRANSPARENT_SHADER, "fs_main")
 				.PushConstants(.Vertex, 0, sizeof(ChunkPushConstants))
@@ -65,7 +65,7 @@ namespace Meteorite {
 				.Depth(true, false)
 				.Create();
 			LINES_PIPELINE = Gfx.NewPipeline()
-				.Attributes(.(.Float, 3), .(.UByte, 4))
+				.Attributes(.Float3, .UByte4)
 				.VertexShader(LINES_SHADER, "vs_main")
 				.FragmentShader(LINES_SHADER, "fs_main")
 				.PushConstants(.Vertex, 0, sizeof(Mat4))
@@ -73,7 +73,7 @@ namespace Meteorite {
 				.Depth(true)
 				.Create();
 			QUADS_PIPELINE = Gfx.NewPipeline()
-				.Attributes(.(.Float, 3), .(.UByte, 4))
+				.Attributes(.Float3, .UByte4)
 				.VertexShader(LINES_SHADER, "vs_main")
 				.FragmentShader(LINES_SHADER, "fs_main")
 				.PushConstants(.Vertex, 0, sizeof(Mat4))

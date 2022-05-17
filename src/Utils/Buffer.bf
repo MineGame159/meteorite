@@ -27,6 +27,11 @@ namespace Meteorite {
 
 		public void UByte(uint8 v) => data[size++] = v;
 
+		public void UShort(uint16 v) {
+			*((uint16*) &data[size]) = v;
+			size += sizeof(uint16);
+		}
+
 		public void UInt(uint32 v) {
 			*((uint32*) &data[size]) = v;
 			size += sizeof(uint32);
