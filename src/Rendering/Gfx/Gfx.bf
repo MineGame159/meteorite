@@ -25,12 +25,18 @@ namespace Meteorite {
 		private Wgpu.Buffer handle ~ _.Drop();
 		private Wgpu.BufferUsage usage;
 
-		public readonly int size;
+		public readonly uint64 size;
 
-		private this(Wgpu.Buffer handle, Wgpu.BufferUsage usage, int size) {
+		private this(Wgpu.Buffer handle, Wgpu.BufferUsage usage, uint64 size) {
 			this.handle = handle;
 			this.usage = usage;
 			this.size = size;
+
+			Gfx.ALLOCATED += size;
+		}
+
+		public ~this() {
+			Gfx.ALLOCATED -= size;
 		}
 
 		public void Bind() {
@@ -56,6 +62,19 @@ namespace Meteorite {
 			this.handle = handle;
 			this.view = view;
 			this.descriptor = descriptor;
+
+			
+			Gfx.ALLOCATED += GetUsedMemory();
+		}
+
+		public ~this() {
+			Gfx.ALLOCATED -= GetUsedMemory();
+		}
+
+		public uint64 GetUsedMemory() {
+			// Most probably incorrect
+			Wgpu.Extent3D s = descriptor.size.GetPhysicalSize(descriptor.format);
+			return s.width * s.height * s.depthOrArrayLayers * Wgpu.Describe(descriptor.format).blockSize;
 		}
 
 		public void Write(int width, int height, int level, void* data) {
@@ -96,6 +115,8 @@ namespace Meteorite {
 		private static Wgpu.Texture depthTexture;
 		private static Wgpu.TextureView depthView;
 		private static Wgpu.Sampler depthSampler;
+
+		public static uint64 ALLOCATED = 0;
 
 		public static void Init(Window window, Wgpu.Device device, Wgpu.SwapChain swapChain, int width, int height) {
 			Gfx.device = device;
@@ -222,15 +243,6 @@ namespace Meteorite {
 			view.Drop();
 		}
 
-		public static Wgpu.Buffer CreateBuffer(int size, Wgpu.BufferUsage usage) {
-			Wgpu.BufferDescriptor desc = .() {
-				usage = usage,
-				size = (.) size
-			};
-
-			return device.CreateBuffer(&desc);
-		}
-
 		public static BindGroupLayoutBuilder NewBindGroupLayout() => new [Friend].();
 
 		public static Sampler CreateSampler(Wgpu.AddressMode addressMode, Wgpu.FilterMode magFilter, Wgpu.FilterMode minFilter, Wgpu.MipmapFilterMode mipmapFilter = .Nearest, int mipLevels = 1) {
@@ -285,7 +297,7 @@ namespace Meteorite {
 				handle.Unmap();
 			}
 			
-			return new [Friend].(handle, usage, (.) alignedSize);
+			return new [Friend].(handle, usage, alignedSize);
 		}
 
 		public static Texture CreateTexture(Wgpu.TextureUsage usage, int width, int height, int levels, void* data) {

@@ -84,6 +84,7 @@ namespace Meteorite {
 					ImGui.Begin("Meteorite");
 					ImGui.Text("Frame: {:0.000} ms", (Glfw.GetTime() - start) * 1000);
 					ImGui.Text("Memory: {} MB", Utils.GetUsedMemory());
+					ImGui.Text("GPU Memory: {} MB", Gfx.ALLOCATED / 1024 / 1024);
 					if (c.world != null) {
 						ImGui.Text("Chunks: {} / {}", c.world.renderedChunks, c.world.ChunkCount);
 						ImGui.Text("Entities: {}", c.world.EntityCount);

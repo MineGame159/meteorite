@@ -101,7 +101,7 @@ namespace Meteorite {
 		}
 
 		public void End() {
-			if (vbo == null || vertices.size > vbo.size) {
+			if (vbo == null || vertices.size > (.) vbo.size) {
 				if (vbo != null) delete vbo;
 				vbo = Gfx.CreateBuffer(.Vertex | .CopyDst, vertices.size, vertices.data);
 			}
@@ -110,7 +110,7 @@ namespace Meteorite {
 			}
 
 			if (!externalIndices) {
-				if (ibo == null || indices.size > ibo.size) {
+				if (ibo == null || indices.size > (.) ibo.size) {
 					if (ibo != null) delete ibo;
 					ibo = Gfx.CreateBuffer(.Index | .CopyDst, indices.size, indices.data);
 				}
