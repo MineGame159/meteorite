@@ -33,6 +33,7 @@ namespace Meteorite {
 			char8[16] username = "Meteorite";
 			char8[32] ip = "localhost";
 			char8[6] port = "25565";
+			int32 viewDistance = 6;
 
 			bool mipmaps = true;
 			bool sortChunks = true;
@@ -55,14 +56,15 @@ namespace Meteorite {
 				double start = Glfw.GetTime();
 
 				if (c == null) {
-					ImGui.Begin("Menu");
+					ImGui.Begin("Menu", null, .AlwaysAutoResize);
 
 					ImGui.InputText("Username", &username, username.Count);
 					ImGui.InputText("IP", &ip, ip.Count);
 					ImGui.InputText("Port", &port, port.Count);
+					ImGui.DragInt("View Distance", &viewDistance, 1, 2, 32);
 
 					if (ImGui.Button("Connect", .(-1, 0))) {
-						c = new .(.(&ip), int32.Parse(.(&port)));
+						c = new .(.(&ip), int32.Parse(.(&port)), viewDistance);
 						window.MouseHidden = true;
 					}
 

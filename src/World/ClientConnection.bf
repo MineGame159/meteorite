@@ -30,10 +30,13 @@ namespace Meteorite {
 		private const int32 C2S_CLIENT_STATUS = 0x04;
 
 		public World world;
+		private int32 viewDistance;
 
 		private bool playState, firstPlayerInfo = true, firstPlayerPositionAndLook = true;
 
-		public this(StringView address, int32 port) : base(address, port) {}
+		public this(StringView address, int32 port, int32 viewDistance) : base(address, port) {
+			this.viewDistance = viewDistance;
+		}
 
 		public ~this() {
 			World w = world;
@@ -114,7 +117,7 @@ namespace Meteorite {
 				    NetBuffer buf = scope .();
 				    buf.WriteVarInt(C2S_CLIENT_SETTINGS); // ID
 				    buf.WriteString("en_GB"); // Locale
-				    buf.WriteByte(6); // View Distance
+				    buf.WriteByte((.) viewDistance); // View Distance
 				    buf.WriteVarInt(0); // Chat Mode (0 - enabled)
 				    buf.WriteBool(true); // Chat Colors
 				    buf.WriteUByte(0); // Displayed Skin Parts
