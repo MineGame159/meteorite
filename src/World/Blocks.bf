@@ -13,9 +13,9 @@ namespace Meteorite {
 		public static Block BEDROCK;
 		public static Block STONE;
 		public static Block INFESTED_STONE;
-		public static Block GRANITE;
-		public static Block DIORITE;
-		public static Block ANDESITE;
+		public static Block GRANITE, POLISHED_GRANITE;
+		public static Block DIORITE, POLISHED_DIORITE;
+		public static Block ANDESITE, POLISHED_ANDESITE;
 		public static Block DEEPSLATE;
 		public static Block TUFF;
 		public static Block COBBLESTONE;
@@ -31,56 +31,6 @@ namespace Meteorite {
 		public static Block PODZOL;
 		public static Block DIRT_PATH;
 		public static Block FARMLAND;
-
-		public static Block OAK_LOG;
-		public static Block SPRUCE_LOG;
-		public static Block BIRCH_LOG;
-		public static Block JUNGLE_LOG;
-		public static Block ACACIA_LOG;
-		public static Block DARK_OAK_LOG;
-
-		public static Block STRIPPED_OAK_LOG;
-		public static Block STRIPPED_SPRUCE_LOG;
-		public static Block STRIPPED_BIRCH_LOG;
-		public static Block STRIPPED_JUNGLE_LOG;
-		public static Block STRIPPED_ACACIA_LOG;
-		public static Block STRIPPED_DARK_OAK_LOG;
-
-		public static Block OAK_PLANKS;
-		public static Block SPRUCE_PLANKS;
-		public static Block BIRCH_PLANKS;
-		public static Block JUNGLE_PLANKS;
-		public static Block ACACIA_PLANKS;
-		public static Block DARK_OAK_PLANKS;
-		public static Block CRIMSON_PLANKS;
-		public static Block WARPED_PLANKS;
-
-		public static Block OAK_SLAB;
-		public static Block SPRUCE_SLAB;
-		public static Block BIRCH_SLAB;
-		public static Block JUNGLE_SLAB;
-		public static Block ACACIA_SLAB;
-		public static Block DARK_OAK_SLAB;
-		public static Block CRIMSON_SLAB;
-		public static Block WARPED_SLAB;
-
-		public static Block OAK_STAIRS;
-		public static Block SPRUCE_STAIRS;
-		public static Block BIRCH_STAIRS;
-		public static Block JUNGLE_STAIRS;
-		public static Block ACACIA_STAIRS;
-		public static Block DARK_OAK_STAIRS;
-		public static Block CRIMSON_STAIRS;
-		public static Block WARPED_STAIRS;
-
-		public static Block OAK_TRAPDOOR;
-		public static Block SPRUCE_TRAPDOOR;
-		public static Block BIRCH_TRAPDOOR;
-		public static Block JUNGLE_TRAPDOOR;
-		public static Block ACACIA_TRAPDOOR;
-		public static Block DARK_OAK_TRAPDOOR;
-		public static Block CRIMSON_TRAPDOOR;
-		public static Block WARPED_TRAPDOOR;
 
 		public static Block OAK_FENCE;
 		public static Block SPRUCE_FENCE;
@@ -210,73 +160,66 @@ namespace Meteorite {
 			STONE = Register(new .("stone", false));
 			INFESTED_STONE = Register(new .("infested_stone", false));
 			GRANITE = Register(new .("granite", false));
+			POLISHED_GRANITE = Register(new .("polished_granite", false));
 			DIORITE = Register(new .("diorite", false));
+			POLISHED_DIORITE = Register(new .("polished_diorite", false));
 			ANDESITE = Register(new .("andesite", false));
+			POLISHED_ANDESITE = Register(new .("polished_andesite", false));
 			DEEPSLATE = Register(new .("deepslate", false), Properties.AXIS);
 			TUFF = Register(new .("tuff", false));
 			COBBLESTONE = Register(new .("cobblestone", false));
 			MOSSY_COBBLESTONE = Register(new .("mossy_cobblestone", false));
 			DRIPSTONE = Register(new .("dripstone_block", false));
 			POINTED_DRIPSTONE = Register(new .("pointed_dripstone", true, true), Properties.THICKNESS, Properties.VERTICAL_DIRECTION, Properties.WATERLOGGED);
+			Register(new .("bricks", false));
 
 			DIRT = Register(new .("dirt", false));
 			GRASS_BLOCK = Register(new .("grass_block", false), Properties.SNOWY);
 			SAND = Register(new .("sand", false));
+			Register(new .("soul_sand", false));
+			Register(new .("sandstone", false));
+			Register(new .("smooth_sandstone", false));
+			Register(new .("chiseled_sandstone", false));
 			GRAVEL = Register(new .("gravel", false));
 			CLAY = Register(new .("clay", false));
 			PODZOL = Register(new .("podzol", false), Properties.SNOWY);
 			DIRT_PATH = Register(new .("dirt_path", false));
 			FARMLAND = Register(new .("farmland", false), Properties.MOISTURE);
 
-			OAK_LOG = Register(new .("oak_log", false), Properties.AXIS);
-			SPRUCE_LOG = Register(new .("spruce_log", false), Properties.AXIS);
-			BIRCH_LOG = Register(new .("birch_log", false), Properties.AXIS);
-			JUNGLE_LOG = Register(new .("jungle_log", false), Properties.AXIS);
-			ACACIA_LOG = Register(new .("acacia_log", false), Properties.AXIS);
-			DARK_OAK_LOG = Register(new .("dark_oak_log", false), Properties.AXIS);
+			LoopWood(false, (wood) => Register(new .(scope $"{wood}_log", false), Properties.AXIS));
+			LoopWood(false, (wood) => Register(new .(scope $"{wood}_wood", false), Properties.AXIS));
+			LoopWood(false, (wood) => Register(new .(scope $"stripped_{wood}_log", false), Properties.AXIS));
+			LoopWood(false, (wood) => Register(new .(scope $"stripped_{wood}_wood", false), Properties.AXIS));
 
-			STRIPPED_OAK_LOG = Register(new .("stripped_oak_log", false), Properties.AXIS);
-			STRIPPED_SPRUCE_LOG = Register(new .("stripped_spruce_log", false), Properties.AXIS);
-			STRIPPED_BIRCH_LOG = Register(new .("stripped_birch_log", false), Properties.AXIS);
-			STRIPPED_JUNGLE_LOG = Register(new .("stripped_jungle_log", false), Properties.AXIS);
-			STRIPPED_ACACIA_LOG = Register(new .("stripped_acacia_log", false), Properties.AXIS);
-			STRIPPED_DARK_OAK_LOG = Register(new .("stripped_dark_oak_log", false), Properties.AXIS);
+			LoopWood(true, (wood) => Register(new .(scope $"{wood}_planks", false)));
+			LoopWood(true, (wood) => Register(new .(scope $"{wood}_trapdoor", true), Properties.HORIZONTAL_FACING, Properties.OPEN, Properties.BLOCK_HALF, Properties.POWERED, Properties.WATERLOGGED));
 
-			OAK_PLANKS = Register(new .("oak_planks", false));
-			SPRUCE_PLANKS = Register(new .("spruce_planks", false));
-			BIRCH_PLANKS = Register(new .("birch_planks", false));
-			JUNGLE_PLANKS = Register(new .("jungle_planks", false));
-			ACACIA_PLANKS = Register(new .("acacia_planks", false));
-			DARK_OAK_PLANKS = Register(new .("dark_oak_planks", false));
-			CRIMSON_PLANKS = Register(new .("crimson_planks", false));
-			WARPED_PLANKS = Register(new .("warped_planks", false));
+			LoopWood(true, (wood) => Register(new .(scope $"{wood}_slab", false), Properties.SLAB_TYPE, Properties.WATERLOGGED));
+			Register(new .("granite_slab", false), Properties.SLAB_TYPE, Properties.WATERLOGGED);
+			Register(new .("polished_granite_slab", false), Properties.SLAB_TYPE, Properties.WATERLOGGED);
+			Register(new .("diorite_slab", false), Properties.SLAB_TYPE, Properties.WATERLOGGED);
+			Register(new .("polished_diorite_slab", false), Properties.SLAB_TYPE, Properties.WATERLOGGED);
+			Register(new .("andesite_slab", false), Properties.SLAB_TYPE, Properties.WATERLOGGED);
+			Register(new .("polished_andesite_slab", false), Properties.SLAB_TYPE, Properties.WATERLOGGED);
+			Register(new .("quartz_slab", false), Properties.SLAB_TYPE, Properties.WATERLOGGED);
+			Register(new .("stone_slab", false), Properties.SLAB_TYPE, Properties.WATERLOGGED);
+			Register(new .("smooth_stone_slab", false), Properties.SLAB_TYPE, Properties.WATERLOGGED);
+			Register(new .("sandstone_slab", false), Properties.SLAB_TYPE, Properties.WATERLOGGED);
+			Register(new .("smooth_sandstone_slab", false), Properties.SLAB_TYPE, Properties.WATERLOGGED);
+			Register(new .("smooth_quartz_slab", false), Properties.SLAB_TYPE, Properties.WATERLOGGED);
 
-			OAK_SLAB = Register(new .("oak_slab", false), Properties.SLAB_TYPE, Properties.WATERLOGGED);
-			SPRUCE_SLAB = Register(new .("spruce_slab", false), Properties.SLAB_TYPE, Properties.WATERLOGGED);
-			BIRCH_SLAB = Register(new .("birch_slab", false), Properties.SLAB_TYPE, Properties.WATERLOGGED);
-			JUNGLE_SLAB = Register(new .("jungle_slab", false), Properties.SLAB_TYPE, Properties.WATERLOGGED);
-			ACACIA_SLAB = Register(new .("acacia_slab", false), Properties.SLAB_TYPE, Properties.WATERLOGGED);
-			DARK_OAK_SLAB = Register(new .("dark_oak_slab", false), Properties.SLAB_TYPE, Properties.WATERLOGGED);
-			CRIMSON_SLAB = Register(new .("crimson_slab", false), Properties.SLAB_TYPE, Properties.WATERLOGGED);
-			WARPED_SLAB = Register(new .("warped_slab", false), Properties.SLAB_TYPE, Properties.WATERLOGGED);
-
-			OAK_STAIRS = Register(new .("oak_stairs", false), Properties.FACING, Properties.BLOCK_HALF, Properties.STAIRS_SHAPE, Properties.WATERLOGGED);
-			SPRUCE_STAIRS = Register(new .("spruce_stairs", false), Properties.FACING, Properties.BLOCK_HALF, Properties.STAIRS_SHAPE, Properties.WATERLOGGED);
-			BIRCH_STAIRS = Register(new .("birch_stairs", false), Properties.FACING, Properties.BLOCK_HALF, Properties.STAIRS_SHAPE, Properties.WATERLOGGED);
-			JUNGLE_STAIRS = Register(new .("jungle_stairs", false), Properties.FACING, Properties.BLOCK_HALF, Properties.STAIRS_SHAPE, Properties.WATERLOGGED);
-			ACACIA_STAIRS = Register(new .("acacia_stairs", false), Properties.FACING, Properties.BLOCK_HALF, Properties.STAIRS_SHAPE, Properties.WATERLOGGED);
-			DARK_OAK_STAIRS = Register(new .("dark_oak_stairs", false), Properties.FACING, Properties.BLOCK_HALF, Properties.STAIRS_SHAPE, Properties.WATERLOGGED);
-			CRIMSON_STAIRS = Register(new .("crimson_stairs", false), Properties.FACING, Properties.BLOCK_HALF, Properties.STAIRS_SHAPE, Properties.WATERLOGGED);
-			WARPED_STAIRS = Register(new .("warped_stairs", false), Properties.FACING, Properties.BLOCK_HALF, Properties.STAIRS_SHAPE, Properties.WATERLOGGED);
-
-			OAK_TRAPDOOR = Register(new .("oak_trapdoor", true), Properties.HORIZONTAL_FACING, Properties.OPEN, Properties.BLOCK_HALF, Properties.POWERED, Properties.WATERLOGGED);
-			SPRUCE_TRAPDOOR = Register(new .("spruce_trapdoor", true), Properties.HORIZONTAL_FACING, Properties.OPEN, Properties.BLOCK_HALF, Properties.POWERED, Properties.WATERLOGGED);
-			BIRCH_TRAPDOOR = Register(new .("birch_trapdoor", true), Properties.HORIZONTAL_FACING, Properties.OPEN, Properties.BLOCK_HALF, Properties.POWERED, Properties.WATERLOGGED);
-			JUNGLE_TRAPDOOR = Register(new .("jungle_trapdoor", true), Properties.HORIZONTAL_FACING, Properties.OPEN, Properties.BLOCK_HALF, Properties.POWERED, Properties.WATERLOGGED);
-			ACACIA_TRAPDOOR = Register(new .("acacia_trapdoor", true), Properties.HORIZONTAL_FACING, Properties.OPEN, Properties.BLOCK_HALF, Properties.POWERED, Properties.WATERLOGGED);
-			DARK_OAK_TRAPDOOR = Register(new .("dark_oak_trapdoor", true), Properties.HORIZONTAL_FACING, Properties.OPEN, Properties.BLOCK_HALF, Properties.POWERED, Properties.WATERLOGGED);
-			CRIMSON_TRAPDOOR = Register(new .("crimson_trapdoor", true), Properties.HORIZONTAL_FACING, Properties.OPEN, Properties.BLOCK_HALF, Properties.POWERED, Properties.WATERLOGGED);
-			WARPED_TRAPDOOR = Register(new .("warped_trapdoor", true), Properties.HORIZONTAL_FACING, Properties.OPEN, Properties.BLOCK_HALF, Properties.POWERED, Properties.WATERLOGGED);
+			LoopWood(true, (wood) => Register(new .(scope $"{wood}_stairs", false), Properties.FACING, Properties.BLOCK_HALF, Properties.STAIRS_SHAPE, Properties.WATERLOGGED));
+			Register(new .("granite_stairs", false), Properties.FACING, Properties.BLOCK_HALF, Properties.STAIRS_SHAPE, Properties.WATERLOGGED);
+			Register(new .("polished_granite_stairs", false), Properties.FACING, Properties.BLOCK_HALF, Properties.STAIRS_SHAPE, Properties.WATERLOGGED);
+			Register(new .("diorite_stairs", false), Properties.FACING, Properties.BLOCK_HALF, Properties.STAIRS_SHAPE, Properties.WATERLOGGED);
+			Register(new .("polished_diorite_stairs", false), Properties.FACING, Properties.BLOCK_HALF, Properties.STAIRS_SHAPE, Properties.WATERLOGGED);
+			Register(new .("andesite_stairs", false), Properties.FACING, Properties.BLOCK_HALF, Properties.STAIRS_SHAPE, Properties.WATERLOGGED);
+			Register(new .("polished_andesite_stairs", false), Properties.FACING, Properties.BLOCK_HALF, Properties.STAIRS_SHAPE, Properties.WATERLOGGED);
+			Register(new .("quartz_stairs", false), Properties.FACING, Properties.BLOCK_HALF, Properties.STAIRS_SHAPE, Properties.WATERLOGGED);
+			Register(new .("stone_stairs", false), Properties.FACING, Properties.BLOCK_HALF, Properties.STAIRS_SHAPE, Properties.WATERLOGGED);
+			Register(new .("sandstone_stairs", false), Properties.FACING, Properties.BLOCK_HALF, Properties.STAIRS_SHAPE, Properties.WATERLOGGED);
+			Register(new .("smooth_sandstone_stairs", false), Properties.FACING, Properties.BLOCK_HALF, Properties.STAIRS_SHAPE, Properties.WATERLOGGED);
+			Register(new .("smooth_quartz_stairs", false), Properties.FACING, Properties.BLOCK_HALF, Properties.STAIRS_SHAPE, Properties.WATERLOGGED);
 
 			OAK_FENCE = Register(new .("oak_fence", false), Properties.EAST, Properties.NORTH, Properties.SOUTH, Properties.WATERLOGGED, Properties.WEST);
 			/*SPRUCE_FENCE = Register(new .("spruce_fence", false), Properties.EAST, Properties.NORTH, Properties.SOUTH, Properties.WATERLOGGED, Properties.WEST);
@@ -359,12 +302,34 @@ namespace Meteorite {
 
 			LoopColors(true, (color) => {
 				if (color.IsEmpty) Register(new .("terracotta", false));
-				else Register(new .(scope $"{color}_terracotta", false));
+				else {
+					Register(new .(scope $"{color}_terracotta", false));
+					Register(new .(scope $"{color}_glazed_terracotta", false), Properties.HORIZONTAL_FACING);
+				}
 			});
+
+			Register(new .("chiseled_quartz_block", false));
+			Register(new .("quartz_block", false));
+			Register(new .("quartz_bricks", false));
+			Register(new .("quartz_pillar", false), Properties.AXIS);
+			Register(new .("smooth_quartz", false));
 
 			// Delete starting ids
 			delete STARTING_IDS;
 			json.Dispose();
+		}
+
+		private static void LoopWood(bool nether, function void(StringView) callback) {
+			callback("oak");
+			callback("spruce");
+			callback("birch");
+			callback("jungle");
+			callback("acacia");
+			callback("dark_oak");
+			if (nether) {
+				callback("crimson");
+				callback("warped");
+			}
 		}
 
 		private static void LoopColors(bool none, function void(StringView) callback) {

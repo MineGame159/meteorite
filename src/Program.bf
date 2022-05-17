@@ -34,7 +34,6 @@ namespace Meteorite {
 			char8[32] ip = "localhost";
 			char8[6] port = "25565";
 
-			bool wireframe = false;
 			bool mipmaps = true;
 			bool sortChunks = true;
 			bool chunkBoundaries = false;
@@ -73,7 +72,6 @@ namespace Meteorite {
 					camera.FlightMovement(delta);
 					camera.Update();
 
-					//glPolygonMode(GL_FRONT_AND_BACK, wireframe ? GL_LINE : GL_FILL);
 					if (c.world != null) {
 						int tickCount = tickCounter.BeginRenderTick();
 						for (int i < Math.Min(10, tickCount)) c.world.Tick();
@@ -86,12 +84,14 @@ namespace Meteorite {
 					ImGui.Text("Frame: {:0.000} ms", (Glfw.GetTime() - start) * 1000);
 					ImGui.Text("Memory: {} MB", Utils.GetUsedMemory());
 					ImGui.Text("GPU Memory: {} MB", Gfx.ALLOCATED / 1024 / 1024);
+					ImGui.Separator();
+
 					if (c.world != null) {
 						ImGui.Text("Chunks: {} / {}", c.world.renderedChunks, c.world.ChunkCount);
 						ImGui.Text("Entities: {}", c.world.EntityCount);
 					}
 					ImGui.Text("Pos: {:0} {:0} {:0}", camera.pos.x, camera.pos.y, camera.pos.z);
-					ImGui.Checkbox("Wireframe", &wireframe);
+					ImGui.Separator();
 	
 					bool preAO = AO;
 					ImGui.Checkbox("AO", &AO);
