@@ -41,6 +41,7 @@ namespace Meteorite{
 							}
 						}
 
+						model.Finish();
 						blockState.model = model;
 						DeleteContainerAndDisposeItems!(modelJsons);
 					}
@@ -52,6 +53,7 @@ namespace Meteorite{
 								ParseElement(block, textures, model, rawModel.json, j, rawModel.rotation);
 							}
 
+							model.Finish();
 							blockState.model = model;
 							rawModel.Dispose();
 						}
@@ -90,22 +92,14 @@ namespace Meteorite{
 			Json fromJson = json["from"];
 			Vec3f from = .((.) fromJson[0].AsNumber / 16, (.) fromJson[1].AsNumber / 16, (.) fromJson[2].AsNumber / 16);
 
-			int fromX = (.) fromJson[0].AsNumber;
-			int fromY = (.) fromJson[1].AsNumber;
-			int fromZ = (.) fromJson[2].AsNumber;
-
 			// Parse to
 			Json toJson = json["to"];
 			Vec3f to = .((.) toJson[0].AsNumber / 16, (.) toJson[1].AsNumber / 16, (.) toJson[2].AsNumber / 16);
 
-			int toX = (.) toJson[0].AsNumber;
-			int toY = (.) toJson[1].AsNumber;
-			int toZ = (.) toJson[2].AsNumber;
-
 			for (let pair in json["faces"].AsObject) {
 				// Parse cull face
 				QuadCullFace cullFace = .None;
-	
+
 				if (pair.value.Contains("cullface")) {
 					switch (pair.value["cullface"].AsString) {
 					case "up": cullFace = .Top;
@@ -186,7 +180,6 @@ namespace Meteorite{
 					int count = (int) blockStateRotation.y / 90;
 					for (int i < count) {
 						//direction = Rotate(direction);
-						cullFace = Rotate(cullFace);
 
 						//if (direction == .Up) Rotate(ref uv);
 					}
@@ -262,17 +255,7 @@ namespace Meteorite{
 				Quad quad = new .(direction, vertices, cullFace, light, tint);
 				textureQuads.Add((quad, uv));
 
-				model.quads.Add(quad);
-			}
-		}
-
-		private static QuadCullFace Rotate(QuadCullFace face) {
-			switch (face) {
-			case .South: return .West;
-			case .West: return .North;
-			case .North: return .East;
-			case .East: return .South;
-			default: return face;
+				model.Add(quad);
 			}
 		}
 

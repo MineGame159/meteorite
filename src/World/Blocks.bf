@@ -224,8 +224,8 @@ namespace Meteorite {
 			GRAVEL = Register(new .("gravel", false));
 			CLAY = Register(new .("clay", false));
 			PODZOL = Register(new .("podzol", false), Properties.SNOWY);
-			DIRT_PATH = Register(new .("dirt_path", true));
-			FARMLAND = Register(new .("farmland", true), Properties.MOISTURE);
+			DIRT_PATH = Register(new .("dirt_path", false));
+			FARMLAND = Register(new .("farmland", false), Properties.MOISTURE);
 
 			OAK_LOG = Register(new .("oak_log", false), Properties.AXIS);
 			SPRUCE_LOG = Register(new .("spruce_log", false), Properties.AXIS);
@@ -250,23 +250,23 @@ namespace Meteorite {
 			CRIMSON_PLANKS = Register(new .("crimson_planks", false));
 			WARPED_PLANKS = Register(new .("warped_planks", false));
 
-			OAK_SLAB = Register(new .("oak_slab", true), Properties.SLAB_TYPE, Properties.WATERLOGGED);
-			SPRUCE_SLAB = Register(new .("spruce_slab", true), Properties.SLAB_TYPE, Properties.WATERLOGGED);
-			BIRCH_SLAB = Register(new .("birch_slab", true), Properties.SLAB_TYPE, Properties.WATERLOGGED);
-			JUNGLE_SLAB = Register(new .("jungle_slab", true), Properties.SLAB_TYPE, Properties.WATERLOGGED);
-			ACACIA_SLAB = Register(new .("acacia_slab", true), Properties.SLAB_TYPE, Properties.WATERLOGGED);
-			DARK_OAK_SLAB = Register(new .("dark_oak_slab", true), Properties.SLAB_TYPE, Properties.WATERLOGGED);
-			CRIMSON_SLAB = Register(new .("crimson_slab", true), Properties.SLAB_TYPE, Properties.WATERLOGGED);
-			WARPED_SLAB = Register(new .("warped_slab", true), Properties.SLAB_TYPE, Properties.WATERLOGGED);
+			OAK_SLAB = Register(new .("oak_slab", false), Properties.SLAB_TYPE, Properties.WATERLOGGED);
+			SPRUCE_SLAB = Register(new .("spruce_slab", false), Properties.SLAB_TYPE, Properties.WATERLOGGED);
+			BIRCH_SLAB = Register(new .("birch_slab", false), Properties.SLAB_TYPE, Properties.WATERLOGGED);
+			JUNGLE_SLAB = Register(new .("jungle_slab", false), Properties.SLAB_TYPE, Properties.WATERLOGGED);
+			ACACIA_SLAB = Register(new .("acacia_slab", false), Properties.SLAB_TYPE, Properties.WATERLOGGED);
+			DARK_OAK_SLAB = Register(new .("dark_oak_slab", false), Properties.SLAB_TYPE, Properties.WATERLOGGED);
+			CRIMSON_SLAB = Register(new .("crimson_slab", false), Properties.SLAB_TYPE, Properties.WATERLOGGED);
+			WARPED_SLAB = Register(new .("warped_slab", false), Properties.SLAB_TYPE, Properties.WATERLOGGED);
 
-			OAK_STAIRS = Register(new .("oak_stairs", true), Properties.FACING, Properties.BLOCK_HALF, Properties.STAIRS_SHAPE, Properties.WATERLOGGED);
-			SPRUCE_STAIRS = Register(new .("spruce_stairs", true), Properties.FACING, Properties.BLOCK_HALF, Properties.STAIRS_SHAPE, Properties.WATERLOGGED);
-			BIRCH_STAIRS = Register(new .("birch_stairs", true), Properties.FACING, Properties.BLOCK_HALF, Properties.STAIRS_SHAPE, Properties.WATERLOGGED);
-			JUNGLE_STAIRS = Register(new .("jungle_stairs", true), Properties.FACING, Properties.BLOCK_HALF, Properties.STAIRS_SHAPE, Properties.WATERLOGGED);
-			ACACIA_STAIRS = Register(new .("acacia_stairs", true), Properties.FACING, Properties.BLOCK_HALF, Properties.STAIRS_SHAPE, Properties.WATERLOGGED);
-			DARK_OAK_STAIRS = Register(new .("dark_oak_stairs", true), Properties.FACING, Properties.BLOCK_HALF, Properties.STAIRS_SHAPE, Properties.WATERLOGGED);
-			CRIMSON_STAIRS = Register(new .("crimson_stairs", true), Properties.FACING, Properties.BLOCK_HALF, Properties.STAIRS_SHAPE, Properties.WATERLOGGED);
-			WARPED_STAIRS = Register(new .("warped_stairs", true), Properties.FACING, Properties.BLOCK_HALF, Properties.STAIRS_SHAPE, Properties.WATERLOGGED);
+			OAK_STAIRS = Register(new .("oak_stairs", false), Properties.FACING, Properties.BLOCK_HALF, Properties.STAIRS_SHAPE, Properties.WATERLOGGED);
+			SPRUCE_STAIRS = Register(new .("spruce_stairs", false), Properties.FACING, Properties.BLOCK_HALF, Properties.STAIRS_SHAPE, Properties.WATERLOGGED);
+			BIRCH_STAIRS = Register(new .("birch_stairs", false), Properties.FACING, Properties.BLOCK_HALF, Properties.STAIRS_SHAPE, Properties.WATERLOGGED);
+			JUNGLE_STAIRS = Register(new .("jungle_stairs", false), Properties.FACING, Properties.BLOCK_HALF, Properties.STAIRS_SHAPE, Properties.WATERLOGGED);
+			ACACIA_STAIRS = Register(new .("acacia_stairs", false), Properties.FACING, Properties.BLOCK_HALF, Properties.STAIRS_SHAPE, Properties.WATERLOGGED);
+			DARK_OAK_STAIRS = Register(new .("dark_oak_stairs", false), Properties.FACING, Properties.BLOCK_HALF, Properties.STAIRS_SHAPE, Properties.WATERLOGGED);
+			CRIMSON_STAIRS = Register(new .("crimson_stairs", false), Properties.FACING, Properties.BLOCK_HALF, Properties.STAIRS_SHAPE, Properties.WATERLOGGED);
+			WARPED_STAIRS = Register(new .("warped_stairs", false), Properties.FACING, Properties.BLOCK_HALF, Properties.STAIRS_SHAPE, Properties.WATERLOGGED);
 
 			OAK_TRAPDOOR = Register(new .("oak_trapdoor", true), Properties.HORIZONTAL_FACING, Properties.OPEN, Properties.BLOCK_HALF, Properties.POWERED, Properties.WATERLOGGED);
 			SPRUCE_TRAPDOOR = Register(new .("spruce_trapdoor", true), Properties.HORIZONTAL_FACING, Properties.OPEN, Properties.BLOCK_HALF, Properties.POWERED, Properties.WATERLOGGED);
@@ -277,15 +277,15 @@ namespace Meteorite {
 			CRIMSON_TRAPDOOR = Register(new .("crimson_trapdoor", true), Properties.HORIZONTAL_FACING, Properties.OPEN, Properties.BLOCK_HALF, Properties.POWERED, Properties.WATERLOGGED);
 			WARPED_TRAPDOOR = Register(new .("warped_trapdoor", true), Properties.HORIZONTAL_FACING, Properties.OPEN, Properties.BLOCK_HALF, Properties.POWERED, Properties.WATERLOGGED);
 
-			OAK_FENCE = Register(new .("oak_fence", true), Properties.EAST, Properties.NORTH, Properties.SOUTH, Properties.WATERLOGGED, Properties.WEST);
-			/*SPRUCE_FENCE = Register(new .("spruce_fence", true), Properties.EAST, Properties.NORTH, Properties.SOUTH, Properties.WATERLOGGED, Properties.WEST);
-			BIRCH_FENCE = Register(new .("birch_fence", true), Properties.EAST, Properties.NORTH, Properties.SOUTH, Properties.WATERLOGGED, Properties.WEST);
-			JUNGLE_FENCE = Register(new .("jungle_fence", true), Properties.EAST, Properties.NORTH, Properties.SOUTH, Properties.WATERLOGGED, Properties.WEST);
-			ACACIA_FENCE = Register(new .("acacia_fence", true), Properties.EAST, Properties.NORTH, Properties.SOUTH, Properties.WATERLOGGED, Properties.WEST);
-			DARK_OAK_FENCE = Register(new .("dark_oak_fence", true), Properties.EAST, Properties.NORTH, Properties.SOUTH, Properties.WATERLOGGED, Properties.WEST);
-			CRIMSON_FENCE = Register(new .("crimson_fence", true), Properties.EAST, Properties.NORTH, Properties.SOUTH, Properties.WATERLOGGED, Properties.WEST);
-			WARPED_FENCE = Register(new .("warped_fence", true), Properties.EAST, Properties.NORTH, Properties.SOUTH, Properties.WATERLOGGED, Properties.WEST);
-			NETHER_BRICK_FENCE = Register(new .("nether_brick_fence", true), Properties.EAST, Properties.NORTH, Properties.SOUTH, Properties.WATERLOGGED, Properties.WEST);*/
+			OAK_FENCE = Register(new .("oak_fence", false), Properties.EAST, Properties.NORTH, Properties.SOUTH, Properties.WATERLOGGED, Properties.WEST);
+			/*SPRUCE_FENCE = Register(new .("spruce_fence", false), Properties.EAST, Properties.NORTH, Properties.SOUTH, Properties.WATERLOGGED, Properties.WEST);
+			BIRCH_FENCE = Register(new .("birch_fence", false), Properties.EAST, Properties.NORTH, Properties.SOUTH, Properties.WATERLOGGED, Properties.WEST);
+			JUNGLE_FENCE = Register(new .("jungle_fence", false), Properties.EAST, Properties.NORTH, Properties.SOUTH, Properties.WATERLOGGED, Properties.WEST);
+			ACACIA_FENCE = Register(new .("acacia_fence", false), Properties.EAST, Properties.NORTH, Properties.SOUTH, Properties.WATERLOGGED, Properties.WEST);
+			DARK_OAK_FENCE = Register(new .("dark_oak_fence", false), Properties.EAST, Properties.NORTH, Properties.SOUTH, Properties.WATERLOGGED, Properties.WEST);
+			CRIMSON_FENCE = Register(new .("crimson_fence", false), Properties.EAST, Properties.NORTH, Properties.SOUTH, Properties.WATERLOGGED, Properties.WEST);
+			WARPED_FENCE = Register(new .("warped_fence", false), Properties.EAST, Properties.NORTH, Properties.SOUTH, Properties.WATERLOGGED, Properties.WEST);
+			NETHER_BRICK_FENCE = Register(new .("nether_brick_fence", false), Properties.EAST, Properties.NORTH, Properties.SOUTH, Properties.WATERLOGGED, Properties.WEST);*/
 
 			OAK_LEAVES = Register(new .("oak_leaves", true), Properties.DISTANCE1_7, Properties.PERSISTENT);
 			SPRUCE_LEAVES = Register(new .("spruce_leaves", true), Properties.DISTANCE1_7, Properties.PERSISTENT);
@@ -320,20 +320,20 @@ namespace Meteorite {
 
 			SNOW_BLOCK = Register(new .("snow_block", false));
 			POWDER_SNOW = Register(new .("powder_snow", false));
-			SNOW = Register(new .("snow", true), Properties.LAYERS1_8);
+			SNOW = Register(new .("snow", false), Properties.LAYERS1_8);
 
-			TORCH = Register(new .("torch", true));
-			WALL_TORCH = Register(new .("wall_torch", true), Properties.FACING);
-			REDSTONE_WALL_TORCH = Register(new .("redstone_wall_torch", true), Properties.FACING, Properties.LIT);
-			REDSTONE_TORCH = Register(new .("redstone_torch", true), Properties.LIT);
-			SOUL_TORCH = Register(new .("soul_torch", true));
-			SOUL_WALL_TORCH = Register(new .("soul_wall_torch", true), Properties.FACING);
+			TORCH = Register(new .("torch", false));
+			WALL_TORCH = Register(new .("wall_torch", false), Properties.FACING);
+			REDSTONE_WALL_TORCH = Register(new .("redstone_wall_torch", false), Properties.FACING, Properties.LIT);
+			REDSTONE_TORCH = Register(new .("redstone_torch", false), Properties.LIT);
+			SOUL_TORCH = Register(new .("soul_torch", false));
+			SOUL_WALL_TORCH = Register(new .("soul_wall_torch", false), Properties.FACING);
 
 			HAY_BLOCK = Register(new .("hay_block", false), Properties.AXIS);
-			CAULDRON = Register(new .("cauldron", true));
+			CAULDRON = Register(new .("cauldron", false));
 			ANVIL = Register(new .("anvil", true), Properties.FACING);
 			SCAFFOLDING = Register(new .("scaffolding", true), Properties.BOTTOM, Properties.DISTANCE0_7, Properties.WATERLOGGED);
-			CAMPFIRE = Register(new .("campfire", true), Properties.FACING, Properties.LIT, Properties.SIGNAL_FIRE, Properties.WATERLOGGED);
+			CAMPFIRE = Register(new .("campfire", false), Properties.FACING, Properties.LIT, Properties.SIGNAL_FIRE, Properties.WATERLOGGED);
 			BOOKSHELF = Register(new .("bookshelf", false));
 
 			GRASS = Register(new .("grass", true, true));

@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Diagnostics;
 
 namespace Meteorite {
 	class World {
@@ -94,6 +95,11 @@ namespace Meteorite {
 					System.Threading.ThreadPool.QueueUserWorkItem(new () => GenerateChunkMesh(chunk));
 					//GenerateChunkMesh(chunk);
 					a++;
+				}
+				if (chunk.status == .Upload) {
+					chunk.meshTransparent.End();
+					chunk.mesh.End();
+					chunk.status = .Ready;
 				}
 
 				if (chunk.status == .Ready && camera.IsBoxVisible(chunk.min, chunk.max)) {
@@ -221,11 +227,8 @@ namespace Meteorite {
 				}
 			}
 
+			chunk.status = .Upload;
 			chunk.dirty = false;
-
-			chunk.meshTransparent.End();
-			chunk.mesh.End();
-			chunk.status = .Ready;
 		}
 	}
 }

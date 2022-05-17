@@ -2,12 +2,34 @@ using System;
 
 namespace Meteorite {
 	enum Direction {
-		Up,
-		Down,
-		East, // Východ
-		West, // Západ
-		North, // Sever
-		South // Juh
+		case Up;
+		case Down;
+		case East; // Východ
+		case West; // Západ
+		case North; // Sever
+		case South; // Juh
+
+		public Vec3i GetOffset() {
+			switch (this) {
+			case .Up:    return .(0, 1, 0);
+			case .Down:  return .(0, -1, 0);
+			case .East:  return .(1, 0, 0);
+			case .West:  return .(-1, 0, 0);
+			case .North: return .(0, 0, -1);
+			case .South: return .(0, 0, 1);
+			}
+		}
+
+		public Direction GetOpposite() {
+			switch (this) {
+			case .Up:    return .Down;
+			case .Down:  return .Up;
+			case .East:  return .West;
+			case .West:  return .East;
+			case .North: return .South;
+			case .South: return .North;
+			}
+		}
 	}
 
 	static class Utils {

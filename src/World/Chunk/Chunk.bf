@@ -28,7 +28,8 @@ namespace Meteorite {
 	class Chunk {
 		public enum Status {
 			Ready,
-			Building
+			Building,
+			Upload
 		}
 
 		public World world;

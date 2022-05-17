@@ -55,7 +55,7 @@ namespace Meteorite {
 
 		public void Update() {
 			// Update matrices
-			proj = .Perspective(75, (float) window.width / window.height, 0.01f, 1000000);
+			proj = .Perspective(75, (float) window.width / window.height, 0.05f, 10000);
 			view = .LookAt(pos, pos + GetDirection(true), .(0, 1, 0));
 
 			// Calculate frustum

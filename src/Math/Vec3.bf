@@ -1,6 +1,7 @@
 using System;
 
 namespace Meteorite {
+	typealias Vec3i = Vec3<int>;
 	typealias Vec3f = Vec3<float>;
 	typealias Vec3d = Vec3<double>;
 
@@ -60,9 +61,15 @@ namespace Meteorite {
 		public static bool operator>(Self lhs, Self rhs) => lhs.Length > rhs.Length;
 		public static bool operator>(Self lhs, float rhs) => lhs.Length > rhs;
 		public static bool operator>(float lhs, Self rhs) => lhs > rhs.Length;
+		public static bool operator>=(Self lhs, Self rhs) => lhs.Length >= rhs.Length;
+		public static bool operator>=(Self lhs, float rhs) => lhs.Length >= rhs;
+		public static bool operator>=(float lhs, Self rhs) => lhs >= rhs.Length;
 
 		public static bool operator<(Self lhs, Self rhs) => lhs.Length < rhs.Length;
 		public static bool operator<(Self lhs, float rhs) => lhs.Length < rhs;
 		public static bool operator<(float lhs, Self rhs) => lhs < rhs.Length;
+		public static bool operator<=(Self lhs, Self rhs) => lhs.Length <= rhs.Length;
+		public static bool operator<=(Self lhs, float rhs) => lhs.Length <= rhs;
+		public static bool operator<=(float lhs, Self rhs) => lhs <= rhs.Length;
 	}
 }
