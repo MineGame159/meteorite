@@ -48,6 +48,7 @@ namespace Meteorite {
 				nextInChain = (.) &limitsExtras,
 				limits = .Default()
 			};
+			limits.limits.maxTextureDimension2D *= 2;
 			Wgpu.DeviceExtras deviceExtras = .() {
 				chain = .() {
 					sType = (.) Wgpu.NativeSType.Extras
@@ -64,27 +65,11 @@ namespace Meteorite {
 
 			device.SetUncapturedErrorCallback((type, message, userdata) => Console.WriteLine("{}: {}", type, StringView(message)), null);
 
-			Wgpu.SwapChainDescriptor swapChainDesc = .() {
-				usage = .RenderAttachment,
-				format = .BGRA8Unorm,
-				width = (.) width,
-				height = (.) height,
-				presentMode = .Fifo
-			};
-			Wgpu.SwapChain swapChain = device.CreateSwapChain(surface, &swapChainDesc);
-
 			Glfw.SetFramebufferSizeCallback(handle, new (window, width, height) => {
 				this.width = width;
 				this.height = height;
-
-				Wgpu.SwapChainDescriptor swapChainDesc = .() {
-					usage = .RenderAttachment,
-					format = .BGRA8Unorm,
-					width = (.) width,
-					height = (.) height,
-					presentMode = .Fifo
-				};
-				Gfx.[Friend]swapChain = device.CreateSwapChain(surface, &swapChainDesc);
+				
+				Gfx.[Friend]CreateSwapChain(width, height);
 				Gfx.[Friend]CreateDepthTexture(width, height);
 			});
 
@@ -101,7 +86,7 @@ namespace Meteorite {
 				Input.[Friend]keys[(.) key] = action != .Release;
 			});
 
-			Gfx.Init(this, device, swapChain, width, height);
+			Gfx.Init(this, surface, device, width, height);
 			Glfw.ShowWindow(handle);
 		}
 

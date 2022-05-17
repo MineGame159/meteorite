@@ -77,6 +77,11 @@ namespace Meteorite {
 			return s.width * s.height * s.depthOrArrayLayers * Wgpu.Describe(descriptor.format).blockSize;
 		}
 
+		public Wgpu.TextureView CreateView() {
+			Wgpu.TextureViewDescriptor desc = .();
+			return handle.CreateView(&desc);
+		}
+
 		public void Write(int width, int height, int level, void* data) {
 			Wgpu.TextureFormatInfo formatInfo = Wgpu.Describe(descriptor.format);
 			Wgpu.Extent3D mipSize = descriptor.GetMipLevelSize((.) level);
@@ -104,6 +109,7 @@ namespace Meteorite {
 	}
 
 	static class Gfx {
+		private static Wgpu.Surface surface;
 		private static Wgpu.Device device;
 		private static Wgpu.SwapChain swapChain;
 		private static Wgpu.Queue queue;
@@ -118,10 +124,16 @@ namespace Meteorite {
 
 		public static uint64 ALLOCATED = 0;
 
-		public static void Init(Window window, Wgpu.Device device, Wgpu.SwapChain swapChain, int width, int height) {
+		private static bool afterScreenshot = false;
+
+		public static void Init(Window window, Wgpu.Surface surface, Wgpu.Device device, int width, int height) {
+			Gfx.surface = surface;
 			Gfx.device = device;
 			Gfx.swapChain = swapChain;
 			Gfx.queue = device.GetQueue();
+
+			// Swap chain
+			CreateSwapChain(width, height);
 
 			// Depth texture
 			CreateDepthTexture(width, height);
@@ -146,6 +158,17 @@ namespace Meteorite {
 			ImGui.GetStyle().Alpha = 0.9f;
 			ImGuiImplGlfw.InitForOther(window.handle, true);
 			ImGuiImplWgpu.Init(device, 3, .BGRA8Unorm);
+		}
+
+		private static void CreateSwapChain(int width, int height) {
+			Wgpu.SwapChainDescriptor swapChainDesc = .() {
+				usage = .RenderAttachment,
+				format = .BGRA8Unorm,
+				width = (.) width,
+				height = (.) height,
+				presentMode = .Fifo
+			};
+			swapChain = device.CreateSwapChain(surface, &swapChainDesc);
 		}
 
 		private static void CreateDepthTexture(int width, int height) {
@@ -175,7 +198,9 @@ namespace Meteorite {
 		public static void BeginFrame() {
 			Wgpu.CommandEncoderDescriptor encoderDesc = .();
 
-			view = swapChain.GetCurrentTextureView();
+			if (Screenshots.rendering) view = Screenshots.texture.CreateView();
+			else view = swapChain.GetCurrentTextureView();
+
 			encoder = device.CreateCommandEncoder(&encoderDesc);
 
 			Wgpu.RenderPassColorAttachment colorDesc = .() {
@@ -217,30 +242,48 @@ namespace Meteorite {
 			pass.End();
 
 			// ImGui
-			Wgpu.RenderPassColorAttachment colorDesc = .() {
-				view = view,
-				loadOp = .Load,
-				storeOp = .Store
-			};
-			Wgpu.RenderPassDescriptor passDesc = .() {
-				label = "ImGui",
-				colorAttachmentCount = 1,
-				colorAttachments = &colorDesc
-			};
-			Wgpu.RenderPassEncoder guiPass = encoder.BeginRenderPass(&passDesc);
-			guiPass.PushDebugGroup("ImGui");
 			ImGui.Render();
-			ImGuiImplWgpu.RenderDrawData(ImGui.GetDrawData(), guiPass);
-			guiPass.PopDebugGroup();
-			guiPass.End();
+			if (!Screenshots.rendering || Screenshots.includeGui) {
+				Wgpu.RenderPassColorAttachment colorDesc = .() {
+					view = view,
+					loadOp = .Load,
+					storeOp = .Store
+				};
+				Wgpu.RenderPassDescriptor passDesc = .() {
+					label = "ImGui",
+					colorAttachmentCount = 1,
+					colorAttachments = &colorDesc
+				};
+				Wgpu.RenderPassEncoder guiPass = encoder.BeginRenderPass(&passDesc);
+				guiPass.PushDebugGroup("ImGui");
+				ImGuiImplWgpu.RenderDrawData(ImGui.GetDrawData(), guiPass);
+				guiPass.PopDebugGroup();
+				guiPass.End();
+			}
+
+			if (afterScreenshot) {
+				Screenshots.AfterRender(encoder);
+			}
 
 			// Submit
 			Wgpu.CommandBufferDescriptor cbDesc = .();
 			Wgpu.CommandBuffer cb = encoder.Finish(&cbDesc);
 			queue.Submit(1, &cb);
 
-			swapChain.Present();
+			if (!Screenshots.rendering) swapChain.Present();
 			view.Drop();
+
+			if (afterScreenshot) {
+				afterScreenshot = false;
+				Screenshots.AfterRender2();
+			}
+
+			if (Screenshots.rendering) {
+				afterScreenshot = true;
+				Screenshots.rendering = false;
+
+				CreateDepthTexture(Screenshots.originalWidth, Screenshots.originalHeight);
+			}
 		}
 
 		public static BindGroupLayoutBuilder NewBindGroupLayout() => new [Friend].();
@@ -300,12 +343,12 @@ namespace Meteorite {
 			return new [Friend].(handle, usage, alignedSize);
 		}
 
-		public static Texture CreateTexture(Wgpu.TextureUsage usage, int width, int height, int levels, void* data) {
+		public static Texture CreateTexture(Wgpu.TextureUsage usage, int width, int height, int levels, void* data, Wgpu.TextureFormat format = .RGBA8Unorm) {
 			Wgpu.TextureDescriptor desc = .() {
 				usage = usage,
 				dimension = ._2D,
 				size = .((.) width, (.) height, 1),
-				format = .RGBA8Unorm,
+				format = format,
 				mipLevelCount = (.) levels,
 				sampleCount = 1
 			};

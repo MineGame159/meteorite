@@ -1,5 +1,5 @@
 FileVersion = 1
-Projects = {meteorite = {Path = "."}, GLFW = "*", ImGui = "*", ImGuiImplGlfw = "*", StbImageBeef = "*", MiniZ = "*", Wgpu = {Path = "D:/Wgpu"}, Wgpu-Glfw = {Path = "D:/Wgpu/wgpu-glfw"}, Wgpu-Imgui = {Path = "D:/Wgpu/wgpu-imgui"}}
+Projects = {meteorite = {Path = "."}, GLFW = "*", ImGui = "*", ImGuiImplGlfw = "*", MiniZ = "*", Wgpu = {Path = "D:/Wgpu"}, Wgpu-Glfw = {Path = "D:/Wgpu/wgpu-glfw"}, Wgpu-Imgui = {Path = "D:/Wgpu/wgpu-imgui"}, stb_beef = "*"}
 Unlocked = ["ImGuiImplGlfw"]
 
 [Workspace]

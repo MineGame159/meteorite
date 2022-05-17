@@ -48,6 +48,8 @@ namespace Meteorite {
 				Input.[Friend]Update();
 				window.PollEvents();
 
+				bool escaped = Screenshots.Update(window);
+
 				Gfx.BeginFrame();
 
 				double start = Glfw.GetTime();
@@ -67,7 +69,7 @@ namespace Meteorite {
 					ImGui.End();
 				}
 				else {
-					if (Input.IsKeyPressed(.Escape)) window.MouseHidden = !window.MouseHidden;
+					if (!escaped && Input.IsKeyPressed(.Escape)) window.MouseHidden = !window.MouseHidden;
 	
 					camera.FlightMovement(delta);
 					camera.Update();
@@ -101,6 +103,8 @@ namespace Meteorite {
 					ImGui.Checkbox("Sort Chunks", &sortChunks);
 					ImGui.Checkbox("Chunk Boundaries", &chunkBoundaries);
 					ImGui.End();
+
+					Screenshots.Render(window);
 				}
 
 				Gfx.EndFrame();

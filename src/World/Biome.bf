@@ -1,6 +1,7 @@
 using System;
 using System.IO;
-using StbImageBeef;
+using System.Collections;
+using stb_image;
 
 namespace Meteorite {
 	class Biome : this(float temperature, float downfall, Color waterColor) {
@@ -10,25 +11,31 @@ namespace Meteorite {
 		public static void LoadColormaps() {
 			{
 				// Grass
-				FileStream fs = scope .();
-				fs.Open("assets/textures/colormap/grass.png", .Read);
-				ImageResult image = ImageResult.FromStream(fs, .RedGreenBlueAlpha);
+				List<uint8> buffer = new .();
+				File.ReadAll("assets/textures/colormap/grass.png", buffer);
 
-				GRASS_COLORS = new Color[image.Width * image.Height];
-				Internal.MemCpy(&GRASS_COLORS[0], image.Data, GRASS_COLORS.Count * 4);
+				int32 width = 0, height = 0, comp = 0;
+				uint8* data = stbi.stbi_load_from_memory(buffer.Ptr, (.) buffer.Count, &width, &height, &comp, 4);
 
-				delete image;
+				GRASS_COLORS = new Color[width * height];
+				Internal.MemCpy(&GRASS_COLORS[0], data, GRASS_COLORS.Count * 4);
+
+				stbi.stbi_image_free(data);
+				delete buffer;
 			}
 			{
 				// Foliage
-				FileStream fs = scope .();
-				fs.Open("assets/textures/colormap/foliage.png", .Read);
-				ImageResult image = ImageResult.FromStream(fs, .RedGreenBlueAlpha);
+				List<uint8> buffer = new .();
+				File.ReadAll("assets/textures/colormap/foliage.png", buffer);
 
-				FOLIAGE_COLORS = new Color[image.Width * image.Height];
-				Internal.MemCpy(&FOLIAGE_COLORS[0], image.Data, FOLIAGE_COLORS.Count * 4);
+				int32 width = 0, height = 0, comp = 0;
+				uint8* data = stbi.stbi_load_from_memory(buffer.Ptr, (.) buffer.Count, &width, &height, &comp, 4);
 
-				delete image;
+				FOLIAGE_COLORS = new Color[width * height];
+				Internal.MemCpy(&FOLIAGE_COLORS[0], data, FOLIAGE_COLORS.Count * 4);
+
+				stbi.stbi_image_free(data);
+				delete buffer;
 			}
 		}
 
