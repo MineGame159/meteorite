@@ -1,41 +1,28 @@
 using System;
-using System.IO;
-using System.Collections;
-using stb_image;
 
 namespace Meteorite {
-	class Biome : this(float temperature, float downfall, Color waterColor) {
+	class Biome : this(float temperature, float downfall, Color waterColor, Color skyColor, Color fogColor) {
 		private static Color[] GRASS_COLORS ~ delete _;
 		private static Color[] FOLIAGE_COLORS ~ delete _;
 
 		public static void LoadColormaps() {
 			{
 				// Grass
-				List<uint8> buffer = new .();
-				File.ReadAll("assets/textures/colormap/grass.png", buffer);
+				ImageResult image = Utils.ReadImage("assets/textures/colormap/grass.png");
 
-				int32 width = 0, height = 0, comp = 0;
-				uint8* data = stbi.stbi_load_from_memory(buffer.Ptr, (.) buffer.Count, &width, &height, &comp, 4);
+				GRASS_COLORS = new Color[image.width * image.height];
+				Internal.MemCpy(&GRASS_COLORS[0], image.data, GRASS_COLORS.Count * 4);
 
-				GRASS_COLORS = new Color[width * height];
-				Internal.MemCpy(&GRASS_COLORS[0], data, GRASS_COLORS.Count * 4);
-
-				stbi.stbi_image_free(data);
-				delete buffer;
+				image.Dispose();
 			}
 			{
 				// Foliage
-				List<uint8> buffer = new .();
-				File.ReadAll("assets/textures/colormap/foliage.png", buffer);
+				ImageResult image = Utils.ReadImage("assets/textures/colormap/foliage.png");
 
-				int32 width = 0, height = 0, comp = 0;
-				uint8* data = stbi.stbi_load_from_memory(buffer.Ptr, (.) buffer.Count, &width, &height, &comp, 4);
+				FOLIAGE_COLORS = new Color[image.width * image.height];
+				Internal.MemCpy(&FOLIAGE_COLORS[0], image.data, FOLIAGE_COLORS.Count * 4);
 
-				FOLIAGE_COLORS = new Color[width * height];
-				Internal.MemCpy(&FOLIAGE_COLORS[0], data, FOLIAGE_COLORS.Count * 4);
-
-				stbi.stbi_image_free(data);
-				delete buffer;
+				image.Dispose();
 			}
 		}
 

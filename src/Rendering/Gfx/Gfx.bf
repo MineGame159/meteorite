@@ -195,7 +195,7 @@ namespace Meteorite {
 			ImGui.DestroyContext();
 		}
 
-		public static void BeginFrame() {
+		public static void BeginFrame(Color clearColor) {
 			Wgpu.CommandEncoderDescriptor encoderDesc = .();
 
 			if (Screenshots.rendering) view = Screenshots.texture.CreateView();
@@ -207,7 +207,7 @@ namespace Meteorite {
 				view = view,
 				loadOp = .Clear,
 				storeOp = .Store,
-				clearValue = .(0.8, 0.8, 0.8, 1)
+				clearValue = .(clearColor.R, clearColor.G, clearColor.B, clearColor.A)
 			};
 			Wgpu.RenderPassDepthStencilAttachment depthDesc = .() {
 				view = depthView,
@@ -359,6 +359,13 @@ namespace Meteorite {
 			Wgpu.TextureView view = handle.CreateView(&viewDesc);
 
 			return new [Friend].(handle, view, desc);
+		}
+		public static Texture CreateTexture(StringView path) {
+			ImageResult image = Utils.ReadImage(path);
+			Texture texture = CreateTexture(.TextureBinding, image.width, image.height, 1, image.data);
+
+			image.Dispose();
+			return texture;
 		}
 
 		public static void SetPushConstants(Wgpu.ShaderStage stages, int offset, int size, void* data) {

@@ -23,7 +23,7 @@ namespace Meteorite {
 	}
 
 	class Camera {
-		public Mat4 proj, view;
+		public Mat4 proj, view, viewRotationOnly;
 
 		public Vec3f pos;
 		public float yaw, pitch;
@@ -65,6 +65,7 @@ namespace Meteorite {
 			// Update matrices
 			proj = .Perspective(75, (float) width / height, 0.05f, 10000);
 			view = .LookAt(pos, pos + GetDirection(true), .(0, 1, 0));
+			viewRotationOnly = .LookAt(.(), GetDirection(true), .(0, 1, 0));
 
 			// Calculate frustum
 			Mat4 clip = proj * view;

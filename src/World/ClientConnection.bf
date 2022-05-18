@@ -23,6 +23,7 @@ namespace Meteorite {
 		private const int32 S2C_ENTITY_POSITION_AND_ROTATION = 0x2A;
 		private const int32 S2C_ENTITY_ROTATION = 0x2B;
 		private const int32 S2C_ENTITY_TELEPORT = 0x62;
+		private const int32 S2C_TIME_UPDATE = 0x59;
 
 		private const int32 C2S_PLUGIN_MESSAGE = 0x0A;
 		private const int32 C2S_CLIENT_SETTINGS = 0x05;
@@ -95,7 +96,7 @@ namespace Meteorite {
 				int height = dimension["height"].AsInt;
 
 				if (world != null) delete world;
-				world = new .(minY, height);
+				world = new .(viewDistance, minY, height);
 
 				dimension.Dispose();
 				dimensionCodec.Dispose();
@@ -256,6 +257,16 @@ namespace Meteorite {
 					entity.serverPos = .(x, y, z);
 					entity.bodyTrackingIncrements = 3;
 				}
+			case S2C_TIME_UPDATE:
+				if (world == null) return;
+
+				int64 worldAge = packet.ReadLong();
+				int64 timeOfDay = packet.ReadLong();
+
+				if (timeOfDay < 0) timeOfDay = -timeOfDay;
+
+				world.worldAge = worldAge;
+				world.timeOfDay = timeOfDay;
 			}
 		}
 

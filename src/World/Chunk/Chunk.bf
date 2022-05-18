@@ -70,6 +70,11 @@ namespace Meteorite {
 		}
 
 		[Inline]
+		public Biome GetBiome(int x, int y, int z) {
+			return sections[y / Section.SIZE].GetBiome(x, y % Section.SIZE, z);
+		}
+
+		[Inline]
 		public Section GetSection(int i) => sections[i];
 
 		public void Load(NetBuffer packet) {

@@ -1,4 +1,8 @@
 using System;
+using System.IO;
+using System.Collections;
+
+using stb_image;
 
 namespace Meteorite {
 	enum Direction {
@@ -40,7 +44,28 @@ namespace Meteorite {
 		    return value < (double) l ? l - 1L : l;
 		}
 
+		public static double FractionalPart(double value) {
+		    return value - (double) Lfloor(value);
+		}
+
 		public static double Lerp(double delta, double start, double end) => start + delta * (end - start);
+
+		public static ImageResult ReadImage(StringView path) {
+			List<uint8> buffer = new .();
+			File.ReadAll(path, buffer);
+
+			int32 width = 0, height = 0, comp = 0;
+			uint8* data = stbi.stbi_load_from_memory(buffer.Ptr, (.) buffer.Count, &width, &height, &comp, 4);
+
+			delete buffer;
+
+			return .() {
+				width = width,
+				height = height,
+				components = comp,
+				data = data
+			};
+		}
 
 #if BF_PLATFORM_WINDOWS
 		[CRepr]
@@ -70,5 +95,12 @@ namespace Meteorite {
 			return 0;
 #endif
 		}
+	}
+
+	struct ImageResult : IDisposable {
+		public int width, height, components;
+		public uint8* data;
+
+		public void Dispose() => stbi.stbi_image_free(data);
 	}
 }

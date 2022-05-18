@@ -18,8 +18,10 @@ namespace Meteorite {
 				float temperature = (.) e["temperature"].AsNumber;
 				float downfall = (.) e["downfall"].AsNumber;
 				Color waterColor = .((int32) e["water_color"].AsNumber);
+				Color skyColor = .((int32) e["sky_color"].AsNumber);
+				Color fogColor = .((int32) e["fog_color"].AsNumber);
 
-				BIOMES[id] = new .(temperature, downfall, waterColor);
+				BIOMES[id] = new .(temperature, downfall, waterColor, skyColor, fogColor);
 
 				if (id == 0) VOID = BIOMES[id];
 			}

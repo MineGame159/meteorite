@@ -1,7 +1,5 @@
 using System;
-using System.IO;
 using System.Collections;
-using stb_image;
 
 namespace Meteorite {
 	class TexturePacker {
@@ -24,14 +22,10 @@ namespace Meteorite {
 
 		public (int, int) Add(StringView path) {
 			// Read image
-			List<uint8> buffer = new .();
-			File.ReadAll(path, buffer);
-
-			int32 width = 0, height = 0, comp = 0;
-			uint8* data = stbi.stbi_load_from_memory(buffer.Ptr, (.) buffer.Count, &width, &height, &comp, 4);
+			ImageResult image = Utils.ReadImage(path);
 
 			List<Mipmap> mipmaps = scope .(4);
-			MipmapGenerator.Generate(data, width, height, 4, mipmaps);
+			MipmapGenerator.Generate(image.data, image.width, image.height, 4, mipmaps);
 
 			// Copy texture to atlas
 			int divide = 1;
@@ -51,8 +45,8 @@ namespace Meteorite {
 			int _x = x;
 			int _y = y;
 			
-			x += width;
-			if (height > maxRowHeight) maxRowHeight = height;
+			x += image.width;
+			if (image.height > maxRowHeight) maxRowHeight = image.height;
 
 			if (x >= size) {
 				x = 0;
@@ -60,9 +54,8 @@ namespace Meteorite {
 				maxRowHeight = 0;
 			}
 
-			stbi.stbi_image_free(data);
-			delete buffer;
-
+			image.Dispose();
+			
 			return (_x, _y);
 		}
 

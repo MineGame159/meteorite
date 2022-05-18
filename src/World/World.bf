@@ -4,6 +4,8 @@ using System.Diagnostics;
 
 namespace Meteorite {
 	class World {
+		public int viewDistance;
+
 		private Dictionary<ChunkPos, Chunk> chunks ~ DeleteDictionaryAndValues!(_);
 		private List<Chunk> visibleChunks = new .() ~ delete _;
 
@@ -17,7 +19,10 @@ namespace Meteorite {
 		public int minY, height;
 		public int renderedChunks;
 
-		public this(int minY, int height) {
+		public int64 worldAge, timeOfDay;
+
+		public this(int viewDistance, int minY, int height) {
+			this.viewDistance = viewDistance;
 			this.chunks = new Dictionary<ChunkPos, Chunk>();
 			this.chunkBuilderThread = new .("Chunk Builder");
 			this.minY = minY;
@@ -42,6 +47,16 @@ namespace Meteorite {
 
 		public bool IsChunkLoaded(int x, int z) {
 			return chunks.ContainsKey(.(x, z));
+		}
+
+		public BlockState GetBlock(int x, int y, int z) {
+			Chunk chunk = GetChunk(x >> 4, z >> 4);
+			return chunk != null ? chunk.Get(x & 15, y, z & 15) : Blocks.AIR.defaultBlockState;
+		}
+
+		public Biome GetBiome(int x, int y, int z) {
+			Chunk chunk = GetChunk(x >> 4, z >> 4);
+			return chunk != null ? chunk.GetBiome(x & 15, y, z & 15) : Biomes.VOID;
 		}
 
 		public void ReloadChunks() {
@@ -108,6 +123,9 @@ namespace Meteorite {
 					return dist2.CompareTo(dist1);
 				});
 			}
+
+			// Sky
+			SkyRenderer.Render(this, camera, tickDelta);
 
 			// Chunks solid
 			ChunkPushConstants pc = .();
@@ -246,6 +264,211 @@ namespace Meteorite {
 
 			chunk.status = .Upload;
 			chunk.dirty = false;
+		}
+
+		public Vec3f GetSkyColor(Vec3f cameraPos, double tickDelta) {
+			float f = GetSkyAngle();
+			Vec3f vec3 = (cameraPos - Vec3f(2, 2, 2)) * Vec3f(0.25f, 0.25f, 0.25f);
+			Vec3f vec32 = CubicSampler.SampleColor(vec3, scope (x, y, z) => GetBiome(x, y, z).skyColor.ToVec3f());
+			float g = Math.Cos(f * (float) (Math.PI_d * 2)) * 2.0F + 0.5F;
+			g = Math.Clamp(g, 0.0F, 1.0F);
+			float h = (float)vec32.x * g;
+			float i = (float)vec32.y * g;
+			float j = (float)vec32.z * g;
+			float k = GetRainLevel(tickDelta);
+			if (k > 0.0F) {
+				float l = (h * 0.3F + i * 0.59F + j * 0.11F) * 0.6F;
+				float m = 1.0F - k * 0.75F;
+				h = h * m + l * (1.0F - m);
+				i = i * m + l * (1.0F - m);
+				j = j * m + l * (1.0F - m);
+			}
+
+			float l = GetThunderLevel(tickDelta);
+			if (l > 0.0F) {
+				float m = (h * 0.3F + i * 0.59F + j * 0.11F) * 0.2F;
+				float n = 1.0F - l * 0.75F;
+				h = h * n + m * (1.0F - n);
+				i = i * n + m * (1.0F - n);
+				j = j * n + m * (1.0F - n);
+			}
+
+			// TODO: Sky flash
+			/*if (!this.minecraft.options.hideLightningFlashes && this.skyFlashTime > 0) {
+				float m = (float)this.skyFlashTime - partialTick;
+				if (m > 1.0F) {
+					m = 1.0F;
+				}
+
+				m *= 0.45F;
+				h = h * (1.0F - m) + 0.8F * m;
+				i = i * (1.0F - m) + 0.8F * m;
+				j = j * (1.0F - m) + 1.0F * m;
+			}*/
+
+			return .(h, i, j);
+		}
+
+		public Vec4? GetSunriseColor(float timeOfDay) {
+			float f = 0.4F;
+			float g = Math.Cos(timeOfDay * (Math.PI_f * 2)) - 0.0F;
+			float h = -0.0F;
+
+			if (g >= -f && g <= f) {
+				float i = (g - h) / f * 0.5F + 0.5F;
+				float j = 1.0F - (1.0F - Math.Sin(i * Math.PI_f)) * 0.99F;
+				j *= j;
+				return .(i * 0.3F + 0.7F, i * i * 0.7F + 0.2F, i * i * 0.0F + 0.2F, j);
+			}
+
+			return null;
+		}
+
+		public float GetSkyAngle() {
+			// TODO: Need to parse dimension codec
+			/*double d = MathHelper.fractionalPart((double)this.fixedTime.orElse(time) / 24000.0 - 0.25);
+			double e = 0.5 - Math.cos(d * Math.PI) / 2.0;
+			return (float)(d * 2.0 + e) / 3.0f;*/
+
+			
+			double d = Utils.FractionalPart(timeOfDay / 24000.0 - 0.25);
+			double e = 0.5 - Math.Cos(d * Math.PI_d) / 2.0;
+			return (.) (d * 2.0 + e) / 3.0f;
+		}
+
+		public float GetCelestialAngle() {
+			float f = GetSkyAngle();
+			return f * (Math.PI_f * 2);
+		}
+
+		public int GetMoonPhase() => (timeOfDay / 24000L % 8L + 8L) % 8;
+
+		public float GetStarBrightness() {
+			float f = GetSkyAngle();
+			float g = 1 - (Math.Cos(f * (Math.PI_f * 2)) * 2 + 0.25f);
+			g = Math.Clamp(g, 0, 1);
+			return g * g * 0.5f;
+		}
+
+		public float GetRainLevel(double tickDelta) => 0;
+		public float GetThunderLevel(double tickDelta) => 0;
+		public float GetDarkenWorldAmount(double tickDelta) => 0;
+
+		// TODO: Hardcoded overworld
+		public Vec3f GetBrightnessDependentFogColor(Vec3f fogColor, float brightness) {
+			return fogColor * Vec3f((brightness * 0.94F + 0.06F), (brightness * 0.94F + 0.06F), (brightness * 0.91F + 0.09F));
+		}
+
+		public Color GetClearColor(Camera camera, double tickDelta) {
+			float fogRed;
+			float fogGreen;
+			float fogBlue;
+
+			{
+				float r = 0.25F + 0.75F * (float)viewDistance / 32.0F;
+				r = 1.0F - (float)Math.Pow((double)r, 0.25);
+				Vec3f vec3 = GetSkyColor(camera.pos, tickDelta);
+				float s = (float)vec3.x;
+				float t = (float)vec3.y;
+				float u = (float)vec3.z;
+				float v = Math.Clamp(Math.Cos(GetSkyAngle() * (float) (Math.PI_f * 2)) * 2.0F + 0.5F, 0.0F, 1.0F);
+				Vec3f vec32 = (camera.pos - Vec3f(2, 2, 2)) * Vec3f(0.25f, 0.25f, 0.25f);
+				Vec3f vec33 = CubicSampler.SampleColor(vec32, scope (x, y, z) => GetBrightnessDependentFogColor(GetBiome(x, y, z).fogColor.ToVec3f(), v));
+				fogRed = (float)vec33.x;
+				fogGreen = (float)vec33.y;
+				fogBlue = (float)vec33.z;
+				if (viewDistance >= 4) {
+					float f = Math.Sin(GetSkyAngle()) > 0.0F ? -1.0F : 1.0F;
+					Vec3f vector3f = .(f, 0.0F, 0.0F);
+					float h = camera.GetDirection(true).Dot(vector3f);
+					if (h < 0.0F) {
+						h = 0.0F;
+					}
+	
+					if (h > 0.0F) {
+						Vec4? sunriseColor = GetSunriseColor(GetSkyAngle());
+						if (sunriseColor != null) {
+							h *= sunriseColor.Value.w;
+							fogRed = fogRed * (1.0F - h) + sunriseColor.Value.x * h;
+							fogGreen = fogGreen * (1.0F - h) + sunriseColor.Value.y * h;
+							fogBlue = fogBlue * (1.0F - h) + sunriseColor.Value.z * h;
+						}
+					}
+				}
+	
+				fogRed += (s - fogRed) * r;
+				fogGreen += (t - fogGreen) * r;
+				fogBlue += (u - fogBlue) * r;
+				float f = GetRainLevel(tickDelta);
+				if (f > 0.0F) {
+					float g = 1.0F - f * 0.5F;
+					float h = 1.0F - f * 0.4F;
+					fogRed *= g;
+					fogGreen *= g;
+					fogBlue *= h;
+				}
+	
+				float g = GetThunderLevel(tickDelta);
+				if (g > 0.0F) {
+					float h = 1.0F - g * 0.5F;
+					fogRed *= h;
+					fogGreen *= h;
+					fogBlue *= h;
+				}
+			}
+
+			//
+
+			float r = ((float)camera.pos.y - (float)minY) * 0.03125F; // TODO: Dimension clear color scale
+			// TODO: Blindness
+			/*if (activeRenderInfo.getEntity() instanceof LivingEntity && ((LivingEntity)activeRenderInfo.getEntity()).hasEffect(MobEffects.BLINDNESS)) {
+				int w = ((LivingEntity)activeRenderInfo.getEntity()).getEffect(MobEffects.BLINDNESS).getDuration();
+				if (w < 20) {
+					r = 1.0F - (float)w / 20.0F;
+				} else {
+					r = 0.0F;
+				}
+			}*/
+
+			if (r < 1.0F/* && fogType != FogType.LAVA && fogType != FogType.POWDER_SNOW*/) {
+				if (r < 0.0F) {
+					r = 0.0F;
+				}
+
+				r *= r;
+				fogRed *= r;
+				fogGreen *= r;
+				fogBlue *= r;
+			}
+
+			float bossColorModifier = GetDarkenWorldAmount(tickDelta);
+			if (bossColorModifier > 0.0F) {
+				fogRed = fogRed * (1.0F - bossColorModifier) + fogRed * 0.7F * bossColorModifier;
+				fogGreen = fogGreen * (1.0F - bossColorModifier) + fogGreen * 0.6F * bossColorModifier;
+				fogBlue = fogBlue * (1.0F - bossColorModifier) + fogBlue * 0.6F * bossColorModifier;
+			}
+
+			float x = 0; // TODO: Idk
+			/*if (fogType == FogType.WATER) {
+				if (entity instanceof LocalPlayer) {
+					x = ((LocalPlayer)entity).getWaterVision();
+				} else {
+					x = 1.0F;
+				}
+			} else if (entity instanceof LivingEntity && ((LivingEntity)entity).hasEffect(MobEffects.NIGHT_VISION)) {
+				x = GameRenderer.getNightVisionScale((LivingEntity)entity, partialTicks);
+			} else {
+				x = 0.0F;
+			}*/
+
+			if (fogRed != 0.0F && fogGreen != 0.0F && fogBlue != 0.0F) {
+				float s = Math.Min(1.0F / fogRed, Math.Min(1.0F / fogGreen, 1.0F / fogBlue));
+				fogRed = fogRed * (1.0F - x) + fogRed * s * x;
+				fogGreen = fogGreen * (1.0F - x) + fogGreen * s * x;
+				fogBlue = fogBlue * (1.0F - x) + fogBlue * s * x;
+			}
+
+			return .(fogRed, fogGreen, fogBlue, 1);
 		}
 	}
 }

@@ -50,6 +50,9 @@ namespace Meteorite {
 		private Wgpu.PrimitiveTopology topology;
 		private bool cull;
 
+		private bool blend = true;
+		private Wgpu.BlendState? blendState;
+
 		private bool depth, depthWrite;
 
 		private this() {}
@@ -94,6 +97,16 @@ namespace Meteorite {
 			this.topology = topology;
 			this.cull = cull;
 
+			return this;
+		}
+
+		public Self Blend(bool blend) {
+			this.blend = blend;
+			return this;
+		}
+
+		public Self BlendState(Wgpu.BlendState blendState) {
+			this.blendState = blendState;
 			return this;
 		}
 
@@ -156,9 +169,10 @@ namespace Meteorite {
 				color = .(.Add, .SrcAlpha, .OneMinusSrcAlpha),
 				alpha = .(.Add, .One, .OneMinusSrcAlpha)
 			};
+			if (blendState != null) blend = blendState.Value;
 			Wgpu.ColorTargetState colorTarget = .() {
 				format = .BGRA8Unorm,
-				blend = &blend,
+				blend = this.blend ? &blend : null,
 				writeMask = .All
 			};
 			Wgpu.FragmentState fragmentDesc = .() {

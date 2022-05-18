@@ -26,6 +26,7 @@ namespace Meteorite {
 			EntityTypes.Register();
 			Buffers.CreateGlobalIndices();
 			Gfxa.Init();
+			SkyRenderer.Init();
 
 			RenderTickCounter tickCounter = scope .(20, 0);
 			ClientConnection c = null;
@@ -51,7 +52,7 @@ namespace Meteorite {
 
 				bool escaped = Screenshots.Update(window);
 
-				Gfx.BeginFrame();
+				Gfx.BeginFrame(c?.world != null ? c.world.GetClearColor(camera, tickCounter.tickDelta) : .(200, 200, 200, 255));
 
 				double start = Glfw.GetTime();
 

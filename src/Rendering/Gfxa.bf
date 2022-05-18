@@ -14,8 +14,9 @@ namespace Meteorite {
 		// Shaders
 		public static Shader CHUNK_SHADER ~ delete _;
 		public static Shader CHUNK_TRANSPARENT_SHADER ~ delete _;
-		public static Shader LINES_SHADER ~ delete _;
-		public static Shader QUADS_SHADER ~ delete _;
+		public static Shader POS_FOG ~ delete _;
+		public static Shader POS_COLOR_SHADER ~ delete _;
+		public static Shader POS_TEX_SHADER ~ delete _;
 
 		// Pipelines
 		public static Pipeline CHUNK_PIPELINE ~ delete _;
@@ -24,8 +25,8 @@ namespace Meteorite {
 		public static Pipeline LINES_PIPELINE ~ delete _;
 
 		// Samplers
-		public static Sampler CHUNK_SAMPLER ~ delete _;
-		public static Sampler CHUNK_MIPMAP_SAMPLER ~ delete _;
+		public static Sampler NEAREST_SAMPLER ~ delete _;
+		public static Sampler NEAREST_MIPMAP_SAMPLER ~ delete _;
 
 		// Bind groups
 		public static BindGroup CHUNK_BIND_GROUP ~ delete _;
@@ -42,8 +43,9 @@ namespace Meteorite {
 			// Shaders
 			CHUNK_SHADER = Gfx.CreateShader("assets/shaders/chunk.wgsl");
 			CHUNK_TRANSPARENT_SHADER = Gfx.CreateShader("assets/shaders/chunkTransparent.wgsl");
-			QUADS_SHADER = Gfx.CreateShader("assets/shaders/lines.wgsl");
-			LINES_SHADER = Gfx.CreateShader("assets/shaders/lines.wgsl");
+			POS_FOG = Gfx.CreateShader("assets/shaders/pos_fog.wgsl");
+			POS_COLOR_SHADER = Gfx.CreateShader("assets/shaders/pos_color.wgsl");
+			POS_TEX_SHADER = Gfx.CreateShader("assets/shaders/pos_tex.wgsl");
 
 			// Pipelines
 			CHUNK_PIPELINE = Gfx.NewPipeline()
@@ -66,28 +68,28 @@ namespace Meteorite {
 				.Create();
 			LINES_PIPELINE = Gfx.NewPipeline()
 				.Attributes(.Float3, .UByte4)
-				.VertexShader(LINES_SHADER, "vs_main")
-				.FragmentShader(LINES_SHADER, "fs_main")
+				.VertexShader(POS_COLOR_SHADER, "vs_main")
+				.FragmentShader(POS_COLOR_SHADER, "fs_main")
 				.PushConstants(.Vertex, 0, sizeof(Mat4))
 				.Primitive(.LineList, true)
 				.Depth(true)
 				.Create();
 			QUADS_PIPELINE = Gfx.NewPipeline()
 				.Attributes(.Float3, .UByte4)
-				.VertexShader(LINES_SHADER, "vs_main")
-				.FragmentShader(LINES_SHADER, "fs_main")
+				.VertexShader(POS_COLOR_SHADER, "vs_main")
+				.FragmentShader(POS_COLOR_SHADER, "fs_main")
 				.PushConstants(.Vertex, 0, sizeof(Mat4))
 				.Primitive(.TriangleList, true)
 				.Depth(true)
 				.Create();
 
 			// Samplers
-			CHUNK_SAMPLER = Gfx.CreateSampler(.ClampToEdge, .Nearest, .Nearest);
-			CHUNK_MIPMAP_SAMPLER = Gfx.CreateSampler(.ClampToEdge, .Nearest, .Nearest, .Linear, 4);
+			NEAREST_SAMPLER = Gfx.CreateSampler(.ClampToEdge, .Nearest, .Nearest);
+			NEAREST_MIPMAP_SAMPLER = Gfx.CreateSampler(.ClampToEdge, .Nearest, .Nearest, .Linear, 4);
 
 			// Bind groups
-			CHUNK_BIND_GROUP = TEXTURE_SAMPLER_LAYOUT.Create(Blocks.ATLAS, CHUNK_SAMPLER);
-			CHUNK_MIPMAP_BIND_GROUP = TEXTURE_SAMPLER_LAYOUT.Create(Blocks.ATLAS, CHUNK_MIPMAP_SAMPLER);
+			CHUNK_BIND_GROUP = TEXTURE_SAMPLER_LAYOUT.Create(Blocks.ATLAS, NEAREST_SAMPLER);
+			CHUNK_MIPMAP_BIND_GROUP = TEXTURE_SAMPLER_LAYOUT.Create(Blocks.ATLAS, NEAREST_MIPMAP_SAMPLER);
 		}
 	}
 }
