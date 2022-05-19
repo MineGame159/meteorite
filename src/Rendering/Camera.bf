@@ -62,7 +62,7 @@ namespace Meteorite {
 			}
 
 			// Update matrices
-			proj = .Perspective(75, (float) width / height, 0.05f, 10000);
+			proj = .Perspective(75, (float) width / height, 0.05f, 2000);
 			view = .LookAt(pos, pos + GetDirection(true), .(0, 1, 0));
 			viewRotationOnly = .LookAt(.(), GetDirection(true), .(0, 1, 0));
 

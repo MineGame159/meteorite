@@ -195,7 +195,7 @@ namespace Meteorite {
 		}
 		
 		private static bool ShouldRender(ref Foo foo, Quad quad, Direction direction) {
-			if (foo.y < 0) return false;
+			if (foo.y < 0 || foo.y + direction.GetOffset().y < 0) return false;
 			if (foo.y >= Section.SIZE * 16) return true;
 
 			BlockState blockState = foo.Get(direction);
