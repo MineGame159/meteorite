@@ -148,7 +148,7 @@ namespace Meteorite {
 
 		public static void Register() {
 			// Get starting ids
-			Json json = JsonParser.ParseFile("assets/blocks.json");
+			Json json = Meteorite.INSTANCE.resources.ReadJson("data/blocks.json");
 			BLOCKSTATES = new .[(.) json["__max_id__"].AsNumber];
 			STARTING_IDS = new .((.) json.AsObject.Count);
 			for (let pair in json.AsObject) STARTING_IDS[pair.key.Substring(10)] = (.) pair.value.AsNumber;

@@ -9,32 +9,8 @@ namespace Meteorite {
 	class Program {
 		public static bool AO = true;
 
-		public static Camera camera;
-
 		public static void Main() {
-			Window window = scope Window();
-
-			camera = scope Camera(window);
-			camera.pos.y = 160;
-			camera.yaw = 45;
-
-			I18N.Load();
-			Blocks.Register();
-			BlockModelLoader.LoadModels();
-			Biomes.Register();
-			Biome.LoadColormaps();
-			EntityTypes.Register();
-			Buffers.CreateGlobalIndices();
-			Gfxa.Init();
-			SkyRenderer.Init();
-
-			RenderTickCounter tickCounter = scope .(20, 0);
-			ClientConnection c = null;
-
-			char8[16] username = "Meteorite";
-			char8[32] ip = "localhost";
-			char8[6] port = "25565";
-			int32 viewDistance = 6;
+			Meteorite me = new .();
 
 			bool mipmaps = true;
 			bool sortChunks = true;
@@ -42,80 +18,55 @@ namespace Meteorite {
 
 			double lastTime = Glfw.GetTime();
 
-			while (!window.ShouldClose) {
+			while (!me.window.ShouldClose) {
 				double time = Glfw.GetTime();
 				float delta = (.) (time - lastTime);
 				lastTime = time;
 
 				Input.[Friend]Update();
-				window.PollEvents();
+				me.window.PollEvents();
 
-				bool escaped = Screenshots.Update(window);
+				bool escaped = Screenshots.Update();
 
-				Gfx.BeginFrame(c?.world != null ? c.world.GetClearColor(camera, tickCounter.tickDelta) : .(200, 200, 200, 255));
+				Gfx.BeginFrame(me.world != null ? me.world.GetClearColor(me.camera, me.tickCounter.tickDelta) : .(200, 200, 200, 255));
 
 				double start = Glfw.GetTime();
 
-				if (c == null) {
-					ImGui.Begin("Menu", null, .AlwaysAutoResize);
-
-					ImGui.InputText("Username", &username, username.Count);
-					ImGui.InputText("IP", &ip, ip.Count);
-					ImGui.InputText("Port", &port, port.Count);
-					ImGui.DragInt("View Distance", &viewDistance, 1, 2, 32);
-
-					if (ImGui.Button("Connect", .(-1, 0))) {
-						c = new .(.(&ip), int32.Parse(.(&port)), viewDistance);
-						window.MouseHidden = true;
-					}
-
-					ImGui.End();
-				}
+				if (me.connection == null) MainMenu.Render();
 				else {
-					if (!escaped && Input.IsKeyPressed(.Escape)) window.MouseHidden = !window.MouseHidden;
+					if (!escaped && Input.IsKeyPressed(.Escape)) me.window.MouseHidden = !me.window.MouseHidden;
 	
-					camera.FlightMovement(delta);
-					camera.Update();
+					me.Render(mipmaps, sortChunks, chunkBoundaries, delta);
 
-					if (c.world != null) {
-						int tickCount = tickCounter.BeginRenderTick();
-						for (int i < Math.Min(10, tickCount)) c.world.Tick();
-
-						c.world.Render(camera, tickCounter.tickDelta, mipmaps, sortChunks);
-						if (chunkBoundaries) c.world.RenderChunkBoundaries(camera);
-					}
-	
 					ImGui.Begin("Meteorite");
 					ImGui.Text("Frame: {:0.000} ms", (Glfw.GetTime() - start) * 1000);
 					ImGui.Text("Memory: {} MB", Utils.GetUsedMemory());
 					ImGui.Text("GPU Memory: {} MB", Gfx.ALLOCATED / 1024 / 1024);
 					ImGui.Separator();
 
-					if (c.world != null) {
-						ImGui.Text("Chunks: {} / {}", c.world.renderedChunks, c.world.ChunkCount);
-						ImGui.Text("Entities: {}", c.world.EntityCount);
+					if (me.world != null) {
+						ImGui.Text("Chunks: {} / {}", me.world.renderedChunks, me.world.ChunkCount);
+						ImGui.Text("Entities: {}", me.world.EntityCount);
 					}
-					ImGui.Text("Pos: {:0} {:0} {:0}", camera.pos.x, camera.pos.y, camera.pos.z);
+					ImGui.Text("Pos: {:0} {:0} {:0}", me.camera.pos.x, me.camera.pos.y, me.camera.pos.z);
 					ImGui.Separator();
 	
 					bool preAO = AO;
 					ImGui.Checkbox("AO", &AO);
-					if (AO != preAO) c.world.ReloadChunks();
+					if (AO != preAO) me.world.ReloadChunks();
 
 					ImGui.Checkbox("Mipmaps", &mipmaps);
 					ImGui.Checkbox("Sort Chunks", &sortChunks);
 					ImGui.Checkbox("Chunk Boundaries", &chunkBoundaries);
 					ImGui.End();
 
-					Screenshots.Render(window);
+					Screenshots.Render();
 				}
 
 				Gfx.EndFrame();
 			}
 
-			Gfx.Shutdown();
-
-			delete c;
+			delete Meteorite.INSTANCE;
 		}
 	}
 }

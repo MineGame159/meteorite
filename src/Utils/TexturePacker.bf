@@ -21,8 +21,12 @@ namespace Meteorite {
 		}
 
 		public (int, int) Add(StringView path) {
+			if (path.EndsWith("kelp_age_25.png")) {
+				path = path;
+			}
+
 			// Read image
-			ImageResult image = Utils.ReadImage(path);
+			Image image = Meteorite.INSTANCE.resources.ReadImage(path);
 
 			List<Mipmap> mipmaps = scope .(4);
 			MipmapGenerator.Generate(image.data, image.width, image.height, 4, mipmaps);
@@ -54,7 +58,7 @@ namespace Meteorite {
 				maxRowHeight = 0;
 			}
 
-			image.Dispose();
+			delete image;
 			
 			return (_x, _y);
 		}

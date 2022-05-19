@@ -6,15 +6,23 @@ namespace Meteorite {
 		private static Dictionary<String, String> translations = new .() ~ DeleteDictionaryAndKeysAndValues!(_);
 
 		public static void Load() {
-			Json json = JsonParser.ParseFile("assets/lang/en_us.json");
+			Meteorite.INSTANCE.resources.ReadJsons("lang/en_us.json", scope (json) => {
+				for (let pair in json.AsObject) {
+					String str = pair.value.AsString;
+					str.Replace("%s", "{}");
 
-			for (let pair in json.AsObject) {
-				String str = pair.value.AsString;
-				str.Replace("%s", "{}");
-				translations[new .(pair.key)] = new .(str);
-			}
+					if (translations.ContainsKey(pair.key)) {
+						let (key, value) = translations.GetAndRemove(pair.key).Get();
 
-			json.Dispose();
+						delete key;
+						delete value;
+					}
+
+					translations[new .(pair.key)] = new .(str);
+				}
+
+				json.Dispose();
+			});
 		}
 
 		public static void Translate(String key, String str, params Object[] args) {

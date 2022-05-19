@@ -8,21 +8,21 @@ namespace Meteorite {
 		public static void LoadColormaps() {
 			{
 				// Grass
-				ImageResult image = Utils.ReadImage("assets/textures/colormap/grass.png");
+				Image image = Meteorite.INSTANCE.resources.ReadImage("colormap/grass.png");
 
 				GRASS_COLORS = new Color[image.width * image.height];
 				Internal.MemCpy(&GRASS_COLORS[0], image.data, GRASS_COLORS.Count * 4);
 
-				image.Dispose();
+				delete image;
 			}
 			{
 				// Foliage
-				ImageResult image = Utils.ReadImage("assets/textures/colormap/foliage.png");
+				Image image = Meteorite.INSTANCE.resources.ReadImage("colormap/foliage.png");
 
 				FOLIAGE_COLORS = new Color[image.width * image.height];
 				Internal.MemCpy(&FOLIAGE_COLORS[0], image.data, FOLIAGE_COLORS.Count * 4);
 
-				image.Dispose();
+				delete image;
 			}
 		}
 

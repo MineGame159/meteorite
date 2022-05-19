@@ -7,3 +7,6 @@ StartupProject = "meteorite"
 
 [Configs.Debug.Win64]
 AllocStackTraceDepth = 10
+
+[Configs.Release.Win64]
+AllocType = "Debug"

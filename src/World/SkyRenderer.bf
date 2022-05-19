@@ -87,8 +87,8 @@ namespace Meteorite {
 			CreateSkyDic(ref DARK_MESH, -16);
 			CreateStars(ref STARS_MESH);
 
-			SUN = Gfx.CreateTexture("assets/textures/environment/sun.png");
-			MOON = Gfx.CreateTexture("assets/textures/environment/moon_phases.png");
+			SUN = Gfx.CreateTexture("environment/sun.png");
+			MOON = Gfx.CreateTexture("environment/moon_phases.png");
 
 			SUN_BIND_GROUP = Gfxa.TEXTURE_SAMPLER_LAYOUT.Create(SUN, Gfxa.NEAREST_SAMPLER);
 			MOON_BIND_GROUP = Gfxa.TEXTURE_SAMPLER_LAYOUT.Create(MOON, Gfxa.NEAREST_SAMPLER);

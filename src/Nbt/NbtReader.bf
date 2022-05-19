@@ -31,7 +31,7 @@ namespace Meteorite {
 		private static Tag ReadTag(Stream s, TagType type) {
 			switch (type) {
 			case .Byte: return .Byte(s.Read<int8>());
-			case .Short: return .Short((int16) (s.Read<uint8>() << 8) | (int16) (s.Read<uint8>() & 0xff));
+			case .Short: return .Short((int16) ((int16) s.Read<uint8>() << 8) | (int16) (s.Read<uint8>() & 0xff));
 			case .Int: return .Int(ReadInt(s));
 			case .Long: return .Long(ReadLong(s));
 			case .Float: return .Float(s.Read<float>());
@@ -75,7 +75,7 @@ namespace Meteorite {
 			return;
 		}
 
-		private static int32 ReadInt(Stream s) => (int16) ((s.Read<uint8>() & 0xff) << 24) | (int16) ((s.Read<uint8>() & 0xff) << 16) | (int16) ((s.Read<uint8>() & 0xff) <<  8) | (int16) (s.Read<uint8>() & 0xff);
+		private static int32 ReadInt(Stream s) => (int16) ((int32) (s.Read<uint8>() & 0xff) << 24) | (int16) ((int32) (s.Read<uint8>() & 0xff) << 16) | (int16) ((s.Read<uint8>() & 0xff) <<  8) | (int16) (s.Read<uint8>() & 0xff);
 		private static int64 ReadLong(Stream s) => (int64) ((s.Read<uint8>() & 0xff) << 56) | (int64) ((s.Read<uint8>() & 0xff) << 48) | (int64) ((s.Read<uint8>() & 0xff) << 40) | (int64) ((s.Read<uint8>() & 0xff) << 32) | (int64) ((s.Read<uint8>() & 0xff) << 24) | (int64) ((s.Read<uint8>() & 0xff) << 16) | (int64) ((s.Read<uint8>() & 0xff) <<  8) | (int64) ((s.Read<uint8>() & 0xff));
 	}
 }

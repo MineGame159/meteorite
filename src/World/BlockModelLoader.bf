@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.Collections;
 using System.Diagnostics;
 
@@ -12,6 +11,7 @@ namespace Meteorite{
 
 		public static void LoadModels() {
 			Stopwatch sw = scope .(true);
+			//let omg = Profiler.StartSampling();
 
 			MODEL_CACHE = new .();
 			Dictionary<String, List<(Quad, int[4])>> textures = new .();
@@ -20,19 +20,22 @@ namespace Meteorite{
 			for (Block block in Registry.BLOCKS) {
 				if (block == Blocks.AIR) continue;
 
-				for (BlockState blockState in block) {
-					// Read blockstate json
-					String blockstatePath = scope $"assets/blockstates/{block.id}.json";
+				// Read blockstate json
+				Json? blockstateJson = GetMergedBlockstateJson(block);
 
-					if (!File.Exists(blockstatePath)) {
-						Log.Error("Failed to find blockstate file for block with id '{}'", block.id);
-						continue;
+				if (blockstateJson == null) {
+					Log.Error("Failed to find blockstate file for block with id '{}'", block.id);
+					continue;
+				}
+
+				// Loop all block states
+				for (BlockState blockState in block) {
+					if (block == Blocks.KELP && blockState.GetProperty("age").value == 25) {
+						block = block;
 					}
 
-					Json blockstateJson = JsonParser.ParseFile(blockstatePath);
-
-					if (blockstateJson.Contains("multipart")) {
-						List<RawModel> modelJsons = GetMultipartModels(blockState, blockstateJson);
+					if (blockstateJson.Value.Contains("multipart")) {
+						List<RawModel> modelJsons = GetMultipartModels(blockState, blockstateJson.Value);
 						Model model = new .();
 
 						for (RawModel rawModel in modelJsons) {
@@ -46,7 +49,7 @@ namespace Meteorite{
 						DeleteContainerAndDisposeItems!(modelJsons);
 					}
 					else {
-						if (GetVariantModel(block, blockState, blockstateJson) case .Ok(let rawModel)) {
+						if (GetVariantModel(block, blockState, blockstateJson.Value) case .Ok(let rawModel)) {
 							Model model = new .();
 
 							for (let j in rawModel.json["elements"].AsArray) {
@@ -59,6 +62,8 @@ namespace Meteorite{
 						}
 					}
 				}
+
+				blockstateJson.Value.Dispose();
 			}
 
 			// Create texture atlas
@@ -66,7 +71,7 @@ namespace Meteorite{
 			TexturePacker packer = scope .(s);
 
 			for (let pair in textures) {
-				String path = scope $"assets/textures/{pair.key}.png";
+				String path = scope $"{pair.key}.png";
 				let (x, y) = packer.Add(path);
 
 				for (let a in pair.value) {
@@ -84,7 +89,37 @@ namespace Meteorite{
 			}
 			delete MODEL_CACHE;
 
+			//omg.Dispose();
 			Log.Info("Loaded block models in {:0.000} ms", sw.Elapsed.TotalMilliseconds);
+		}
+
+		private static Json? GetMergedBlockstateJson(Block block) {
+			String path = scope $"blockstates/{block.id}.json";
+			Json? json = null;
+
+			Meteorite.INSTANCE.resources.ReadJsons(path, scope [&](j) => {
+				if (json == null) {
+					json = j;
+					return;
+				}
+
+				if (json.Value.Contains("variants") && j.Contains("variants")) {
+					Json variants1 = json.Value["variants"];
+					Json variants2 = j["variants"];
+
+					for (let pair in variants2.AsObject) {
+						if (variants1.Contains(pair.key)) variants1.Remove(pair.key);
+
+						Json a = pair.value.IsArray ? .Array() : .Object();
+						a.Merge(pair.value);
+						variants1[pair.key] = a;
+					}
+				}
+
+				j.Dispose();
+			});
+
+			return json;
 		}
 
 		private static void ParseElement(Block block, Dictionary<String, List<(Quad, int[4])>> textures, Model model, Json modelJson, Json json, Vec3f blockStateRotation) {
@@ -329,7 +364,6 @@ namespace Meteorite{
 				}
 			}
 
-			blockstateJson.Dispose();
 			return modelJsons;
 		}
 
@@ -360,7 +394,6 @@ namespace Meteorite{
 			if (variant.Contains("y")) rotation.y = (.) variant["y"].AsNumber;
 			if (variant.Contains("z")) rotation.z = (.) variant["z"].AsNumber;
 			
-			blockstateJson.Dispose();
 			return RawModel(json, rotation);
 		}
 
@@ -368,7 +401,7 @@ namespace Meteorite{
 			while (json.Contains("parent")) {
 				StringView model = json["parent"].AsString;
 				if (model.Contains(':')) model = model.Substring(10);
-				StringView modelPath = scope $"assets/models/{model}.json";
+				StringView modelPath = scope $"models/{model}.json";
 
 				// Remove parent
 				json.Remove("parent");
@@ -379,16 +412,15 @@ namespace Meteorite{
 				if (MODEL_CACHE.TryGet(scope .(modelPath), out _, out cachedJson)) {
 					json.Merge(cachedJson);
 				} else {
-					// Read model json
-					if (!File.Exists(modelPath)) {
+					// Merge and add to cache
+					Result<Json> j = Meteorite.INSTANCE.resources.ReadJson(modelPath);
+
+					if (j == .Err) {
 						Log.Error("Failed to find model file with path '{}'", modelPath);
 						return .Err;
 					}
 
-					// Merge and add to cache
-					Json j = JsonParser.ParseFile(modelPath);
 					MODEL_CACHE[new .(modelPath)] = j;
-
 					json.Merge(j);
 				}
 			}
@@ -402,7 +434,7 @@ namespace Meteorite{
 			for (let pair in json.AsObject) {
 				Dictionary<StringView, StringView> variant = scope:: .();
 				variants.Add((pair.value, variant));
-
+								
 				if (pair.key.IsEmpty) continue;
 
 				for (StringView property in pair.key.Split(',')) {
@@ -430,7 +462,9 @@ namespace Meteorite{
 				}
 			}
 
-			return variants[0].0;
+			if (variants.Count > 2) Log.Warning("More than 2 variants left");
+
+			return variants[variants.Count - 1].0;
 		}
 
 		private struct RawModel : IDisposable {

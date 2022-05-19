@@ -28,12 +28,9 @@ namespace Meteorite {
 		public Vec3f pos;
 		public float yaw, pitch;
 
-		public Window window;
-
 		private Plane[6] planes;
 
-		public this(Window window) {
-			this.window = window;
+		public this() {
 			this.yaw = -90;
 		}
 
@@ -54,6 +51,8 @@ namespace Meteorite {
 		}
 
 		public void Update() {
+			Window window = Meteorite.INSTANCE.window;
+
 			int width = window.width;
 			int height = window.height;
 
@@ -109,7 +108,7 @@ namespace Meteorite {
 
 		public void FlightMovement(float delta) {
 			// Rotation
-			if (window.MouseHidden) {
+			if (Meteorite.INSTANCE.window.MouseHidden) {
 				yaw += Input.mouseDelta.x / 7;
 				pitch -= Input.mouseDelta.y / 7;
 

@@ -361,10 +361,10 @@ namespace Meteorite {
 			return new [Friend].(handle, view, desc);
 		}
 		public static Texture CreateTexture(StringView path) {
-			ImageResult image = Utils.ReadImage(path);
+			Image image = Meteorite.INSTANCE.resources.ReadImage(path);
 			Texture texture = CreateTexture(.TextureBinding, image.width, image.height, 1, image.data);
 
-			image.Dispose();
+			delete image;
 			return texture;
 		}
 

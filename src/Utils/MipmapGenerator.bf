@@ -138,11 +138,17 @@ namespace Meteorite {
 
 			    for (int x = 0; x < w; x++) {
 			        for (int y = 0; y < h; y++) {
+						// This line was crashing because kelp_age_25 is an animation and has increased height, stopped happening for some reason
+						let a = prevColors[(y * 2) * prev.h + (x * 2)];
+						let b = prevColors[(y * 2) * prev.h + (x * 2) + 1];
+						let c = prevColors[(y * 2 + 1) * prev.h + (x * 2)];
+						let d = prevColors[(y * 2 + 1) * prev.h + (x * 2 + 1)];
+
 			            newColors[y * h + x] = Blend(
-							prevColors[(y * 2) * prev.h + x * 2],
-		                    prevColors[(y * 2) * prev.h + x * 2 + 1],
-		                    prevColors[(y * 2 + 1) * prev.h + x * 2],
-		                    prevColors[(y * 2 + 1) * prev.h + x * 2 + 1],
+							a,
+		                    b,
+		                    c,
+		                    d,
 		                    checkAlpha
 			            );
 			        }

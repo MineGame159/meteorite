@@ -8,7 +8,7 @@ namespace Meteorite {
 		public static Biome VOID;
 
 		public static void Register() {
-			Json json = JsonParser.ParseFile("assets/biomes.json");
+			Json json = Meteorite.INSTANCE.resources.ReadJson("data/biomes.json");
 
 			BIOMES = new .[json.AsArray.Count];
 

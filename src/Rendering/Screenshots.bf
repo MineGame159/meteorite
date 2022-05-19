@@ -20,7 +20,9 @@ namespace Meteorite{
 		private static float scale;
 		public static bool includeGui;
 
-		public static bool Update(Window window) {
+		public static bool Update() {
+			Window window = Meteorite.INSTANCE.window;
+
 			if (take) {
 				Take(window);
 				take = false;
@@ -121,7 +123,7 @@ namespace Meteorite{
 				uint8* data = (.) buffer.[Friend]handle.GetMappedRange(0, buffer.size);
 
 				StreamWriter w = new .();
-				w.Create("screenshot.ppm");
+				w.Create("run/screenshot.ppm");
 
 				w.WriteLine("P3");
 				w.WriteLine("{} {}", width, height);
@@ -148,7 +150,9 @@ namespace Meteorite{
 			delete texture;
 		}
 
-		public static void Render(Window window) {
+		public static void Render() {
+			Window window = Meteorite.INSTANCE.window;
+
 			if (!windowOpen) return;
 			if (window.MouseHidden) window.MouseHidden = false;
 

@@ -30,19 +30,14 @@ namespace Meteorite {
 		private const int32 C2S_TELEPORT_CONFIRM = 0x00;
 		private const int32 C2S_CLIENT_STATUS = 0x04;
 
-		public World world;
+		private Meteorite me;
 		private int32 viewDistance;
 
 		private bool playState, firstPlayerInfo = true, firstPlayerPositionAndLook = true;
 
 		public this(StringView address, int32 port, int32 viewDistance) : base(address, port) {
+			this.me = Meteorite.INSTANCE;
 			this.viewDistance = viewDistance;
-		}
-
-		public ~this() {
-			World w = world;
-			world = null;
-			delete w;
 		}
 
 		protected override void OnReady() {
@@ -95,8 +90,8 @@ namespace Meteorite {
 				int minY = dimension["min_y"].AsInt;
 				int height = dimension["height"].AsInt;
 
-				if (world != null) delete world;
-				world = new .(viewDistance, minY, height);
+				if (me.world != null) delete me.world;
+				me.world = new .(viewDistance, minY, height);
 
 				dimension.Dispose();
 				dimensionCodec.Dispose();
@@ -130,7 +125,7 @@ namespace Meteorite {
 				}
 			case S2C_PLAYER_POSITION_AND_LOOK:
 				double x = packet.ReadDouble();
-				double y = packet.ReadDouble() - world.minY + 2;
+				double y = packet.ReadDouble() - me.world.minY + 2;
 				double z = packet.ReadDouble();
 
 				double yaw = packet.ReadFloat();
@@ -149,7 +144,7 @@ namespace Meteorite {
 				}
 
 				if (firstPlayerPositionAndLook) {
-					Camera c = Program.camera;
+					Camera c = Meteorite.INSTANCE.camera;
 					c.pos = .((.) x, (.) y, (.) z);
 					c.yaw = (.) yaw;
 					c.pitch = (.) pitch;
@@ -166,15 +161,15 @@ namespace Meteorite {
 					firstPlayerPositionAndLook = false;
 				}
 			case S2C_CHUNK_DATA_AND_UPDATE_LIGHT:
-				if (world == null) return;
+				if (me.world == null) return;
 
 				int32 x = packet.ReadInt();
 				int32 z = packet.ReadInt();
 
-				Chunk chunk = new .(world, .(x, z));
+				Chunk chunk = new .(me.world, .(x, z));
 				chunk.Load(packet);
 
-				world.AddChunk(chunk);
+				me.world.AddChunk(chunk);
 			case S2C_CHAT_MESSAGE:
 				String text = packet.ReadString();
 				Json json = JsonParser.ParseString(text);
@@ -191,34 +186,34 @@ namespace Meteorite {
 				json.Dispose();
 				delete text;
 			case S2C_SPAWN_ENTITY, S2C_SPAWN_LIVING_ENTITY:
-				if (world == null) return;
+				if (me.world == null) return;
 
 				int entityId = packet.ReadVarInt();
 				packet.Skip(16); // UUID
 				EntityType type = EntityTypes.ENTITY_TYPES[packet.ReadVarInt()];
 				double x = packet.ReadDouble();
-				double y = packet.ReadDouble() - world.minY;
+				double y = packet.ReadDouble() - me.world.minY;
 				double z = packet.ReadDouble();
 
-				world.AddEntity(new .(type, entityId, .(x, y, z)));
+				me.world.AddEntity(new .(type, entityId, .(x, y, z)));
 			case S2C_DESTROY_ENTITIES:
-				if (world == null) return;
+				if (me.world == null) return;
 
 				int count = packet.ReadVarInt();
 
 				for (int i < count) {
 					int entityId = packet.ReadVarInt();
-					world.RemoveEntity(entityId);
+					me.world.RemoveEntity(entityId);
 				}
 			case S2C_ENTITY_POSITION, S2C_ENTITY_POSITION_AND_ROTATION:
-				if (world == null) return;
+				if (me.world == null) return;
 
 				int entityId = packet.ReadVarInt();
 				int16 deltaX = packet.ReadShort();
 				int16 deltaY = packet.ReadShort();
 				int16 deltaZ = packet.ReadShort();
 
-				Entity entity = world.GetEntity(entityId);
+				Entity entity = me.world.GetEntity(entityId);
 				if (entity != null) {
 					double x = deltaX == 0 ? entity.trackedPos.x : DecodePacketCoordinate(EncodePacketCoordinate(entity.trackedPos.x) + (int64) deltaX);
 					double y = deltaY == 0 ? entity.trackedPos.y : DecodePacketCoordinate(EncodePacketCoordinate(entity.trackedPos.y) + (int64) deltaY);
@@ -234,39 +229,39 @@ namespace Meteorite {
 					}
 				}
 			case S2C_ENTITY_ROTATION:
-				if (world == null) return;
+				if (me.world == null) return;
 
 				int entityId = packet.ReadVarInt();
 
-				Entity entity = world.GetEntity(entityId);
+				Entity entity = me.world.GetEntity(entityId);
 				if (entity != null) {
 					entity.yaw = packet.ReadAngle();
 					entity.pitch = packet.ReadAngle();
 				}
 			case S2C_ENTITY_TELEPORT:
-				if (world == null) return;
+				if (me.world == null) return;
 
 				int entityId = packet.ReadVarInt();
 				double x = packet.ReadDouble();
-				double y = packet.ReadDouble() - world.minY;
+				double y = packet.ReadDouble() - me.world.minY;
 				double z = packet.ReadDouble();
 
-				Entity entity = world.GetEntity(entityId);
+				Entity entity = me.world.GetEntity(entityId);
 				if (entity != null) {
 					entity.trackedPos = .(x, y, z);
 					entity.serverPos = .(x, y, z);
 					entity.bodyTrackingIncrements = 3;
 				}
 			case S2C_TIME_UPDATE:
-				if (world == null) return;
+				if (me.world == null) return;
 
 				int64 worldAge = packet.ReadLong();
 				int64 timeOfDay = packet.ReadLong();
 
 				if (timeOfDay < 0) timeOfDay = -timeOfDay;
 
-				world.worldAge = worldAge;
-				world.timeOfDay = timeOfDay;
+				me.world.worldAge = worldAge;
+				me.world.timeOfDay = timeOfDay;
 			}
 		}
 

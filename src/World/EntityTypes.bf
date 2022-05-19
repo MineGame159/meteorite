@@ -6,7 +6,7 @@ namespace Meteorite{
 		public static Dictionary<int, EntityType> ENTITY_TYPES = new .() ~ delete _;
 
 		public static void Register() {
-			Json json = JsonParser.ParseFile("assets/entities.json");
+			Json json = Meteorite.INSTANCE.resources.ReadJson("data/entities.json");
 
 			for (Json e in json.AsArray) {
 				EntityType type = new .(
