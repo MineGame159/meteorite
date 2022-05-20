@@ -51,7 +51,7 @@ namespace Meteorite {
 			limits.limits.maxTextureDimension2D *= 2;
 			Wgpu.DeviceExtras deviceExtras = .() {
 				chain = .() {
-					sType = (.) Wgpu.NativeSType.Extras
+					sType = (.) Wgpu.NativeSType.DeviceExtras
 				},
 				nativeFeatures = .PUSH_CONSTANTS
 			};
