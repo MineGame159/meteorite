@@ -67,20 +67,18 @@ namespace Meteorite{
 			}
 
 			// Create texture atlas
-			int s = 512;
-			TexturePacker packer = scope .(s);
+			TextureManager t = Meteorite.INSTANCE.textures;
 
 			for (let pair in textures) {
-				String path = scope $"{pair.key}.png";
-				let (x, y) = packer.Add(path);
+				let (texture, region) = t.Add(scope $"{pair.key}.png");
 
 				for (let a in pair.value) {
-					a.0.region = .((float) (x + a.1[0]) / s, (float) (y + a.1[1]) / s, (float) (x + a.1[2]) / s, (float) (y + a.1[3]) / s);
+					a.0.region = region;
+					a.0.texture = texture;
 				}
 			}
 
-			Blocks.ATLAS = packer.CreateTexture("Block atlas");
-
+			t.Finish();
 			DeleteDictionaryAndKeysAndValues!(textures);
 
 			for (let pair in MODEL_CACHE) {

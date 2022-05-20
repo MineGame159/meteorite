@@ -3,7 +3,6 @@ using System.Collections;
 
 namespace Meteorite {
 	static class Blocks {
-		public static Texture ATLAS ~ delete _;
 		public static BlockState[] BLOCKSTATES ~ delete _;
 
 		private static Dictionary<StringView, int32> STARTING_IDS;

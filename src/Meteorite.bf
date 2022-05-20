@@ -8,6 +8,7 @@ namespace Meteorite {
 		public Options options ~ delete _;
 		public Window window ~ delete _;
 		public ResourceLoader resources ~ delete _;
+		public TextureManager textures ~ delete _;
 
 		public Camera camera ~ delete _;
 		public RenderTickCounter tickCounter ~ delete _;
@@ -21,7 +22,11 @@ namespace Meteorite {
 
 			options = new .();
 			window = new .();
+
+			Gfxa.Init();
+
 			resources = new .();
+			textures = new .();
 
 			camera = new .();
 			tickCounter = new .(20, 0);
@@ -36,7 +41,6 @@ namespace Meteorite {
 			Biome.LoadColormaps();
 			EntityTypes.Register();
 			Buffers.CreateGlobalIndices();
-			Gfxa.Init();
 			SkyRenderer.Init();
 		}
 

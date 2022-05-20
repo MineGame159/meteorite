@@ -35,6 +35,20 @@ namespace Meteorite {
 			building = true;
 		}
 
+		public Self UByte2(uint8 x, uint8 y) {
+			vertices.UByte(x);
+			vertices.UByte(y);
+
+			return this;
+		}
+
+		public Self UShort2(uint16 x, uint16 y) {
+			vertices.UShort(x);
+			vertices.UShort(y);
+
+			return this;
+		}
+
 		public Self UInt(uint32 v) {
 			vertices.UInt(v);
 			return this;

@@ -21,10 +21,10 @@ namespace Meteorite {
 			float yOffset = (p.value == 0 ? 15 : 15 - p.value) / 16f;
 
 			m.Quad(
-				Vertex!(m, x + 0, y + yOffset, z + 0, quad.region.x1, quad.region.y1, c),
-				Vertex!(m, x + 1, y + yOffset, z + 0, quad.region.x2, quad.region.y1, c),
-				Vertex!(m, x + 1, y + yOffset, z + 1, quad.region.x2, quad.region.y2, c),
-				Vertex!(m, x + 0, y + yOffset, z + 1, quad.region.x1, quad.region.y2, c)
+				Vertex!(m, x + 0, y + yOffset, z + 0, quad.region.x1, quad.region.y1, quad.texture, c),
+				Vertex!(m, x + 1, y + yOffset, z + 0, quad.region.x2, quad.region.y1, quad.texture, c),
+				Vertex!(m, x + 1, y + yOffset, z + 1, quad.region.x2, quad.region.y2, quad.texture, c),
+				Vertex!(m, x + 0, y + yOffset, z + 1, quad.region.x1, quad.region.y2, quad.texture, c)
 			);
 		}
 		
@@ -101,38 +101,42 @@ namespace Meteorite {
 				switch (quad.direction) {
 				case .Up:
 					m.Quad(
-						Vertex!(m, x + quad.vertices[0].x, y + quad.vertices[0].y, z + quad.vertices[0].z, quad.region.x1, quad.region.y1, c.MulWithoutA(quad.light * ao1)),
-						Vertex!(m, x + quad.vertices[1].x, y + quad.vertices[1].y, z + quad.vertices[1].z, quad.region.x2, quad.region.y1, c.MulWithoutA(quad.light * ao2)),
-						Vertex!(m, x + quad.vertices[2].x, y + quad.vertices[2].y, z + quad.vertices[2].z, quad.region.x2, quad.region.y2, c.MulWithoutA(quad.light * ao3)),
-						Vertex!(m, x + quad.vertices[3].x, y + quad.vertices[3].y, z + quad.vertices[3].z, quad.region.x1, quad.region.y2, c.MulWithoutA(quad.light * ao4))
+						Vertex!(m, x + quad.vertices[0].x, y + quad.vertices[0].y, z + quad.vertices[0].z, quad.region.x1, quad.region.y1, quad.texture, c.MulWithoutA(quad.light * ao1)),
+						Vertex!(m, x + quad.vertices[1].x, y + quad.vertices[1].y, z + quad.vertices[1].z, quad.region.x2, quad.region.y1, quad.texture, c.MulWithoutA(quad.light * ao2)),
+						Vertex!(m, x + quad.vertices[2].x, y + quad.vertices[2].y, z + quad.vertices[2].z, quad.region.x2, quad.region.y2, quad.texture, c.MulWithoutA(quad.light * ao3)),
+						Vertex!(m, x + quad.vertices[3].x, y + quad.vertices[3].y, z + quad.vertices[3].z, quad.region.x1, quad.region.y2, quad.texture, c.MulWithoutA(quad.light * ao4))
 					);
 				case .Down:
 					m.Quad(
-						Vertex!(m, x + quad.vertices[0].x, y + quad.vertices[0].y, z + quad.vertices[0].z, quad.region.x1, quad.region.y2, c.MulWithoutA(quad.light * ao1)),
-						Vertex!(m, x + quad.vertices[1].x, y + quad.vertices[1].y, z + quad.vertices[1].z, quad.region.x1, quad.region.y1, c.MulWithoutA(quad.light * ao2)),
-						Vertex!(m, x + quad.vertices[2].x, y + quad.vertices[2].y, z + quad.vertices[2].z, quad.region.x2, quad.region.y1, c.MulWithoutA(quad.light * ao3)),
-						Vertex!(m, x + quad.vertices[3].x, y + quad.vertices[3].y, z + quad.vertices[3].z, quad.region.x2, quad.region.y2, c.MulWithoutA(quad.light * ao4))
+						Vertex!(m, x + quad.vertices[0].x, y + quad.vertices[0].y, z + quad.vertices[0].z, quad.region.x1, quad.region.y2, quad.texture, c.MulWithoutA(quad.light * ao1)),
+						Vertex!(m, x + quad.vertices[1].x, y + quad.vertices[1].y, z + quad.vertices[1].z, quad.region.x1, quad.region.y1, quad.texture, c.MulWithoutA(quad.light * ao2)),
+						Vertex!(m, x + quad.vertices[2].x, y + quad.vertices[2].y, z + quad.vertices[2].z, quad.region.x2, quad.region.y1, quad.texture, c.MulWithoutA(quad.light * ao3)),
+						Vertex!(m, x + quad.vertices[3].x, y + quad.vertices[3].y, z + quad.vertices[3].z, quad.region.x2, quad.region.y2, quad.texture, c.MulWithoutA(quad.light * ao4))
 					);
 				case .North, .East:
 					m.Quad(
-						Vertex!(m, x + quad.vertices[0].x, y + quad.vertices[0].y, z + quad.vertices[0].z, quad.region.x2, quad.region.y2, c.MulWithoutA(quad.light * ao1)),
-						Vertex!(m, x + quad.vertices[1].x, y + quad.vertices[1].y, z + quad.vertices[1].z, quad.region.x1, quad.region.y2, c.MulWithoutA(quad.light * ao2)),
-						Vertex!(m, x + quad.vertices[2].x, y + quad.vertices[2].y, z + quad.vertices[2].z, quad.region.x1, quad.region.y1, c.MulWithoutA(quad.light * ao3)),
-						Vertex!(m, x + quad.vertices[3].x, y + quad.vertices[3].y, z + quad.vertices[3].z, quad.region.x2, quad.region.y1, c.MulWithoutA(quad.light * ao4))
+						Vertex!(m, x + quad.vertices[0].x, y + quad.vertices[0].y, z + quad.vertices[0].z, quad.region.x2, quad.region.y2, quad.texture, c.MulWithoutA(quad.light * ao1)),
+						Vertex!(m, x + quad.vertices[1].x, y + quad.vertices[1].y, z + quad.vertices[1].z, quad.region.x1, quad.region.y2, quad.texture, c.MulWithoutA(quad.light * ao2)),
+						Vertex!(m, x + quad.vertices[2].x, y + quad.vertices[2].y, z + quad.vertices[2].z, quad.region.x1, quad.region.y1, quad.texture, c.MulWithoutA(quad.light * ao3)),
+						Vertex!(m, x + quad.vertices[3].x, y + quad.vertices[3].y, z + quad.vertices[3].z, quad.region.x2, quad.region.y1, quad.texture, c.MulWithoutA(quad.light * ao4))
 					);
 				case .South, .West:
 					m.Quad(
-						Vertex!(m, x + quad.vertices[0].x, y + quad.vertices[0].y, z + quad.vertices[0].z, quad.region.x1, quad.region.y2, c.MulWithoutA(quad.light * ao1)),
-						Vertex!(m, x + quad.vertices[1].x, y + quad.vertices[1].y, z + quad.vertices[1].z, quad.region.x1, quad.region.y1, c.MulWithoutA(quad.light * ao2)),
-						Vertex!(m, x + quad.vertices[2].x, y + quad.vertices[2].y, z + quad.vertices[2].z, quad.region.x2, quad.region.y1, c.MulWithoutA(quad.light * ao3)),
-						Vertex!(m, x + quad.vertices[3].x, y + quad.vertices[3].y, z + quad.vertices[3].z, quad.region.x2, quad.region.y2, c.MulWithoutA(quad.light * ao4))
+						Vertex!(m, x + quad.vertices[0].x, y + quad.vertices[0].y, z + quad.vertices[0].z, quad.region.x1, quad.region.y2, quad.texture, c.MulWithoutA(quad.light * ao1)),
+						Vertex!(m, x + quad.vertices[1].x, y + quad.vertices[1].y, z + quad.vertices[1].z, quad.region.x1, quad.region.y1, quad.texture, c.MulWithoutA(quad.light * ao2)),
+						Vertex!(m, x + quad.vertices[2].x, y + quad.vertices[2].y, z + quad.vertices[2].z, quad.region.x2, quad.region.y1, quad.texture, c.MulWithoutA(quad.light * ao3)),
+						Vertex!(m, x + quad.vertices[3].x, y + quad.vertices[3].y, z + quad.vertices[3].z, quad.region.x2, quad.region.y2, quad.texture, c.MulWithoutA(quad.light * ao4))
 					);
 				}
 			}
 		}
 
-		private static mixin Vertex(Mesh mesh, float x, float y, float z, float u, float v, Color color) {
-			mesh.Vec3(.(x, y, z)).Vec2(.(u, v)).Color(color).Next()
+		private static mixin Vertex(Mesh mesh, float x, float y, float z, uint8 u, uint8 v, uint16 texture, Color color) {
+			mesh
+				.Vec3(.(x, y, z))
+				.UShort2(((.) u << 8) | v, texture)
+				.Color(color)
+				.Next()
 		}
 
 		private static void Tint(Chunk chunk, BlockState blockState, int x, int y, int z, ref Color color) {

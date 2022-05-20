@@ -18,6 +18,7 @@ namespace Meteorite {
 		public QuadCullFace cullFace;
 		public float light;
 		public TextureRegion region;
+		public uint16 texture;
 		public bool tint;
 		public Vec3f min, max;
 		public bool adjacent;

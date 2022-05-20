@@ -3,14 +3,21 @@ using Wgpu;
 
 namespace Meteorite {
 	enum VertexAttribute {
+		case UByte2Float;
 		case UByte4;
+
+		case UShort2;
+		case UShort2Float;
 
 		case Float2;
 		case Float3;
 
 		public uint64 GetSize() {
 			switch (this) {
+			case .UByte2Float: return sizeof(uint8) * 2;
 			case .UByte4: return sizeof(uint8) * 4;
+
+			case .UShort2, .UShort2Float: return sizeof(uint16) * 2;
 
 			case .Float2: return sizeof(float) * 2;
 			case .Float3: return sizeof(float) * 3;
@@ -19,7 +26,11 @@ namespace Meteorite {
 
 		public Wgpu.VertexFormat GetFormat() {
 			switch (this) {
+			case .UByte2Float: return .Unorm8x2;
 			case .UByte4: return .Unorm8x4;
+
+			case .UShort2: return .Uint16x2;
+			case .UShort2Float: return .Unorm16x2;
 
 			case .Float2: return .Float32x2;
 			case .Float3: return .Float32x3;

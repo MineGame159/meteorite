@@ -6,7 +6,7 @@ namespace Meteorite {
 		private int size;
 		private uint8*[4] datas ~ for (uint8* data in _) delete data;
 		private uint8* data ~ delete _;
-
+		
 		private int x, y;
 		private int maxRowHeight;
 
@@ -21,10 +21,6 @@ namespace Meteorite {
 		}
 
 		public (int, int) Add(StringView path) {
-			if (path.EndsWith("kelp_age_25.png")) {
-				path = path;
-			}
-
 			// Read image
 			Image image = Meteorite.INSTANCE.resources.ReadImage(path);
 

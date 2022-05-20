@@ -10,6 +10,7 @@ namespace Meteorite {
 	static class Gfxa {
 		// Bind group layouts
 		public static BindGroupLayout TEXTURE_SAMPLER_LAYOUT ~ delete _;
+		public static BindGroupLayout BUFFER_SAMPLER_LAYOUT ~ delete _;
 
 		// Shaders
 		public static Shader CHUNK_SHADER ~ delete _;
@@ -28,16 +29,15 @@ namespace Meteorite {
 		public static Sampler NEAREST_SAMPLER ~ delete _;
 		public static Sampler NEAREST_MIPMAP_SAMPLER ~ delete _;
 
-		// Bind groups
-		public static BindGroup CHUNK_BIND_GROUP ~ delete _;
-		public static BindGroup CHUNK_MIPMAP_BIND_GROUP ~ delete _;
-
 		// Init
 		public static void Init() {
 			// Bind group layouts
 			TEXTURE_SAMPLER_LAYOUT = Gfx.NewBindGroupLayout()
 				.Texture()
 				.Sampler(.Filtering)
+				.Create();
+			BUFFER_SAMPLER_LAYOUT = Gfx.NewBindGroupLayout()
+				.Buffer(.ReadOnlyStorage)
 				.Create();
 
 			// Shaders
@@ -49,8 +49,8 @@ namespace Meteorite {
 
 			// Pipelines
 			CHUNK_PIPELINE = Gfx.NewPipeline()
-				.BindGroupLayouts(TEXTURE_SAMPLER_LAYOUT)
-				.Attributes(.Float3, .Float2, .UByte4)
+				.BindGroupLayouts(TEXTURE_SAMPLER_LAYOUT, BUFFER_SAMPLER_LAYOUT)
+				.Attributes(.Float3, .UShort2, .UByte4)
 				.VertexShader(CHUNK_SHADER, "vs_main")
 				.FragmentShader(CHUNK_SHADER, "fs_main")
 				.PushConstants(.Vertex, 0, sizeof(ChunkPushConstants))
@@ -58,8 +58,8 @@ namespace Meteorite {
 				.Depth(true)
 				.Create();
 			CHUNK_TRANSPARENT_PIPELINE = Gfx.NewPipeline()
-				.BindGroupLayouts(TEXTURE_SAMPLER_LAYOUT)
-				.Attributes(.Float3, .Float2, .UByte4)
+				.BindGroupLayouts(TEXTURE_SAMPLER_LAYOUT, BUFFER_SAMPLER_LAYOUT)
+				.Attributes(.Float3, .UShort2, .UByte4)
 				.VertexShader(CHUNK_TRANSPARENT_SHADER, "vs_main")
 				.FragmentShader(CHUNK_TRANSPARENT_SHADER, "fs_main")
 				.PushConstants(.Vertex, 0, sizeof(ChunkPushConstants))
@@ -86,10 +86,6 @@ namespace Meteorite {
 			// Samplers
 			NEAREST_SAMPLER = Gfx.CreateSampler(.ClampToEdge, .Nearest, .Nearest);
 			NEAREST_MIPMAP_SAMPLER = Gfx.CreateSampler(.ClampToEdge, .Nearest, .Nearest, .Linear, 4);
-
-			// Bind groups
-			CHUNK_BIND_GROUP = TEXTURE_SAMPLER_LAYOUT.Create(Blocks.ATLAS, NEAREST_SAMPLER);
-			CHUNK_MIPMAP_BIND_GROUP = TEXTURE_SAMPLER_LAYOUT.Create(Blocks.ATLAS, NEAREST_MIPMAP_SAMPLER);
 		}
 	}
 }

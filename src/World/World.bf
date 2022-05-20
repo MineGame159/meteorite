@@ -133,9 +133,7 @@ namespace Meteorite {
 
 			Gfx.PushDebugGroup("Chunks - Solid");
 			Gfxa.CHUNK_PIPELINE.Bind();
-
-			if (mipmaps) Gfxa.CHUNK_MIPMAP_BIND_GROUP.Bind();
-			else Gfxa.CHUNK_BIND_GROUP.Bind();
+			Meteorite.INSTANCE.textures.Bind(mipmaps);
 
 
 			for (Chunk chunk in visibleChunks) {
@@ -168,6 +166,7 @@ namespace Meteorite {
 			// Chunks transparent
 			Gfx.PushDebugGroup("Chunks - Transparent");
 			Gfxa.CHUNK_TRANSPARENT_PIPELINE.Bind();
+			Meteorite.INSTANCE.textures.Bind(mipmaps);
 
 			for (Chunk chunk in visibleChunks) {
 				if (chunk.meshTransparent == null) continue;

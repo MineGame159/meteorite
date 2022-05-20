@@ -29,6 +29,7 @@ namespace Meteorite {
 
 				if (args[i] is Sampler) entries[i].sampler = ((Sampler) args[i]).[Friend]handle;
 				else if (args[i] is Texture) entries[i].textureView = ((Texture) args[i]).[Friend]view;
+				else if (args[i] is WBuffer) entries[i].buffer = ((WBuffer) args[i]).[Friend]handle;
 				else Log.Error("Unknown bind group entry argument: {}", args[i].GetType());
 			}
 
@@ -60,6 +61,18 @@ namespace Meteorite {
 				binding = (.) count - 1,
 				visibility = .Fragment,
 				sampler = .() {
+					type = type
+				}
+			};
+
+			return this;
+		}
+
+		public Self Buffer(Wgpu.BufferBindingType type) {
+			entries[count++] = .() {
+				binding = (.) count - 1,
+				visibility = .Vertex,
+				buffer = .() {
 					type = type
 				}
 			};
