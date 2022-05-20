@@ -150,7 +150,7 @@ namespace Meteorite {
 
 					for (int v = 0; v < 4; ++v) {
 						double x = ((v & 2) - 1) * g;
-						double y = ((v + 1 & 2) - 1) * g;
+						double y = (((v + 1) & 2) - 1) * g;
 						double aa = x * u - y * t;
 						double ab = y * u + x * t;
 						double ad = aa * q + 0.0 * r;

@@ -80,7 +80,7 @@ namespace Meteorite {
 		public void Load(NetBuffer packet) {
 			packet.ReadNbt().Dispose();
 
-			int size = packet.ReadVarInt();
+			packet.ReadVarInt(); // Size
 
 			int minY = sections.Count * Section.SIZE;
 			int maxY = 0;

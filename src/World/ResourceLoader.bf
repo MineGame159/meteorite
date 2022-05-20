@@ -10,7 +10,13 @@ namespace Meteorite {
 
 		public this() {
 			locations.Add(new .("assets"));
-			//locations.Add(new .("run/resourcepacks/MineGame-Pack/assets/minecraft"));
+
+			for (String pack in Meteorite.INSTANCE.options.resourcePacks) {
+				String path = new $"run/resourcepacks/{pack}/assets/minecraft";
+				
+				if (Directory.Exists(path)) locations.Add(path);
+				else delete path;
+			}
 		}
 
 		private bool GetStream(StringView path, FileStream s) {

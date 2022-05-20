@@ -5,6 +5,7 @@ namespace Meteorite {
 	class Meteorite {
 		public static Meteorite INSTANCE;
 
+		public Options options ~ delete _;
 		public Window window ~ delete _;
 		public ResourceLoader resources ~ delete _;
 
@@ -18,6 +19,7 @@ namespace Meteorite {
 			INSTANCE = this;
 			Directory.CreateDirectory("run");
 
+			options = new .();
 			window = new .();
 			resources = new .();
 
