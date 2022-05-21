@@ -1,0 +1,52 @@
+name: Build
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download Beef
+        shell: powershell
+        run: Start-BitsTransfer -Source "https://nightly.beeflang.org/BeefSetup.exe" -Destination "BeefBuild.exe"
+      
+      - name: Extract Beef
+        shell: powershell
+        run: 7z x BeefBuild.exe -oBeef
+      
+      - name: Write BeefConfig.toml
+        shell: powershell
+        run: |
+          "Version = 1`nUnversionedLibDirs = [`"Beef/BeefLibs`"]" | Out-File -FilePath "BeefConfig.toml"
+      
+      - name: Download GLFW
+        run: git clone https://github.com/MineGame159/glfw-beef.git Beef/BeefLibs/glfw-beef
+      
+      - name: Download ImGui
+        run: git clone https://github.com/RogueMacro/imgui-beef.git Beef/BeefLibs/imgui-beef
+      
+      - name: Download WGPU
+        run: git clone https://github.com/MineGame159/wgpu-beef.git Beef/BeefLibs/wgpu-beef
+      
+      - name: Download Stb
+        run: git clone https://github.com/EinScott/stb_beef.git Beef/BeefLibs/stb_beef
+      
+      - name: Build
+        shell: powershell
+        run: Beef/bin/BeefBuild.exe -config=Release
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          path: |
+            build/Release_Win64/meteorite/*.exe
+            build/Release_Win64/meteorite/*.dll
