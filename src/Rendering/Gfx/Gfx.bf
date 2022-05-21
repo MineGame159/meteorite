@@ -324,10 +324,11 @@ namespace Meteorite {
 
 		public static PipelineBuilder NewPipeline() => new [Friend].();
 
-		public static WBuffer CreateBuffer(Wgpu.BufferUsage usage, int size, void* data = null) {
+		public static WBuffer CreateBuffer(Wgpu.BufferUsage usage, int size, void* data = null, StringView label = .()) {
 			uint64 alignedSize = Wgpu.AlignBufferSize!((uint64) size);
 
 			Wgpu.BufferDescriptor desc = .() {
+				label = label.IsEmpty ? null : label.ToScopeCStr!(),
 				size = alignedSize,
 				usage = usage,
 				mappedAtCreation = data != null

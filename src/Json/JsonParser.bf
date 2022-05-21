@@ -59,6 +59,8 @@ namespace Meteorite {
 			if (root.IsNull) root = object;
 
 			for (;;) {
+				if (s.Peek<char8>() == '}') break;
+
 				isKey = true;
 				ParseString();
 				SkipWhitespace();
@@ -89,6 +91,8 @@ namespace Meteorite {
 			if (root.IsNull) root = array;
 
 			for (;;) {
+				if (s.Peek<char8>() == ']') break;
+
 				ParseValue();
 				SkipWhitespace();
 

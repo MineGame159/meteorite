@@ -1,7 +1,7 @@
 {
     "parent": "block/block",
     "textures": {
-        "up": "minecraft:block/water"
+        "up": "minecraft:block/water_still"
     },
     "elements": [
         {   "from": [ 0, 0, 0 ],

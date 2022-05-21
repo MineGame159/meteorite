@@ -53,6 +53,12 @@ namespace Meteorite {
 			window.MouseHidden = true;
 		}
 
+		private void Tick() {
+			world.Tick();
+
+			textures.Tick();
+		}
+
 		public void Render(bool mipmaps, bool sortChunks, bool chunkBoundaries, float delta) {
 			if (world == null) return;
 
@@ -60,7 +66,7 @@ namespace Meteorite {
 			camera.Update();
 
 			int tickCount = tickCounter.BeginRenderTick();
-			for (int i < Math.Min(10, tickCount)) world.Tick();
+			for (int i < Math.Min(10, tickCount)) Tick();
 
 			world.Render(camera, tickCounter.tickDelta, mipmaps, sortChunks);
 			if (chunkBoundaries) world.RenderChunkBoundaries(camera);

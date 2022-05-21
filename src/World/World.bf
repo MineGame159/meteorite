@@ -91,7 +91,7 @@ namespace Meteorite {
 					chunk.status = .Building;
 					if (chunk.mesh == null) {
 						chunk.mesh = new Mesh(Buffers.QUAD_INDICES);
-						chunk.meshTransparent = new Mesh(Buffers.QUAD_INDICES);
+						chunk.meshTransparent = new Mesh();
 					}
 					//chunkBuilderThread.Add(new () => GenerateChunkMesh(chunk));
 					System.Threading.ThreadPool.QueueUserWorkItem(new () => GenerateChunkMesh(chunk));

@@ -1,7 +1,7 @@
 {
     "parent": "block/block",
     "textures": {
-        "up": "minecraft:block/lava"
+        "up": "minecraft:block/lava_still"
     },
     "elements": [
         {   "from": [ 0, 0, 0 ],

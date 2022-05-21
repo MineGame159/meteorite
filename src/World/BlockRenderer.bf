@@ -20,12 +20,13 @@ namespace Meteorite {
 			Property p = blockState.GetProperty("level");
 			float yOffset = (p.value == 0 ? 15 : 15 - p.value) / 16f;
 
-			m.Quad(
-				Vertex!(m, x + 0, y + yOffset, z + 0, quad.region.x1, quad.region.y1, quad.texture, c),
-				Vertex!(m, x + 1, y + yOffset, z + 0, quad.region.x2, quad.region.y1, quad.texture, c),
-				Vertex!(m, x + 1, y + yOffset, z + 1, quad.region.x2, quad.region.y2, quad.texture, c),
-				Vertex!(m, x + 0, y + yOffset, z + 1, quad.region.x1, quad.region.y2, quad.texture, c)
-			);
+			uint32 i1 = Vertex!(m, x + 0, y + yOffset, z + 0, quad.region.x1, quad.region.y1, quad.texture, c);
+			uint32 i2 = Vertex!(m, x + 1, y + yOffset, z + 0, quad.region.x2, quad.region.y1, quad.texture, c);
+			uint32 i3 = Vertex!(m, x + 1, y + yOffset, z + 1, quad.region.x2, quad.region.y2, quad.texture, c);
+			uint32 i4 = Vertex!(m, x + 0, y + yOffset, z + 1, quad.region.x1, quad.region.y2, quad.texture, c);
+
+			m.Quad(i1, i2, i3, i4); // Top
+			m.Quad(i1, i4, i3, i2); // Bottom
 		}
 		
 		public static void Render(World world, Chunk chunk, int x, int y, int z, BlockState blockState, Biome biome) {
@@ -38,7 +39,7 @@ namespace Meteorite {
 			else if (IsFilledWithWater(blockState.block)) RenderFluid(world, chunk, x, y, z, Blocks.WATER.defaultBlockState, biome);
 
 			Foo foo = .(world, chunk, x, y, z);
-			Mesh m = chunk.mesh;
+			Mesh m = blockState.block == Blocks.NETHER_PORTAL ? chunk.meshTransparent : chunk.mesh; // TODO: Fix this
 
 			for (Quad quad in blockState.model.quads) {
 				// Cull

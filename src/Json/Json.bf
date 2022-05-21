@@ -77,7 +77,7 @@ namespace Meteorite {
 		public double AsNumber => data.number;
 		public bool AsBool => data.bool;
 
-		public Json this[String key] {
+		public Json this[String key]{
 			get => AsObject.GetValueOrDefault(key);
 			set { Remove(key); AsObject[new .(key)] = value; }
 		}
@@ -91,6 +91,16 @@ namespace Meteorite {
 		}
 
 		public bool Contains(String key) => !this[key].IsNull;
+
+		public bool GetBool(String key) {
+			let json = this[key];
+			return json.IsBool ? json.AsBool : false;
+		}
+
+		public int GetInt(String key, int defaultValue) {
+			let json = this[key];
+			return json.IsNumber ? (.) json.AsNumber : defaultValue;
+		}
 
 		public void Remove(String key) {
 			if (AsObject.GetAndRemove(key) case .Ok(let pair)) {

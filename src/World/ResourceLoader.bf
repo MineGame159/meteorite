@@ -55,7 +55,7 @@ namespace Meteorite {
 			int32 width = 0, height = 0, comp = 0;
 			uint8* data = stbi.stbi_load_from_memory(buffer.Ptr, (.) buffer.Count, &width, &height, &comp, 4);
 
-			return new .(width, height, comp, data);
+			return new .(width, height, comp, data, true);
 		}
 
 		public Result<Json> ReadJson(StringView path) {

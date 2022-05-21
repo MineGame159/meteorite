@@ -89,6 +89,7 @@ namespace Meteorite {
 		public static Block SCAFFOLDING;
 		public static Block CAMPFIRE;
 		public static Block BOOKSHELF;
+		public static Block NETHER_PORTAL;
 
 		public static Block GRASS;
 		public static Block TALL_GRASS;
@@ -171,6 +172,8 @@ namespace Meteorite {
 			DRIPSTONE = Register(new .("dripstone_block", false));
 			POINTED_DRIPSTONE = Register(new .("pointed_dripstone", true, true), Properties.THICKNESS, Properties.VERTICAL_DIRECTION, Properties.WATERLOGGED);
 			Register(new .("bricks", false));
+			Register(new .("obsidian", false));
+			Register(new .("magma_block", false));
 
 			DIRT = Register(new .("dirt", false));
 			GRASS_BLOCK = Register(new .("grass_block", false), Properties.SNOWY);
@@ -278,6 +281,7 @@ namespace Meteorite {
 			SCAFFOLDING = Register(new .("scaffolding", true), Properties.BOTTOM, Properties.DISTANCE0_7, Properties.WATERLOGGED);
 			CAMPFIRE = Register(new .("campfire", false), Properties.FACING, Properties.LIT, Properties.SIGNAL_FIRE, Properties.WATERLOGGED);
 			BOOKSHELF = Register(new .("bookshelf", false));
+			NETHER_PORTAL = Register(new .("nether_portal", true), Properties.HORIZONTAL_AXIS);
 
 			GRASS = Register(new .("grass", true, true));
 			TALL_GRASS = Register(new .("tall_grass", true, true), Properties.DOUBLE_BLOCK_HALF);

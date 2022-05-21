@@ -20,10 +20,8 @@ namespace Meteorite {
 			}
 		}
 
-		public (int, int) Add(StringView path) {
-			// Read image
-			Image image = Meteorite.INSTANCE.resources.ReadImage(path);
-
+		public (int, int) Add(Image image) {
+			// Generate mipmap
 			List<Mipmap> mipmaps = scope .(4);
 			MipmapGenerator.Generate(image.data, image.width, image.height, 4, mipmaps);
 
@@ -53,8 +51,6 @@ namespace Meteorite {
 				y += maxRowHeight;
 				maxRowHeight = 0;
 			}
-
-			delete image;
 			
 			return (_x, _y);
 		}

@@ -30,6 +30,8 @@ namespace Meteorite {
 		public static PropertyInfo HORIZONTAL_FACING = .Enum("facing", "north", "east", "south", "west") ~ delete _;
 		public static PropertyInfo OPEN = .Bool("open") ~ delete _;
 		public static PropertyInfo POWERED = .Bool("powered") ~ delete _;
+		public static PropertyInfo RESPAWN_ANCHOR_CHARGES = .Int("charges", 0, 4) ~ delete _;
+		public static PropertyInfo HORIZONTAL_AXIS = .Enum("axis", "x", "z") ~ delete _;
 	}
 
 	class PropertyInfo {

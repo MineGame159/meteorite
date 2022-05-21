@@ -1,5 +1,5 @@
 FileVersion = 1
-Dependencies = {corlib = "*", GLFW = "*", ImGui = "*", ImGuiImplGlfw = "*", MiniZ = "*", Wgpu = "*", Wgpu-Glfw = "*", Wgpu-Imgui = "*", stb_beef = "*"}
+Dependencies = {corlib = "*", GLFW = "*", ImGui = "*", ImGuiImplGlfw = "*", MiniZ = "*", stb_beef = "*", Wgpu = "*", Wgpu-Glfw = "*", Wgpu-Imgui = "*"}
 
 [Project]
 Name = "meteorite"
