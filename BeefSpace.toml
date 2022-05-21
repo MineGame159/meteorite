@@ -1,5 +1,5 @@
 FileVersion = 1
-Projects = {meteorite = {Path = "."}, GLFW = "*", ImGui = "*", ImGuiImplGlfw = "*", MiniZ = "*", Wgpu = {Path = "D:/Wgpu"}, Wgpu-Glfw = {Path = "D:/Wgpu/wgpu-glfw"}, Wgpu-Imgui = {Path = "D:/Wgpu/wgpu-imgui"}, stb_beef = "*"}
+Projects = {meteorite = {Path = "."}, GLFW = "*", ImGui = "*", ImGuiImplGlfw = "*", MiniZ = "*", stb_beef = "*", Wgpu = "*", Wgpu-Imgui = {Path = "../../../../../Program Files/BeefLang/BeefLibs/Wgpu/wgpu-imgui"}, Wgpu-Glfw = {Path = "../../../../../Program Files/BeefLang/BeefLibs/Wgpu/wgpu-glfw"}}
 
 [Workspace]
 StartupProject = "meteorite"
@@ -8,4 +8,6 @@ StartupProject = "meteorite"
 AllocStackTraceDepth = 10
 
 [Configs.Release.Win64]
-AllocType = "Debug"
+AllocType = "Custom"
+AllocMalloc = "je_malloc"
+AllocFree = "je_free"
