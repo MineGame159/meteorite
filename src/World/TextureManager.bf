@@ -3,7 +3,7 @@ using System.Collections;
 
 namespace Meteorite {
 	class TextureManager {
-		private const int SIZE = 4096;
+		private const int SIZE = 8192;
 
 		private TexturePacker packer;
 		private List<TempTexture> textures;
