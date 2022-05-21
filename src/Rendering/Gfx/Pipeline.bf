@@ -196,7 +196,7 @@ namespace Meteorite {
 			Wgpu.DepthStencilState depthStencil = .() {
 				format = .Depth32Float,
 				depthWriteEnabled = depthWrite,
-				depthCompare = .Less,
+				depthCompare = .LessEqual,
 				stencilFront = .() {
 					compare = .Always
 				},
