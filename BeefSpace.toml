@@ -1,5 +1,5 @@
 FileVersion = 1
-Projects = {meteorite = {Path = "."}, GLFW = "*", ImGui = "*", ImGuiImplGlfw = "*", MiniZ = "*", stb_beef = "*", Wgpu = "*", Wgpu-Imgui = {Path = "../../../../../Program Files/BeefLang/BeefLibs/Wgpu/wgpu-imgui"}, Wgpu-Glfw = {Path = "../../../../../Program Files/BeefLang/BeefLibs/Wgpu/wgpu-glfw"}}
+Projects = {meteorite = {Path = "."}, GLFW = "*", ImGui = "*", ImGuiImplGlfw = "*", MiniZ = "*", stb_beef = "*", Wgpu = "*", Wgpu-Imgui = "*", Wgpu-Glfw = "*"}
 
 [Workspace]
 StartupProject = "meteorite"
