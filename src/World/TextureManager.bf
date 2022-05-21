@@ -3,7 +3,7 @@ using System.Collections;
 
 namespace Meteorite {
 	class TextureManager {
-		private const int SIZE = 1024;
+		private const int SIZE = 4096;
 
 		private TexturePacker packer;
 		private List<TempTexture> textures;
@@ -48,7 +48,7 @@ namespace Meteorite {
 
 			if (metadata?.animation == null) {
 				let (x, y) = packer.Add(image);
-				textures.Add(.(new UV[] (.(x, y)), null));
+				textures.Add(.(new UV[] (.(x, y)), image.width, null));
 			}
 			else {
 				TextureAnimationMetadata animation = metadata.animation;
@@ -82,7 +82,7 @@ namespace Meteorite {
 				}
 
 				delete data;
-				textures.Add(.(uvs, animation));
+				textures.Add(.(uvs, frameWidth, animation));
 			}
 
 			delete metadata;
@@ -109,7 +109,7 @@ namespace Meteorite {
 				float y = tex.uvs[0].y;
 
 				texture.uv1 = .(x / SIZE, y / SIZE);
-				texture.size = 16f / SIZE;
+				texture.size = tex.size / SIZE;
 
 				if (tex.uvs.Count > 1) {
 					Frame[] frames = new .[tex.animation.frames.Count];
@@ -142,7 +142,7 @@ namespace Meteorite {
 			bufferBindGroup.Bind(1);
 		}
 
-		struct TempTexture : this(UV[] uvs, TextureAnimationMetadata animation) {
+		struct TempTexture : this(UV[] uvs, float size, TextureAnimationMetadata animation) {
 			public void Dispose() {
 				delete uvs;
 				delete animation;
