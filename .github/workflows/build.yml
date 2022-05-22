@@ -16,15 +16,11 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Download Beef
-        shell: powershell
-        run: Start-BitsTransfer -Source "https://nightly.beeflang.org/BeefSetup.exe" -Destination "BeefBuild.exe"
+        run: |
+          Start-BitsTransfer -Source "https://nightly.beeflang.org/BeefSetup.exe" -Destination "BeefBuild.exe"
+          7z x BeefBuild.exe -oBeef
       
-      - name: Extract Beef
-        shell: powershell
-        run: 7z x BeefBuild.exe -oBeef
-      
-      - name: Write BeefConfig.toml
-        shell: powershell
+      - name: Configure Beef
         run: |
           "Version = 1`nUnversionedLibDirs = [`"Beef/BeefLibs`"]" | Out-File -FilePath "BeefConfig.toml"
       
@@ -35,13 +31,12 @@ jobs:
         run: git clone https://github.com/RogueMacro/imgui-beef.git Beef/BeefLibs/imgui-beef
       
       - name: Download WGPU
-        run: git clone https://github.com/MineGame159/wgpu-beef.git Beef/BeefLibs/wgpu-beef
+        run: git clone -b dev https://github.com/MineGame159/wgpu-beef.git Beef/BeefLibs/wgpu-beef
       
       - name: Download Stb
         run: git clone https://github.com/EinScott/stb_beef.git Beef/BeefLibs/stb_beef
       
       - name: Build
-        shell: powershell
         run: Beef/bin/BeefBuild.exe -config=Release
       
       - name: Upload artifact
