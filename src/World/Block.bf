@@ -28,7 +28,7 @@ namespace Meteorite {
 		public Block block;
 		public Model model ~ delete _;
 
-		private List<Property> properties ~ delete _;
+		public List<Property> properties ~ delete _;
 
 		public this(Block block, List<Property> properties) {
 			this.block = block;

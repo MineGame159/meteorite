@@ -304,7 +304,7 @@ namespace Meteorite {
 
 		public static Shader CreateShader(StringView path) {
 			String buffer = new .();
-			File.ReadAllText(path, buffer);
+			Meteorite.INSTANCE.resources.ReadString(path, buffer);
 
 			Wgpu.ShaderModuleWGSLDescriptor wgslDesc = .() {
 				chain = .() {

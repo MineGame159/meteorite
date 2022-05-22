@@ -23,9 +23,9 @@ namespace Meteorite {
 			options = new .();
 			window = new .();
 
+			resources = new .();
 			Gfxa.Init();
 
-			resources = new .();
 			textures = new .();
 
 			camera = new .();

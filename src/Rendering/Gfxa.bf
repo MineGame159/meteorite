@@ -41,16 +41,16 @@ namespace Meteorite {
 				.Create();
 
 			// Shaders
-			CHUNK_SHADER = Gfx.CreateShader("assets/shaders/chunk.wgsl");
-			CHUNK_TRANSPARENT_SHADER = Gfx.CreateShader("assets/shaders/chunkTransparent.wgsl");
-			POS_FOG = Gfx.CreateShader("assets/shaders/pos_fog.wgsl");
-			POS_COLOR_SHADER = Gfx.CreateShader("assets/shaders/pos_color.wgsl");
-			POS_TEX_SHADER = Gfx.CreateShader("assets/shaders/pos_tex.wgsl");
+			CHUNK_SHADER = Gfx.CreateShader("shaders/chunk.wgsl");
+			CHUNK_TRANSPARENT_SHADER = Gfx.CreateShader("shaders/chunkTransparent.wgsl");
+			POS_FOG = Gfx.CreateShader("shaders/pos_fog.wgsl");
+			POS_COLOR_SHADER = Gfx.CreateShader("shaders/pos_color.wgsl");
+			POS_TEX_SHADER = Gfx.CreateShader("shaders/pos_tex.wgsl");
 
 			// Pipelines
 			CHUNK_PIPELINE = Gfx.NewPipeline()
 				.BindGroupLayouts(TEXTURE_SAMPLER_LAYOUT, BUFFER_SAMPLER_LAYOUT)
-				.Attributes(.Float3, .UShort2, .UByte4)
+				.Attributes(.Float3, .UShort2Float, .UByte4, .UShort2)
 				.VertexShader(CHUNK_SHADER, "vs_main")
 				.FragmentShader(CHUNK_SHADER, "fs_main")
 				.PushConstants(.Vertex, 0, sizeof(ChunkPushConstants))
@@ -59,7 +59,7 @@ namespace Meteorite {
 				.Create();
 			CHUNK_TRANSPARENT_PIPELINE = Gfx.NewPipeline()
 				.BindGroupLayouts(TEXTURE_SAMPLER_LAYOUT, BUFFER_SAMPLER_LAYOUT)
-				.Attributes(.Float3, .UShort2, .UByte4)
+				.Attributes(.Float3, .UShort2Float, .UByte4, .UShort2)
 				.VertexShader(CHUNK_TRANSPARENT_SHADER, "vs_main")
 				.FragmentShader(CHUNK_TRANSPARENT_SHADER, "fs_main")
 				.PushConstants(.Vertex, 0, sizeof(ChunkPushConstants))

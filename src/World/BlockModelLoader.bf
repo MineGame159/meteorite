@@ -14,53 +14,48 @@ namespace Meteorite{
 			//let omg = Profiler.StartSampling();
 
 			MODEL_CACHE = new .();
-			Dictionary<String, List<(Quad, int[4])>> textures = new .();
+			Dictionary<String, List<(Quad, uint16[4])>> textures = new .();
 
 			// Load models
 			for (Block block in Registry.BLOCKS) {
-				if (block == Blocks.AIR) continue;
-
 				// Read blockstate json
 				Json? blockstateJson = GetMergedBlockstateJson(block);
 
 				if (blockstateJson == null) {
 					Log.Error("Failed to find blockstate file for block with id '{}'", block.id);
-					continue;
 				}
 
 				// Loop all block states
 				for (BlockState blockState in block) {
-					if (block == Blocks.KELP && blockState.GetProperty("age").value == 25) {
-						block = block;
-					}
+					Model model = new .();
 
-					if (blockstateJson.Value.Contains("multipart")) {
-						List<RawModel> modelJsons = GetMultipartModels(blockState, blockstateJson.Value);
-						Model model = new .();
-
-						for (RawModel rawModel in modelJsons) {
-							for (let j in rawModel.json["elements"].AsArray) {
-								ParseElement(block, textures, model, rawModel.json, j, rawModel.rotation);
+					if (blockstateJson != null) {
+						if (blockstateJson.Value.Contains("multipart")) {
+							List<RawModel> modelJsons = GetMultipartModels(blockState, blockstateJson.Value);
+	
+							for (RawModel rawModel in modelJsons) {
+								for (let j in rawModel.json["elements"].AsArray) {
+									ParseElement(block, textures, model, rawModel.json, j, rawModel.rotation);
+								}
+							}
+	
+							DeleteContainerAndDisposeItems!(modelJsons);
+						}
+						else {
+							if (GetVariantModel(block, blockState, blockstateJson.Value) case .Ok(let rawModel)) {
+								if (rawModel.json.Contains("elements")) {
+									for (let j in rawModel.json["elements"].AsArray) {
+										ParseElement(block, textures, model, rawModel.json, j, rawModel.rotation);
+									}
+								}
+	
+								rawModel.Dispose();
 							}
 						}
-
-						model.Finish();
-						blockState.model = model;
-						DeleteContainerAndDisposeItems!(modelJsons);
 					}
-					else {
-						if (GetVariantModel(block, blockState, blockstateJson.Value) case .Ok(let rawModel)) {
-							Model model = new .();
 
-							for (let j in rawModel.json["elements"].AsArray) {
-								ParseElement(block, textures, model, rawModel.json, j, rawModel.rotation);
-							}
-
-							model.Finish();
-							blockState.model = model;
-							rawModel.Dispose();
-						}
-					}
+					model.Finish();
+					blockState.model = model;
 				}
 
 				blockstateJson.Value.Dispose();
@@ -73,7 +68,13 @@ namespace Meteorite{
 				let (texture, region) = t.Add(scope $"{pair.key}.png");
 
 				for (let a in pair.value) {
-					a.0.region = region;
+					a.0.region = .(
+						(.) (a.1[0] / 16f * uint16.MaxValue),
+						(.) (a.1[1] / 16f * uint16.MaxValue),
+						(.) (a.1[2] / 16f * uint16.MaxValue),
+						(.) (a.1[3] / 16f * uint16.MaxValue)
+					);
+
 					a.0.texture = texture;
 				}
 			}
@@ -120,7 +121,7 @@ namespace Meteorite{
 			return json;
 		}
 
-		private static void ParseElement(Block block, Dictionary<String, List<(Quad, int[4])>> textures, Model model, Json modelJson, Json json, Vec3f blockStateRotation) {
+		private static void ParseElement(Block block, Dictionary<String, List<(Quad, uint16[4])>> textures, Model model, Json modelJson, Json json, Vec3f blockStateRotation) {
 			// Parse from
 			Json fromJson = json["from"];
 			Vec3f from = .((.) fromJson[0].AsNumber / 16, (.) fromJson[1].AsNumber / 16, (.) fromJson[2].AsNumber / 16);
@@ -189,7 +190,7 @@ namespace Meteorite{
 				}
 
 				// Get UV
-				int[4] uv = .(0, 0, 16, 16);
+				uint16[4] uv = .(0, 0, 16, 16);
 
 				if (pair.value.Contains("uv")) {
 					let uvJson = pair.value["uv"].AsArray;
@@ -198,6 +199,39 @@ namespace Meteorite{
 					uv[1] = (.) uvJson[1].AsNumber;
 					uv[2] = (.) uvJson[2].AsNumber;
 					uv[3] = (.) uvJson[3].AsNumber;
+				}
+
+				// UV Rotation
+				if (pair.value.Contains("rotation")) {
+					int rotation = (.) pair.value["rotation"].AsNumber;
+
+					uint16 u1 = GetU(uv, GetReverseIndex(0, rotation), rotation);
+					uint16 v1 = GetV(uv, GetReverseIndex(0, rotation), rotation);
+
+					uint16 u2 = GetU(uv, GetReverseIndex(2, rotation), rotation);
+					uint16 v2 = GetV(uv, GetReverseIndex(2, rotation), rotation);
+
+					/*uint16 n;
+					uint16 o;
+					if (Math.Sign(j - f) == Math.Sign(l - h)) {
+						n = h;
+						o = l;
+					} else {
+						n = l;
+						o = h;
+					}
+
+					uint16 p;
+					uint16 q;
+					if (Math.Sign(k - g) == Math.Sign(m - i)) {
+						p = i;
+						q = m;
+					} else {
+						p = m;
+						q = i;
+					}*/
+
+					uv = .(u1, v1, u2, v2);
 				}
 
 				// Block state rotation
@@ -266,8 +300,7 @@ namespace Meteorite{
 				default:
 				}
 
-				// TODO: crong
-				if (block.cross) light = 1;
+				if (!json.GetBool("shade", true)) light = 1;
 
 				// Resolve texture
 				String _texture = ResolveTexture(modelJson, pair.value["texture"].AsString);
@@ -275,7 +308,7 @@ namespace Meteorite{
 
 				String texture = _texture.Contains(':') ? scope .(_texture.Substring(10)) : _texture;
 
-				List<(Quad, int[4])> textureQuads = textures.GetValueOrDefault(texture);
+				List<(Quad, uint16[4])> textureQuads = textures.GetValueOrDefault(texture);
 				if (textureQuads == null) {
 					textureQuads = new .();
 					textures[new .(texture)] = textureQuads;
@@ -291,6 +324,19 @@ namespace Meteorite{
 				model.Add(quad);
 			}
 		}
+
+		private static uint16 GetU(uint16[4] uv, int index, int rotation) {
+			int i = GetShiftedIndex(index, rotation);
+			return uv[i != 0 && i != 1 ? 2 : 0];
+		}
+
+		private static uint16 GetV(uint16[4] uv, int index, int rotation) {
+			int i = GetShiftedIndex(index, rotation);
+			return uv[i != 0 && i != 3 ? 3 : 1];
+		}
+
+		private static int GetShiftedIndex(int index, int rotation) => (index + rotation / 90) % 4;
+		private static int GetReverseIndex(int index, int rotation) => (index + 4 - rotation / 90) % 4;
 
 		private static Direction Rotate(Direction direction) {
 			switch (direction) {
@@ -332,28 +378,23 @@ namespace Meteorite{
 				bool apply = true;
 
 				if (json.Contains("when")) {
-					for (let pair in json["when"].AsObject) {
-						blockState.GetProperty(pair.key).GetValueString(str1);
-						pair.value.ToString(str2);
-
-						if (str1 != str2) {
-							apply = false;
-							break;
-						}
-
-						str1.Clear();
-						str2.Clear();
-					}
+					EvaluateWhen(json["when"], blockState, str1, str2, ref apply);
 				}
 
 				if (apply) {
+					Json a = json["apply"];
+					String b;
+
+					if (a.IsObject) b = a["model"].AsString;
+					else b = a[0]["model"].AsString;
+
 					Json json2 = .Object();
-					json2["parent"] = .String(json["apply"]["model"].AsString);
+					json2["parent"] = .String(b);
 
 					Vec3f rotation = .(
-						(.) json["apply"]["x"].AsNumber,
-						(.) json["apply"]["y"].AsNumber,
-						(.) json["apply"]["z"].AsNumber
+						a.GetInt("x", 0),
+						a.GetInt("y", 0),
+						a.GetInt("z", 0)
 					);
 
 					if (GetMergedModel(json2) case .Ok(let j)) {
@@ -363,6 +404,30 @@ namespace Meteorite{
 			}
 
 			return modelJsons;
+		}
+
+		private static void EvaluateWhen(Json json, BlockState blockState, String str1, String str2, ref bool apply) {
+			for (let pair in json.AsObject) {
+				if (pair.key == "OR") {
+					for (let j in pair.value.AsArray) {
+						EvaluateWhen(j, blockState, str1, str2, ref apply);
+						if (!apply) break;
+					}
+
+					continue;
+				}
+
+				blockState.GetProperty(pair.key).GetValueString(str1);
+				pair.value.ToString(str2);
+
+				if (str1 != str2) {
+					apply = false;
+					break;
+				}
+
+				str1.Clear();
+				str2.Clear();
+			}
 		}
 
 		private static Result<RawModel> GetVariantModel(Block block, BlockState blockState, Json blockstateJson) {

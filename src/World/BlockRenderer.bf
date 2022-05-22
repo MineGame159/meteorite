@@ -132,11 +132,12 @@ namespace Meteorite {
 			}
 		}
 
-		private static mixin Vertex(Mesh mesh, float x, float y, float z, uint8 u, uint8 v, uint16 texture, Color color) {
+		private static mixin Vertex(Mesh mesh, float x, float y, float z, uint16 u, uint16 v, uint16 texture, Color color) {
 			mesh
 				.Vec3(.(x, y, z))
-				.UShort2(((.) u << 8) | v, texture)
+				.UShort2(u, v)
 				.Color(color)
+				.UShort2(texture, 0)
 				.Next()
 		}
 

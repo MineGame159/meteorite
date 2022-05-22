@@ -92,12 +92,16 @@ namespace Meteorite {
 
 		public bool Contains(String key) => !this[key].IsNull;
 
-		public bool GetBool(String key) {
+		public bool GetBool(String key, bool defaultValue = false) {
+			if (!IsObject) return default;
+
 			let json = this[key];
-			return json.IsBool ? json.AsBool : false;
+			return json.IsBool ? json.AsBool : defaultValue;
 		}
 
 		public int GetInt(String key, int defaultValue) {
+			if (!IsObject) return default;
+
 			let json = this[key];
 			return json.IsNumber ? (.) json.AsNumber : defaultValue;
 		}

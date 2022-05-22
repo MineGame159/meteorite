@@ -9,7 +9,8 @@ namespace Meteorite {
 		private List<String> locations = new .() ~ DeleteContainerAndItems!(_);
 
 		public this() {
-			locations.Add(new .("assets"));
+			locations.Add(new .("assets/minecraft"));
+			locations.Add(new .("assets/meteorite"));
 
 			for (String pack in Meteorite.INSTANCE.options.resourcePacks) {
 				String path = new $"run/resourcepacks/{pack}/assets/minecraft";
@@ -43,6 +44,16 @@ namespace Meteorite {
 					return false;
 				}
 			}
+		}
+
+		public bool ReadString(StringView path, String buffer) {
+			FileStream fs = scope .();
+			if (!GetStream(path, fs)) return false;
+
+			StreamReader reader = scope .(fs);
+			reader.ReadToEnd(buffer);
+
+			return true;
 		}
 
 		public Image ReadImage(StringView path) {

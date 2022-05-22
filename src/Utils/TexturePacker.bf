@@ -4,8 +4,7 @@ using System.Collections;
 namespace Meteorite {
 	class TexturePacker {
 		private int size;
-		private uint8*[4] datas ~ for (uint8* data in _) delete data;
-		private uint8* data ~ delete _;
+		private uint8*[4] datas ~ for (uint8* data in _) Internal.StdFree(data);
 		
 		private int x, y;
 		private int maxRowHeight;
@@ -15,7 +14,7 @@ namespace Meteorite {
 
 			int s = size;
 			for (int i < 4) {
-				datas[i] = new uint8[s * s * 4]*;
+				datas[i] = (.) Internal.StdMalloc(s * s * 4);
 				s >>= 1;
 			}
 		}

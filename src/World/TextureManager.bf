@@ -39,10 +39,6 @@ namespace Meteorite {
 		}
 
 		public (uint16, TextureRegion) Add(StringView path) {
-			if (path.EndsWith("nether_portal.png")) {
-				path = path;
-			}
-
 			Image image = Meteorite.INSTANCE.resources.ReadImage(path);
 			TextureMetadata metadata = .Parse(path);
 
@@ -96,7 +92,7 @@ namespace Meteorite {
 
 			// Texture
 			texture = packer.CreateTexture("Block atlas");
-			delete packer;
+			DeleteAndNullify!(packer);
 
 			// Buffer
 			bufferData = new .[textures.Count];
@@ -127,7 +123,7 @@ namespace Meteorite {
 
 			buffer = Gfx.CreateBuffer(.Storage | .CopyDst, sizeof(BufferTexture) * bufferData.Count, &bufferData[0], "Textures buffer");
 			
-			delete textures;
+			DeleteAndNullify!(textures);
 
 			// Bind groups
 			textureBindGroup = Gfxa.TEXTURE_SAMPLER_LAYOUT.Create(texture, Gfxa.NEAREST_SAMPLER);
