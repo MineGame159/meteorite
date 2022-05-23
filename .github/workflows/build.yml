@@ -13,7 +13,8 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
 
       - name: Download Beef
         run: |
@@ -39,9 +40,22 @@ jobs:
       - name: Build
         run: Beef/bin/BeefBuild.exe -config=Release
       
-      - name: Upload artifact
-        uses: actions/upload-artifact@v3
+      - name: Download assets
+        run: |
+          Start-BitsTransfer -Source "https://launcher.mojang.com/v1/objects/2e9a3e3107cca00d6bc9c97bf7d149cae163ef21/client.jar" -Destination "minecraft.jar"
+          7z x minecraft.jar assets/minecraft
+      
+      - name: Create ZIP archive
+        run: |
+          Copy-Item -Path build/Release_Win64/meteorite/meteorite.exe -Destination .
+          Copy-Item -Path build/Release_Win64/meteorite/*.dll -Destination .
+          7z a -tzip meteorite.zip assets meteorite.exe *.dll
+      
+      - name: Update release
+        uses: marvinpinto/action-automatic-releases@latest
         with:
-          path: |
-            build/Release_Win64/meteorite/*.exe
-            build/Release_Win64/meteorite/*.dll
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          automatic_release_tag: latest
+          prerelease: false
+          title: Meteorite
+          files: meteorite.zip
