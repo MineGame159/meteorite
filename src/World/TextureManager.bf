@@ -3,9 +3,8 @@ using System.Collections;
 
 namespace Meteorite {
 	class TextureManager {
-		private const int SIZE = 8192;
-
 		private TexturePacker packer;
+		//private OldTexturePacker oldPacker;
 		private List<TempTexture> textures;
 
 		private List<AnimatedTexture> animatedTextures ~ DeleteContainerAndItems!(_);
@@ -20,7 +19,8 @@ namespace Meteorite {
 		private BindGroup bufferBindGroup ~ delete _;
 
 		public this() {
-			packer = new .(SIZE);
+			packer = new .(8192);
+			//oldPacker = new .(8192);
 			textures = new .();
 		}
 
@@ -38,13 +38,14 @@ namespace Meteorite {
 			}
 		}
 
-		public (uint16, TextureRegion) Add(StringView path) {
-			Image image = Meteorite.INSTANCE.resources.ReadImage(path);
+		public uint16 Add(StringView path) {
+			Image image = Meteorite.INSTANCE.resources.ReadImageInfo(path);
 			TextureMetadata metadata = .Parse(path);
 
 			if (metadata?.animation == null) {
-				let (x, y) = packer.Add(image);
-				textures.Add(.(new UV[] (.(x, y)), image.width, null));
+				UV[] uvs = new .[1];
+				packer.Add(image, &uvs[0].x, &uvs[0].y);
+				textures.Add(.(new .(path), uvs, image.width, null));
 			}
 			else {
 				TextureAnimationMetadata animation = metadata.animation;
@@ -64,35 +65,56 @@ namespace Meteorite {
 				}
 
 				UV[] uvs = new .[framesY];
-				uint8[] data = new .[frameWidth * frameHeight * 4];
 
 				for (let frame in animation.frames) {
-					int y = frame.index * frameHeight;
-
-					for (int i < frameHeight) {
-						Internal.MemCpy(&data[(i * frameWidth) * 4], &image.data[(y + i) * image.width * 4], frameWidth * 4);
-					}
-
-					let (x1, y1) = packer.Add(scope .(frameWidth, frameHeight, 4, &data[0], false));
-					uvs[frame.index] = .(x1, y1);
+					uvs[frame.index].index = frame.index;
+					packer.Add(scope .(frameWidth, frameHeight, 4, null, false), &uvs[frame.index].x, &uvs[frame.index].y);
 				}
 
-				delete data;
-				textures.Add(.(uvs, frameWidth, animation));
+				textures.Add(.(new .(path), uvs, frameWidth, animation));
 			}
 
 			delete metadata;
 			delete image;
 			
-			return ((.) textures.Count - 1, .(0, 0, 255, 255));
+			return (.) textures.Count - 1;
 		}
 
 		public void Finish() {
 			animatedTextures = new .();
 
-			// Texture
-			texture = packer.CreateTexture("Block atlas");
-			DeleteAndNullify!(packer);
+			// Packer
+			int size = packer.Finish();
+			if (size == -1) Log.Error("Exceeded maximum texture atlas size 8192");
+			delete packer;
+
+			// Atlas
+			TextureAtlas atlas = scope .(size);
+			for (let texture in textures) {
+				Image image = Meteorite.INSTANCE.resources.ReadImage(texture.path);
+				TextureMetadata metadata = .Parse(texture.path);
+
+				if (texture.uvs.Count == 1) {
+					atlas.Put(image, texture.uvs[0].x, texture.uvs[0].y);
+				}
+				else {
+					uint8[] data = new .[texture.size * texture.size * 4];
+
+					for (let uv in texture.uvs) {
+						int y = uv.index * texture.size;
+						for (int i < texture.size) {
+							Internal.MemCpy(&data[(i * texture.size) * 4], &image.data[(y + i) * image.width * 4], texture.size * 4);
+						}
+						atlas.Put(scope .(texture.size, texture.size, 4, &data[0], false), uv.x, uv.y);
+					}
+
+					delete data;
+				}
+
+				delete metadata;
+				delete image;
+			}
+			texture = atlas.Finish();
 
 			// Buffer
 			bufferData = new .[textures.Count];
@@ -104,8 +126,8 @@ namespace Meteorite {
 				float x = tex.uvs[0].x;
 				float y = tex.uvs[0].y;
 
-				texture.uv1 = .(x / SIZE, y / SIZE);
-				texture.size = tex.size / SIZE;
+				texture.uv1 = .(x / size, y / size);
+				texture.size = (float) tex.size / size;
 
 				if (tex.uvs.Count > 1) {
 					Frame[] frames = new .[tex.animation.frames.Count];
@@ -115,7 +137,7 @@ namespace Meteorite {
 						frames[j] = .(tex.uvs[frame.index], frame.GetTime(tex.animation.frameTime));
 					}
 
-					animatedTextures.Add(new .(texture, frames, tex.animation.interpolate));
+					animatedTextures.Add(new .(texture, frames, tex.animation.interpolate, size));
 				}
 
 				tex.Dispose();
@@ -138,8 +160,9 @@ namespace Meteorite {
 			bufferBindGroup.Bind(1);
 		}
 
-		struct TempTexture : this(UV[] uvs, float size, TextureAnimationMetadata animation) {
+		struct TempTexture : this(String path, UV[] uvs, int size, TextureAnimationMetadata animation) {
 			public void Dispose() {
+				delete path;
 				delete uvs;
 				delete animation;
 			}
@@ -150,14 +173,16 @@ namespace Meteorite {
 
 			private Frame[] frames ~ delete _;
 			private bool interpolate;
+			private int atlasSize;
 
 			private int frame;
 			private int timer;
 
-			public this(BufferTexture* buffer, Frame[] frames, bool interpolate) {
+			public this(BufferTexture* buffer, Frame[] frames, bool interpolate, int atlasSize) {
 				this.buffer = buffer;
 				this.frames = frames;
 				this.interpolate = interpolate;
+				this.atlasSize = atlasSize;
 			}
 
 			public bool Tick() {
@@ -167,7 +192,7 @@ namespace Meteorite {
 					frame++;
 					if (frame >= frames.Count) frame = 0;
 
-					buffer.uv1 = .((float) frames[frame].uv.x / SIZE, (float) frames[frame].uv.y / SIZE);
+					buffer.uv1 = .((float) frames[frame].uv.x / atlasSize, (float) frames[frame].uv.y / atlasSize);
 					buffer.blend = 0;
 
 					timer = 0;
@@ -177,7 +202,7 @@ namespace Meteorite {
 					int nextFrame = frame + 1;
 					if (nextFrame >= frames.Count) nextFrame = 0;
 
-					buffer.uv2 = .((float) frames[nextFrame].uv.x / SIZE, (float) frames[nextFrame].uv.y / SIZE);
+					buffer.uv2 = .((float) frames[nextFrame].uv.x / atlasSize, (float) frames[nextFrame].uv.y / atlasSize);
 					buffer.blend = (float) timer / frames[frame].time;
 
 					return true;
@@ -194,6 +219,6 @@ namespace Meteorite {
 			public float size, blend;
 		}
 
-		struct UV : this(int x, int y) {}
+		struct UV : this(int index, int x, int y) {}
 	}
 }

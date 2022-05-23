@@ -65,7 +65,7 @@ namespace Meteorite{
 			TextureManager t = Meteorite.INSTANCE.textures;
 
 			for (let pair in textures) {
-				let (texture, region) = t.Add(scope $"{pair.key}.png");
+				let texture = t.Add(scope $"{pair.key}.png");
 
 				for (let a in pair.value) {
 					a.0.region = .(

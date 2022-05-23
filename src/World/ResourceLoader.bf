@@ -7,6 +7,7 @@ using stb_image;
 namespace Meteorite {
 	class ResourceLoader {
 		private List<String> locations = new .() ~ DeleteContainerAndItems!(_);
+		private stbi.stbi_io_callbacks stbiCallbacks;
 
 		public this() {
 			locations.Add(new .("assets/minecraft"));
@@ -18,6 +19,10 @@ namespace Meteorite {
 				if (Directory.Exists(path)) locations.Add(path);
 				else delete path;
 			}
+
+			stbiCallbacks.read = => StbiRead;
+			stbiCallbacks.skip = => StbiSkip;
+			stbiCallbacks.eof = => StbiEof;
 		}
 
 		private bool GetStream(StringView path, FileStream s) {
@@ -56,15 +61,24 @@ namespace Meteorite {
 			return true;
 		}
 
-		public Image ReadImage(StringView path) {
-			List<uint8> buffer = new .();
-			defer delete buffer;
-
+		public Image ReadImageInfo(StringView path) {
 			String path2 = scope $"textures/{path}";
-			if (!ReadBytes(path2, buffer)) return null;
+			FileStream fs = scope .();
+			if (!GetStream(path2, fs)) return null;
 
 			int32 width = 0, height = 0, comp = 0;
-			uint8* data = stbi.stbi_load_from_memory(buffer.Ptr, (.) buffer.Count, &width, &height, &comp, 4);
+			stbi.stbi_info_from_callbacks(&stbiCallbacks, Internal.UnsafeCastToPtr(fs), &width, &height, &comp);
+
+			return new .(width, height, comp, null, false);
+		}
+
+		public Image ReadImage(StringView path) {
+			String path2 = scope $"textures/{path}";
+			FileStream fs = scope .();
+			if (!GetStream(path2, fs)) return null;
+
+			int32 width = 0, height = 0, comp = 0;
+			uint8* data = stbi.stbi_load_from_callbacks(&stbiCallbacks, Internal.UnsafeCastToPtr(fs), &width, &height, &comp, 4);
 
 			return new .(width, height, comp, data, true);
 		}
@@ -83,6 +97,21 @@ namespace Meteorite {
 				FileStream fs = scope .();
 				if (fs.Open(fullPath, .Read) == .Ok) callback(JsonParser.Parse(fs));
 			}
+		}
+
+		private static int32 StbiRead(void* user, uint8* data, int32 size) {
+			FileStream fs = (.) Internal.UnsafeCastToObject(user);
+			return (.) fs.TryRead(.(data, size)).Value;
+		}
+
+		private static void StbiSkip(void* user, int32 n) {
+			FileStream fs = (.) Internal.UnsafeCastToObject(user);
+			fs.Skip(n);
+		}
+
+		private static bool StbiEof(void* user) {
+			FileStream fs = (.) Internal.UnsafeCastToObject(user);
+			return fs.IsEmpty;
 		}
 	}
 }
