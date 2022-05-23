@@ -3,31 +3,41 @@ using System.Threading;
 using System.Collections;
 
 namespace Meteorite {
-	class ThreadExecutor {
+	class ThreadPool {
 		public delegate void Task();
 
-		private Thread t ~ delete _;
+		private List<Thread> threads ~ DeleteContainerAndItems!(_);
 		private WaitEvent wait ~ delete _;
-		private Monitor monitor ~ delete _;
+
 		private List<Task> tasks ~ delete _;
+		private Monitor monitor ~ delete _;
 
 		private bool shuttingDown;
 
-		public this(String name) {
+		public this() {
+			threads = new .();
 			wait = new .();
-			monitor = new .();
-			tasks = new .();
 
-			t = new .(new => Run);
-			t.SetName(name);
-			t.Start(false);
+			tasks = new .();
+			monitor = new .();
+
+			// TODO: Don't hard code number of threads
+			for (int i < 4) {
+				Thread t = new .(new => Run);
+				t.SetName(scope $"Thread Pool - {i}");
+				t.Start(false);
+
+				threads.Add(t);
+			}
 		}
 
 		public ~this() {
-			shuttingDown = true;
-			wait.Set();
+			using (monitor.Enter()) tasks.ClearAndDeleteItems();
 
-			t.Join();
+			shuttingDown = true;
+			wait.Set(true);
+
+			for (Thread t in threads) t.Join();
 		}
 
 		public int TaskCount {

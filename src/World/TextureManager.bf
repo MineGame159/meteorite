@@ -4,7 +4,6 @@ using System.Collections;
 namespace Meteorite {
 	class TextureManager {
 		private TexturePacker packer;
-		//private OldTexturePacker oldPacker;
 		private List<TempTexture> textures;
 
 		private List<AnimatedTexture> animatedTextures ~ DeleteContainerAndItems!(_);
@@ -20,7 +19,6 @@ namespace Meteorite {
 
 		public this() {
 			packer = new .(8192);
-			//oldPacker = new .(8192);
 			textures = new .();
 		}
 

@@ -114,26 +114,28 @@ namespace Meteorite {
 			Triangle(i3, i4, i1);
 		}
 
-		public void End() {
-			if (vbo == null || vertices.size > (.) vbo.size) {
-				if (vbo != null) delete vbo;
-				vbo = Gfx.CreateBuffer(.Vertex | .CopyDst, vertices.size, vertices.data);
-			}
-			else {
-				vbo.Write(vertices.data, vertices.size);
-			}
-
-			if (!externalIndices) {
-				if (ibo == null || indices.size > (.) ibo.size) {
-					if (ibo != null) delete ibo;
-					ibo = Gfx.CreateBuffer(.Index | .CopyDst, indices.size, indices.data);
+		public void End(bool upload = true) {
+			if (upload) {
+				if (vbo == null || vertices.size > (.) vbo.size) {
+					if (vbo != null) delete vbo;
+					vbo = Gfx.CreateBuffer(.Vertex | .CopyDst, vertices.size, vertices.data);
 				}
 				else {
-					ibo.Write(indices.data, indices.size);
+					vbo.Write(vertices.data, vertices.size);
 				}
+	
+				if (!externalIndices) {
+					if (ibo == null || indices.size > (.) ibo.size) {
+						if (ibo != null) delete ibo;
+						ibo = Gfx.CreateBuffer(.Index | .CopyDst, indices.size, indices.data);
+					}
+					else {
+						ibo.Write(indices.data, indices.size);
+					}
+				}
+	
+				renderIndicesCount = indicesCount;
 			}
-
-			renderIndicesCount = indicesCount;
 
 			Buffers.Return(vertices);
 			if (!externalIndices) Buffers.Return(indices);

@@ -13,8 +13,8 @@ namespace Meteorite {
 		public Camera camera ~ delete _;
 		public RenderTickCounter tickCounter ~ delete _;
 
-		public ClientConnection connection ~ delete _;
-		public World world ~ delete _;
+		public ClientConnection connection;
+		public World world;
 
 		public this() {
 			INSTANCE = this;
@@ -45,6 +45,10 @@ namespace Meteorite {
 		}
 
 		public ~this() {
+			// Connection needs to be deleted before world
+			delete connection;
+			delete world;
+
 			Gfx.Shutdown();
 		}
 

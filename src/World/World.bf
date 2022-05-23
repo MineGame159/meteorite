@@ -14,19 +14,35 @@ namespace Meteorite {
 		private Mesh meshEntities ~ delete _;
 		private Mesh meshLines ~ delete _;
 
-		private ThreadExecutor chunkBuilderThread ~ delete _;
+		private ThreadPool threadPool;
 
 		public int minY, height;
 		public int renderedChunks;
 
 		public int64 worldAge, timeOfDay;
 
+		private bool shuttingDown;
+
 		public this(int viewDistance, int minY, int height) {
 			this.viewDistance = viewDistance;
 			this.chunks = new Dictionary<ChunkPos, Chunk>();
-			this.chunkBuilderThread = new .("Chunk Builder");
+			this.threadPool = new .();
 			this.minY = minY;
 			this.height = height;
+		}
+
+		public ~this() {
+			shuttingDown = true;
+
+			// Thread pool needs to be deleted before ending un-uploaded meshes
+			delete threadPool;
+
+			for (Chunk chunk in chunks.Values) {
+				if (chunk.status == .Upload) {
+					chunk.mesh.End(false);
+					chunk.meshTransparent.End(false);
+				}
+			}
 		}
 
 		public int SectionCount => height / Section.SIZE;
@@ -93,9 +109,7 @@ namespace Meteorite {
 						chunk.mesh = new Mesh(Buffers.QUAD_INDICES);
 						chunk.meshTransparent = new Mesh();
 					}
-					//chunkBuilderThread.Add(new () => GenerateChunkMesh(chunk));
-					System.Threading.ThreadPool.QueueUserWorkItem(new () => GenerateChunkMesh(chunk));
-					//GenerateChunkMesh(chunk);
+					threadPool.Add(new () => GenerateChunkMesh(chunk));
 				}
 				if (chunk.status == .Upload) {
 					chunk.meshTransparent.End();
@@ -261,7 +275,16 @@ namespace Meteorite {
 				}
 			}
 
-			chunk.status = .Upload;
+			if (shuttingDown) {
+				chunk.mesh.End(false);
+				chunk.meshTransparent.End(false);
+
+				chunk.status = .Ready;
+			}
+			else {
+				chunk.status = .Upload;
+			}
+
 			chunk.dirty = false;
 		}
 
