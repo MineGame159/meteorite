@@ -9,18 +9,22 @@ namespace Meteorite {
 
 		public Vec3d trackedPos;
 		public Vec3d serverPos;
-		public Vec3d lastRenderPos;
+		public Vec3d lastPos;
 		public int bodyTrackingIncrements;
+
+		public bool noPhysics;
 
 		public this(EntityType type, int id, Vec3d pos) {
 			this.type = type;
 			this.id = id;
 			this.pos = pos;
 			this.trackedPos = pos;
-			this.lastRenderPos = pos;
+			this.lastPos = pos;
 		}
 
 		public virtual void Tick() {
+			lastPos = pos;
+
 			if (bodyTrackingIncrements > 0) {
 				pos.x += (serverPos.x - pos.x) / (double) bodyTrackingIncrements;
 				pos.y += (serverPos.y - pos.y) / (double) bodyTrackingIncrements;
@@ -28,14 +32,12 @@ namespace Meteorite {
 
 				bodyTrackingIncrements--;
 			}
-
-			lastRenderPos = pos;
 		}
 
 		public void Render(Mesh m, double tickDelta) {
 			Color color = type.GetColor();
 
-			Vec3d pos = this.pos.Lerp(tickDelta, lastRenderPos);
+			Vec3d pos = this.pos.Lerp(tickDelta, lastPos);
 
 			double x1 = pos.x - type.width / 2;
 			double y1 = pos.y;

@@ -19,6 +19,7 @@ namespace Meteorite {
 		public this() : this(0, 0, 0) {}
 
 		public double Length => Math.Sqrt(x * x + y * y + z * z);
+		public double LengthSquared => x * x + y * y + z * z;
 
 		public Self Normalize() {
 			double l = Length;

@@ -157,7 +157,7 @@ namespace Meteorite {
 
 				if (firstPlayerPositionAndLook) {
 					Camera c = Meteorite.INSTANCE.camera;
-					c.pos = .((.) x, (.) y, (.) z);
+					c.pos = .((.) x, (.) y - (2 - 1.62f), (.) z);
 					c.yaw = (.) yaw;
 					c.pitch = (.) pitch;
 

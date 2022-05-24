@@ -87,6 +87,8 @@ namespace Meteorite {
 					Input.mouseLast = Input.mouse;
 					firstCursorPos = false;
 				}
+
+				Input.[Friend]OnMouseMove(this);
 			});
 
 			Glfw.SetKeyCallback(handle, new (window, key, scancode, action, mods) => {

@@ -8,6 +8,7 @@ namespace Meteorite {
 
 		private Dictionary<ChunkPos, Chunk> chunks ~ DeleteDictionaryAndValues!(_);
 		private List<Chunk> visibleChunks = new .() ~ delete _;
+		private List<Chunk> chunksToDelete = new .() ~ delete _;
 
 		private Dictionary<int, Entity> entities = new .() ~ DeleteDictionaryAndValues!(_);
 
@@ -52,7 +53,7 @@ namespace Meteorite {
 		public void AddChunk(Chunk chunk) {
 			ChunkPos p;
 			Chunk c;
-			if (chunks.TryGet(chunk.pos, out p, out c)) delete c;
+			if (chunks.TryGet(chunk.pos, out p, out c)) chunksToDelete.Add(c);
 
 			chunks[chunk.pos] = chunk;
 		}
@@ -95,6 +96,29 @@ namespace Meteorite {
 
 		public void Tick() {
 			for (Entity entity in entities.Values) entity.Tick();
+
+			if (Meteorite.INSTANCE.player != null) {
+				int x = ((.) Meteorite.INSTANCE.player.pos.x >> 4);
+				int z = ((.) Meteorite.INSTANCE.player.pos.z >> 4);
+	
+				for (Chunk chunk in chunks.Values) {
+					if (IsChunkInRange(chunk.pos.x, chunk.pos.z, x, z)) continue;
+
+					@chunk.Remove();
+					chunksToDelete.Add(chunk);
+				}
+			}
+
+			for (Chunk chunk in chunksToDelete) {
+				if (chunk.status == .Building) continue;
+
+				@chunk.Remove();
+				delete chunk;
+			}
+		}
+
+		public bool IsChunkInRange(int x1, int z1, int x2, int z2) {
+			return Math.Abs(x1 - x2) <= viewDistance + 1 && Math.Abs(z1 - z2) <= viewDistance + 1;
 		}
 
 		public void Render(Camera camera, double tickDelta, bool mipmaps, bool sortChunks) {
@@ -119,7 +143,7 @@ namespace Meteorite {
 					chunk.status = .Ready;
 				}
 
-				if (chunk.status == .Ready && camera.IsBoxVisible(chunk.min, chunk.max)) {
+				if (camera.IsBoxVisible(chunk.min, chunk.max)) {
 					visibleChunks.Add(chunk);
 					renderedChunks++;
 				}
@@ -171,6 +195,8 @@ namespace Meteorite {
 			meshEntities.Begin();
 
 			for (Entity entity in entities.Values) {
+				if (entity == Meteorite.INSTANCE.player && Meteorite.INSTANCE.player.gamemode == .Spectator) continue;
+
 				entity.Render(meshEntities, tickDelta);
 			}
 

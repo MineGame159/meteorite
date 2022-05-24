@@ -58,7 +58,7 @@ namespace Meteorite {
 			window.MouseHidden = true;
 		}
 
-		private void Tick() {
+		private void Tick(float tickDelta) {
 			world.Tick();
 
 			textures.Tick();
@@ -67,13 +67,19 @@ namespace Meteorite {
 		public void Render(bool mipmaps, bool sortChunks, bool chunkBoundaries, float delta) {
 			if (world == null) return;
 
-			camera.FlightMovement(delta);
-			camera.Update();
-
 			int tickCount = tickCounter.BeginRenderTick();
-			for (int i < Math.Min(10, tickCount)) Tick();
+			for (int i < Math.Min(10, tickCount)) Tick(tickCounter.tickDelta);
 
 			if (!window.minimized) {
+				if (player != null && player.gamemode == .Spectator) {
+					Vec3d pos = player.pos.Lerp(tickCounter.tickDelta, player.lastPos);
+					camera.pos = .((.) pos.x, (.) pos.y + 1.62f, (.) pos.z);
+					camera.yaw = player.yaw;
+					camera.pitch = player.pitch;
+				}
+				else camera.FlightMovement(delta);
+				camera.Update();
+
 				world.Render(camera, tickCounter.tickDelta, mipmaps, sortChunks);
 				if (chunkBoundaries) world.RenderChunkBoundaries(camera);
 			}

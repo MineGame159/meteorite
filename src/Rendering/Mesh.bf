@@ -144,7 +144,7 @@ namespace Meteorite {
 		}
 
 		public void Render() {
-			if (renderIndicesCount > 0 && !building) {
+			if (renderIndicesCount > 0) {
 				vbo.Bind();
 				ibo.Bind();
 				Gfx.Draw(renderIndicesCount);

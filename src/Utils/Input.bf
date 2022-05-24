@@ -14,6 +14,11 @@ namespace Meteorite {
 			Internal.MemCpy(&keysLast, &keys, keys.Count);
 		}
 
+		private static void OnMouseMove(Window window) {
+			ClientPlayerEntity player = Meteorite.INSTANCE.player;
+			if (player != null && window.MouseHidden) player.Turn(mouseDelta);
+		}
+
 		public static bool IsKeyDown(GlfwInput.Key key) => keys[(.) key];
 		public static bool IsKeyPressed(GlfwInput.Key key) => keys[(.) key] && !keysLast[(.) key];
 		public static bool IsKeyReleased(GlfwInput.Key key) => !keys[(.) key] && keysLast[(.) key];
