@@ -24,6 +24,8 @@ namespace Meteorite {
 		private const int32 S2C_ENTITY_ROTATION = 0x2B;
 		private const int32 S2C_ENTITY_TELEPORT = 0x62;
 		private const int32 S2C_TIME_UPDATE = 0x59;
+		private const int32 S2C_CHANGE_GAME_STATE = 0x1E;
+		private const int32 S2C_PLAYER_ABILITIES = 0x32;
 
 		private const int32 C2S_PLUGIN_MESSAGE = 0x0A;
 		private const int32 C2S_CLIENT_SETTINGS = 0x05;
@@ -37,7 +39,10 @@ namespace Meteorite {
 		private int32 viewDistance;
 
 		private bool playState, firstPlayerInfo = true, firstPlayerPositionAndLook = true;
+
 		private int playerId;
+		private Gamemode gamemode;
+		private PlayerAbilities abilities;
 
 		public this(StringView address, int32 port, int32 viewDistance) : base(address, port) {
 			this.me = Meteorite.INSTANCE;
@@ -86,7 +91,9 @@ namespace Meteorite {
 				Send(buf);
 			case S2C_JOIN_GAME:
 				playerId = packet.ReadInt(); // Player ID
-				packet.Skip(1 + 1 + 1); // Hardcode, Gamemode, Previous Gamemode
+				packet.Skip(1); // Hardcode
+				gamemode = (.) packet.ReadUByte();
+				packet.Skip(1); // Previous Gamemode
 				int worldCount = packet.ReadVarInt();
 				for (int i < worldCount) delete packet.ReadString();
 				Tag dimensionCodec = packet.ReadNbt();
@@ -163,7 +170,9 @@ namespace Meteorite {
 						Send(buf);
 					}
 
-					me.world.AddEntity(new ClientPlayerEntity(playerId, .(x, y - 2, z), (.) yaw, (.) pitch));
+					if (abilities == null) Log.Error("Player Abilities packet was not received before spawning the player");
+
+					me.world.AddEntity(new ClientPlayerEntity(playerId, .(x, y - 2, z), (.) yaw, (.) pitch, gamemode, abilities));
 
 					firstPlayerPositionAndLook = false;
 				}
@@ -269,6 +278,21 @@ namespace Meteorite {
 
 				me.world.worldAge = worldAge;
 				me.world.timeOfDay = timeOfDay;
+			case S2C_CHANGE_GAME_STATE:
+				if (me.world == null || me.player == null) return;
+
+				uint8 reason = packet.ReadUByte();
+				float value = packet.ReadFloat();
+
+				if (reason == 3) me.player.gamemode = (.) value;
+			case S2C_PLAYER_ABILITIES:
+				if (me.world == null || me.player == null) {
+					if (abilities == null) abilities = new .();
+					abilities.Read(packet);
+				}
+				else {
+					me.player.abilities.Read(packet);
+				}
 			}
 		}
 

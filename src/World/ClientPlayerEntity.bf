@@ -2,11 +2,19 @@ using System;
 
 namespace Meteorite {
 	class ClientPlayerEntity : Entity {
+		public Gamemode gamemode;
+		public PlayerAbilities abilities ~ delete _;
+
 		private Vec3d lastSentPos;
 		private float lastSentYaw, lastSentPitch;
 		private int sendPositionTimer;
 
-		public this(int id, Vec3d pos, float yaw, float pitch) : base(EntityTypes.PLAYER, id, pos) {
+		private PlayerInput input ~ delete _;
+
+		public this(int id, Vec3d pos, float yaw, float pitch, Gamemode gamemode, PlayerAbilities abilities) : base(EntityTypes.PLAYER, id, pos) {
+			this.gamemode = gamemode;
+			this.abilities = abilities;
+
 			this.lastSentPos = pos;
 			this.yaw = yaw;
 			this.pitch = pitch;
