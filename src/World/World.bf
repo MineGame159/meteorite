@@ -81,6 +81,8 @@ namespace Meteorite {
 
 		public void AddEntity(Entity entity) {
 			entities[entity.id] = entity;
+
+			if (entity is ClientPlayerEntity) Meteorite.INSTANCE.player = (.) entity;
 		}
 
 		public void RemoveEntity(int entityId) {

@@ -15,6 +15,7 @@ namespace Meteorite {
 
 		public ClientConnection connection;
 		public World world;
+		public ClientPlayerEntity player;
 
 		public this() {
 			INSTANCE = this;

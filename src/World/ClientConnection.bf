@@ -29,11 +29,15 @@ namespace Meteorite {
 		private const int32 C2S_CLIENT_SETTINGS = 0x05;
 		private const int32 C2S_TELEPORT_CONFIRM = 0x00;
 		private const int32 C2S_CLIENT_STATUS = 0x04;
+		public const int32 C2S_PLAYER_POSITION_AND_ROTATION = 0x12;
+		public const int32 C2S_PLAYER_POSITION = 0x11;
+		public const int32 C2S_PLAYER_ROTATION = 0x13;
 
 		private Meteorite me;
 		private int32 viewDistance;
 
 		private bool playState, firstPlayerInfo = true, firstPlayerPositionAndLook = true;
+		private int playerId;
 
 		public this(StringView address, int32 port, int32 viewDistance) : base(address, port) {
 			this.me = Meteorite.INSTANCE;
@@ -81,7 +85,8 @@ namespace Meteorite {
 
 				Send(buf);
 			case S2C_JOIN_GAME:
-				packet.Skip(4 + 1 + 1 + 1); // Entity ID, Hardcode, Gamemode, Previous Gamemode
+				playerId = packet.ReadInt(); // Player ID
+				packet.Skip(1 + 1 + 1); // Hardcode, Gamemode, Previous Gamemode
 				int worldCount = packet.ReadVarInt();
 				for (int i < worldCount) delete packet.ReadString();
 				Tag dimensionCodec = packet.ReadNbt();
@@ -157,6 +162,8 @@ namespace Meteorite {
 
 						Send(buf);
 					}
+
+					me.world.AddEntity(new ClientPlayerEntity(playerId, .(x, y - 2, z), (.) yaw, (.) pitch));
 
 					firstPlayerPositionAndLook = false;
 				}

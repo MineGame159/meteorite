@@ -82,6 +82,34 @@ namespace Meteorite {
 			size += 8;
 		}
 
+		public void WriteFloat(float v) {
+			// TODO: Figure out a better way
+			float vd = v;
+			uint8* va = (.) &vd;
+			uint8* d = &data[size];
+			d[0] = va[3];
+			d[1] = va[2];
+			d[2] = va[1];
+			d[3] = va[0];
+			size += 4;
+		}
+
+		public void WriteDouble(double v) {
+			// TODO: Figure out a better way
+			double vd = v;
+			uint8* va = (.) &vd;
+			uint8* d = &data[size];
+			d[0] = va[7];
+			d[1] = va[6];
+			d[2] = va[5];
+			d[3] = va[4];
+			d[4] = va[3];
+			d[5] = va[2];
+			d[6] = va[1];
+			d[7] = va[0];
+			size += 8;
+		}
+
 		public void WriteVarInt(int32 v) {
 			var v;
 

@@ -20,7 +20,7 @@ namespace Meteorite {
 			this.lastRenderPos = pos;
 		}
 
-		public void Tick() {
+		public virtual void Tick() {
 			if (bodyTrackingIncrements > 0) {
 				pos.x += (serverPos.x - pos.x) / (double) bodyTrackingIncrements;
 				pos.y += (serverPos.y - pos.y) / (double) bodyTrackingIncrements;
