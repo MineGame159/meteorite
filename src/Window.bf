@@ -7,6 +7,7 @@ namespace Meteorite {
 		public GlfwWindow* handle;
 
 		public int width, height;
+		public bool minimized;
 
 		private bool firstCursorPos = true;
 
@@ -66,8 +67,14 @@ namespace Meteorite {
 			device.SetUncapturedErrorCallback((type, message, userdata) => Console.WriteLine("{}: {}", type, StringView(message)), null);
 
 			Glfw.SetFramebufferSizeCallback(handle, new (window, width, height) => {
+				if (width == 0 || height == 0) {
+					minimized = true;
+					return;
+				}
+
 				this.width = width;
 				this.height = height;
+				this.minimized = false;
 				
 				Gfx.[Friend]CreateSwapChain(width, height);
 				Gfx.[Friend]CreateDepthTexture(width, height);

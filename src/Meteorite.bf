@@ -72,8 +72,10 @@ namespace Meteorite {
 			int tickCount = tickCounter.BeginRenderTick();
 			for (int i < Math.Min(10, tickCount)) Tick();
 
-			world.Render(camera, tickCounter.tickDelta, mipmaps, sortChunks);
-			if (chunkBoundaries) world.RenderChunkBoundaries(camera);
+			if (!window.minimized) {
+				world.Render(camera, tickCounter.tickDelta, mipmaps, sortChunks);
+				if (chunkBoundaries) world.RenderChunkBoundaries(camera);
+			}
 		}
 	}
 }

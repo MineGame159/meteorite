@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Collections;
 using System.Diagnostics;
 using GLFW;
@@ -25,6 +26,12 @@ namespace Meteorite {
 
 				Input.[Friend]Update();
 				me.window.PollEvents();
+
+				if (me.window.minimized) {
+					me.Render(mipmaps, sortChunks, chunkBoundaries, delta);
+					Thread.Sleep(1);
+					continue;
+				}
 
 				bool escaped = Screenshots.Update();
 
