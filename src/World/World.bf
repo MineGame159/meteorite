@@ -53,7 +53,13 @@ namespace Meteorite {
 		public void AddChunk(Chunk chunk) {
 			ChunkPos p;
 			Chunk c;
-			if (chunks.TryGet(chunk.pos, out p, out c)) chunksToDelete.Add(c);
+			bool replacing = chunks.TryGet(chunk.pos, out p, out c);
+
+			if (replacing) {
+				chunksToDelete.Add(c);
+				chunk.firstBuild = c.firstBuild;
+				chunk.yOffset = c.yOffset;
+			}
 
 			chunks[chunk.pos] = chunk;
 		}
@@ -104,8 +110,12 @@ namespace Meteorite {
 				for (Chunk chunk in chunks.Values) {
 					if (IsChunkInRange(chunk.pos.x, chunk.pos.z, x, z)) continue;
 
-					@chunk.Remove();
-					chunksToDelete.Add(chunk);
+					chunk.goingDown = true;
+
+					if (chunk.yOffset < -16) {
+						@chunk.Remove();
+						chunksToDelete.Add(chunk);
+					}
 				}
 			}
 
@@ -121,7 +131,7 @@ namespace Meteorite {
 			return Math.Abs(x1 - x2) <= viewDistance + 1 && Math.Abs(z1 - z2) <= viewDistance + 1;
 		}
 
-		public void Render(Camera camera, double tickDelta, bool mipmaps, bool sortChunks) {
+		public void Render(Camera camera, double delta, double tickDelta, bool mipmaps, bool sortChunks) {
 			Gfx.PushDebugGroup("World");
 
 			// Gather visible chunks
@@ -171,16 +181,27 @@ namespace Meteorite {
 			ChunkPushConstants pc = .();
 			pc.projectionView = camera.proj * camera.view;
 
+			mixin UpdateChunkPushConstants(Chunk chunk) {
+				if (chunk.goingDown) {
+					chunk.yOffset -= delta * 20;
+				}
+				else if (chunk.yOffset < 0) {
+					chunk.yOffset += delta * 20;
+					if (chunk.yOffset > 0) chunk.yOffset = 0;
+				}
+
+				pc.chunkPos = .(chunk.pos.x * Section.SIZE, (.) chunk.yOffset, chunk.pos.z * Section.SIZE);
+				Gfx.SetPushConstants(.Vertex, 0, sizeof(ChunkPushConstants), &pc);
+			}
+
 			Gfx.PushDebugGroup("Chunks - Solid");
 			Gfxa.CHUNK_PIPELINE.Bind();
 			Meteorite.INSTANCE.textures.Bind(mipmaps);
 
-
 			for (Chunk chunk in visibleChunks) {
 				if (chunk.mesh == null) continue;
 
-				pc.chunkPos = .(chunk.pos.x * Section.SIZE, chunk.pos.z * Section.SIZE);
-				Gfx.SetPushConstants(.Vertex, 0, sizeof(ChunkPushConstants), &pc);
+				UpdateChunkPushConstants!(chunk);
 				chunk.mesh.Render();
 			}
 
@@ -213,8 +234,7 @@ namespace Meteorite {
 			for (Chunk chunk in visibleChunks) {
 				if (chunk.meshTransparent == null) continue;
 
-				pc.chunkPos = .(chunk.pos.x * Section.SIZE, chunk.pos.z * Section.SIZE);
-				Gfx.SetPushConstants(.Vertex, 0, sizeof(ChunkPushConstants), &pc);
+				UpdateChunkPushConstants!(chunk);
 				chunk.meshTransparent.Render();
 			}
 
@@ -314,6 +334,11 @@ namespace Meteorite {
 			}
 
 			chunk.dirty = false;
+
+			if (chunk.firstBuild) {
+				chunk.yOffset = -16;
+				chunk.firstBuild = false;
+			}
 		}
 
 		public Vec3f GetSkyColor(Vec3f cameraPos, double tickDelta) {

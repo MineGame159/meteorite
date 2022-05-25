@@ -22,7 +22,7 @@ struct Texture {
 
 struct PushConstants {
     projectionView: mat4x4<f32>,
-    chunkPos: vec2<f32>,
+    chunkPos: vec3<f32>,
 };
 
 var<push_constant> pushConstants: PushConstants;
@@ -43,7 +43,7 @@ fn vs_main(in: VertexInput) -> VertexOutput {
     let texture = textures[in.texture.x];
     let texCoords = in.texCoords * texture.size;
 
-    out.clip_position = pushConstants.projectionView * vec4<f32>(in.position.x + pushConstants.chunkPos.x, in.position.y, in.position.z + pushConstants.chunkPos.y, 1.0);
+    out.clip_position = pushConstants.projectionView * vec4<f32>(in.position + pushConstants.chunkPos, 1.0);
     out.color = in.color;
     out.uv1 = texCoords + texture.uv1;
     out.uv2 = texCoords + texture.uv2;

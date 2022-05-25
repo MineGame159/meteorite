@@ -80,7 +80,7 @@ namespace Meteorite {
 				else camera.FlightMovement(delta);
 				camera.Update();
 
-				world.Render(camera, tickCounter.tickDelta, mipmaps, sortChunks);
+				world.Render(camera, delta, tickCounter.tickDelta, mipmaps, sortChunks);
 				if (chunkBoundaries) world.RenderChunkBoundaries(camera);
 			}
 		}

@@ -40,9 +40,12 @@ namespace Meteorite {
 		private Section[] sections;
 
 		public Status status = .Ready;
-		public bool dirty;
+		public bool dirty, firstBuild = true;
 		public Mesh mesh ~ delete _;
 		public Mesh meshTransparent ~ delete _;
+
+		public double yOffset;
+		public bool goingDown;
 
 		public Vec3f min, max;
 

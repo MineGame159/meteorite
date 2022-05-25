@@ -1,6 +1,8 @@
 using System;
 
 namespace Meteorite {
+	// data length = ((1 << edgeBits * 3) + valuesPerLong - 1) / valuesPerLong
+
 	class PalettedContainer<T> {
 		private T[] ids;
 		private T defaultValue;

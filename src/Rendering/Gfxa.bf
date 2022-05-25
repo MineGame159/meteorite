@@ -4,7 +4,7 @@ namespace Meteorite {
 	[CRepr]
 	struct ChunkPushConstants {
 		public Mat4 projectionView;
-		public Vec2 chunkPos;
+		public Vec3f chunkPos;
 	}
 
 	static class Gfxa {
