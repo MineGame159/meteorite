@@ -145,37 +145,8 @@ namespace Meteorite {
 			bool rotationChanged = (yaw - lastSentYaw) != 0 || (pitch - lastSentPitch) != 0;
 
 			// TODO: Figure out On Ground property
-
-			if (positionChanged && rotationChanged) {
-				NetBuffer buf = scope .();
-				buf.WriteVarInt(ClientConnection.C2S_PLAYER_POSITION_AND_ROTATION);
-				buf.WriteDouble(pos.x);
-				buf.WriteDouble(pos.y + Meteorite.INSTANCE.world.minY);
-				buf.WriteDouble(pos.z);
-				buf.WriteFloat(yaw);
-				buf.WriteFloat(pitch);
-				buf.WriteBool(false);
-
-				Meteorite.INSTANCE.connection.Send(buf);
-			}
-			else if (positionChanged) {
-				NetBuffer buf = scope .();
-				buf.WriteVarInt(ClientConnection.C2S_PLAYER_POSITION);
-				buf.WriteDouble(pos.x);
-				buf.WriteDouble(pos.y + Meteorite.INSTANCE.world.minY);
-				buf.WriteDouble(pos.z);
-				buf.WriteBool(false);
-
-				Meteorite.INSTANCE.connection.Send(buf);
-			}
-			else if (rotationChanged) {
-				NetBuffer buf = scope .();
-				buf.WriteVarInt(ClientConnection.C2S_PLAYER_ROTATION);
-				buf.WriteFloat(yaw);
-				buf.WriteFloat(pitch);
-				buf.WriteBool(false);
-
-				Meteorite.INSTANCE.connection.Send(buf);
+			if (positionChanged || rotationChanged) {
+				Meteorite.INSTANCE.connection.Send(scope PlayerPositionC2SPacket(this, positionChanged, rotationChanged));
 			}
 
 			if (positionChanged) {

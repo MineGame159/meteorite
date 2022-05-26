@@ -81,10 +81,6 @@ namespace Meteorite {
 		public Section GetSection(int i) => sections[i];
 
 		public void Load(NetBuffer packet) {
-			packet.ReadNbt().Dispose();
-
-			packet.ReadVarInt(); // Size
-
 			int minY = sections.Count * Section.SIZE;
 			int maxY = 0;
 
