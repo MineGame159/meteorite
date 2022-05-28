@@ -1,0 +1,29 @@
+{
+    "large_fern": "grass",
+    "tall_grass": "grass",
+    "grass_block": "grass",
+    "fern": "grass",
+    "grass": "grass",
+    "potted_fern": "grass",
+    "sugar_cane": "grass",
+
+    "oak_leaves": "foliage",
+    "jungle_leaves": "foliage",
+    "acacia_leaves": "foliage",
+    "dark_oak_leaves": "foliage",
+    "vine": "foliage",
+
+    "spruce_leaves": 6396257,
+    "birch_leaves": 8431445,
+
+    "water": "water",
+    "bubble_column": "water",
+    "water_cauldron": "water",
+
+    "redstone_wire": "redstone",
+
+    "melon_stem": "stem",
+    "pumpkin_stem": "stem",
+
+    "lily_pad": 2129968
+}

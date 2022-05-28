@@ -43,6 +43,7 @@ namespace Meteorite {
 			EntityTypes.Register();
 			Buffers.CreateGlobalIndices();
 			SkyRenderer.Init();
+			BlockColors.Init();
 		}
 
 		public ~this() {

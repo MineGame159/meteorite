@@ -155,7 +155,7 @@ namespace Meteorite {
 						Biome bi = GetBiome(chunk, x1, y1, z1);
 						if (bi == null) continue;
 
-						Color co = BlockColors.Get(blockState.block, bi);
+						Color co = BlockColors.Get(blockState, bi);
 						r += co.r;
 						g += co.g;
 						b += co.b;
