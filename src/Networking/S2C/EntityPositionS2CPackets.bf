@@ -94,7 +94,7 @@ namespace Meteorite {
 			hasPosition = true;
 			teleport = true;
 			x = buf.ReadDouble();
-			y = buf.ReadDouble();
+			y = buf.ReadDouble() - me.world.minY;
 			z = buf.ReadDouble();
 		}
 	}

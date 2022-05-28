@@ -52,9 +52,11 @@ namespace Meteorite {
 					for (int k < properties.Count) props.Add(.(properties[k], values[k]));
 
 					BlockState blockState = new .(block, props);
+					blockState.id = GetId(blockState);
+
 					block.AddBlockState(blockState);
 					
-					BLOCKSTATES[GetId(blockState)] = blockState;
+					BLOCKSTATES[blockState.id] = blockState;
 				}
 				else LoopProperties(block, properties, values, i + 1);
 			}

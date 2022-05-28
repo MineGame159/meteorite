@@ -24,8 +24,10 @@ namespace Meteorite {
 		public List<BlockState>.Enumerator GetEnumerator() => blockStates.GetEnumerator();
 	}
 
-	class BlockState {
+	class BlockState : IID {
 		public Block block;
+		public int32 id { get; set; };
+
 		public Model model ~ delete _;
 
 		public List<Property> properties ~ delete _;

@@ -1,7 +1,7 @@
 using System;
 
 namespace Meteorite {
-	class Biome : this(float temperature, float downfall, Color waterColor, Color skyColor, Color fogColor) {
+	class Biome : IID {
 		private static Color[] GRASS_COLORS ~ delete _;
 		private static Color[] FOLIAGE_COLORS ~ delete _;
 
@@ -24,6 +24,21 @@ namespace Meteorite {
 
 				delete image;
 			}
+		}
+
+		public int32 id { get; set; }
+
+		public float temperature, downfall;
+		public Color waterColor, skyColor, fogColor;
+
+		public this(int32 id, float temperature, float downfall, Color waterColor, Color skyColor, Color fogColor) {
+			this.id = id;
+
+			this.temperature = temperature;
+			this.downfall = downfall;
+			this.waterColor = waterColor;
+			this.skyColor = skyColor;
+			this.fogColor = fogColor;
 		}
 
 		public Color GetGrassColor() {

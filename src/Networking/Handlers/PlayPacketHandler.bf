@@ -75,8 +75,10 @@ namespace Meteorite {
 		}
 
 		private void OnChunkData(ChunkDataS2CPacket packet) {
-			Chunk chunk = new .(me.world, .(packet.x, packet.z));
-			chunk.Load(packet.data);
+			Chunk chunk = new .(me.world, packet.pos, packet.sections);
+
+			chunk.min.y = packet.minY;
+			chunk.max.y = packet.maxY;
 
 			me.world.AddChunk(chunk);
 		}
@@ -142,6 +144,7 @@ namespace Meteorite {
 			case ChunkDataS2CPacket.ID: return new ChunkDataS2CPacket();
 			case SpawnEntityS2CPacket.ID: return new SpawnEntityS2CPacket();
 			case SpawnLivingEntityC2SPacket.ID: return new SpawnLivingEntityC2SPacket();
+			case DestroyEntitiesS2CPacket.ID: return new DestroyEntitiesS2CPacket();
 			case EntityPositionS2CPacket.ID: return new EntityPositionS2CPacket();
 			case EntityRotationS2CPacket.ID: return new EntityRotationS2CPacket();
 			case EntityPositionAndRotationS2CPacket.ID: return new EntityPositionAndRotationS2CPacket();
@@ -166,6 +169,7 @@ namespace Meteorite {
 			case ChunkDataS2CPacket.ID: OnChunkData((.) packet);
 			case SpawnEntityS2CPacket.ID: OnSpawnEntity((.) packet);
 			case SpawnLivingEntityC2SPacket.ID: OnSpawnLivingEntity((.) packet);
+			case DestroyEntitiesS2CPacket.ID: OnDestroyEntities((.) packet);
 			case EntityPositionS2CPacket.ID: OnEntityPosition((.) packet);
 			case EntityRotationS2CPacket.ID: OnEntityPosition((.) packet);
 			case EntityPositionAndRotationS2CPacket.ID: OnEntityPosition((.) packet);
