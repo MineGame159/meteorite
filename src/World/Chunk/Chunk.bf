@@ -1,5 +1,4 @@
 using System;
-using FastNoiseLite;
 
 namespace Meteorite {
 	struct ChunkPos : IHashable {
