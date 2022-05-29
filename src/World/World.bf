@@ -348,6 +348,34 @@ namespace Meteorite {
 			}
 		}
 
+		public void GetPossibleCollisions(AABB aabb, delegate void(Vec3d, VoxelShape) callback) {
+			int minX = (.) Math.Floor(aabb.min.x - 1.0E-7) - 1;
+			int minY = (.) Math.Floor(aabb.min.y - 1.0E-7) - 1;
+			int minZ = (.) Math.Floor(aabb.min.z - 1.0E-7) - 1;
+
+			int maxX = (.) Math.Floor(aabb.max.x + 1.0E-7) + 1;
+			int maxY = (.) Math.Floor(aabb.max.y + 1.0E-7) + 1;
+			int maxZ = (.) Math.Floor(aabb.max.z + 1.0E-7) + 1;
+
+			for (int x = minX; x <= maxX; x++) {
+				for (int y = minY; y <= maxY; y++) {
+					for (int z = minZ; z <= maxZ; z++) {
+						BlockState blockState = Meteorite.INSTANCE.world.GetBlock(x, y, z);
+						VoxelShape shape = blockState.GetCollisionShape();
+
+						if (shape != .EMPTY) {
+							if (shape == Block.BLOCK_SHAPE) {
+								Vec3d pos = .(x, y, z);
+								//if (aabb.Intersects(pos, pos + .(1, 1, 1))) callback(pos, shape);
+								callback(pos, shape);
+							}
+							else callback(.(x, y, z), shape);
+						}
+					}
+				}
+			}
+		}
+
 		public Vec3f GetSkyColor(Vec3f cameraPos, double tickDelta) {
 			float f = GetSkyAngle();
 			Vec3f vec3 = (cameraPos - Vec3f(2, 2, 2)) * Vec3f(0.25f, 0.25f, 0.25f);

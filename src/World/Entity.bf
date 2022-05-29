@@ -22,6 +22,8 @@ namespace Meteorite {
 			this.lastPos = pos;
 		}
 
+		public AABB GetAABB() => .(pos, pos + .(type.width, type.height, type.width));
+
 		public virtual void Tick() {
 			lastPos = pos;
 

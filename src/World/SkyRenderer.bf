@@ -43,7 +43,7 @@ namespace Meteorite {
 				.PushConstants(.Vertex | .Fragment, 0, sizeof(PushConstaints2))
 				.Primitive(.TriangleList, false)
 				.Blend(false)
-				.Depth(true, false) // Dont use depth here
+				.Depth(true, false, false)
 				.Create();
 			PIPELINE2 = Gfx.NewPipeline()
 				.Attributes(.Float3, .UByte4)
@@ -51,7 +51,7 @@ namespace Meteorite {
 				.FragmentShader(Gfxa.POS_COLOR_SHADER, "fs_main")
 				.PushConstants(.Vertex | .Fragment, 0, sizeof(PushConstaints1))
 				.Primitive(.TriangleList, false)
-				.Depth(true, false) // Dont use depth here
+				.Depth(true, false, false)
 				.Create();
 			PIPELINE3 = Gfx.NewPipeline()
 				.BindGroupLayouts(Gfxa.TEXTURE_SAMPLER_LAYOUT)
@@ -64,7 +64,7 @@ namespace Meteorite {
 					color = .(.Add, .SrcAlpha, .One),
 					alpha = .(.Add, .One, .Zero)
 				})
-				.Depth(true, false) // Dont use depth here
+				.Depth(true, false, false)
 				.Create();
 			PIPELINE4 = Gfx.NewPipeline()
 				.Attributes(.Float3)
@@ -76,7 +76,7 @@ namespace Meteorite {
 					color = .(.Add, .SrcAlpha, .One),
 					alpha = .(.Add, .One, .Zero)
 				})
-				.Depth(true, false) // Dont use depth here
+				.Depth(true, false, false)
 				.Create();
 
 			MESH1 = new .();

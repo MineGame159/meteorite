@@ -64,7 +64,7 @@ namespace Meteorite {
 		private bool blend = true;
 		private Wgpu.BlendState? blendState;
 
-		private bool depth, depthWrite;
+		private bool depth, depthTest, depthWrite;
 
 		private this() {}
 
@@ -121,8 +121,9 @@ namespace Meteorite {
 			return this;
 		}
 
-		public Self Depth(bool depth, bool depthWrite = true) {
+		public Self Depth(bool depth, bool depthTest = true, bool depthWrite = true) {
 			this.depth = depth;
+			this.depthTest = depthTest;
 			this.depthWrite = depthWrite;
 
 			return this;
@@ -196,7 +197,7 @@ namespace Meteorite {
 			Wgpu.DepthStencilState depthStencil = .() {
 				format = .Depth32Float,
 				depthWriteEnabled = depthWrite,
-				depthCompare = .LessEqual,
+				depthCompare = depthTest ? .LessEqual : .Always,
 				stencilFront = .() {
 					compare = .Always
 				},

@@ -4,8 +4,8 @@ namespace Meteorite {
 	class VoxelShape {
 		public static VoxelShape EMPTY = new .(new .(1), .(), .()) ~ delete _;
 
-		private BitSet set ~ delete _;
-		private Vec3d min, max;
+		public BitSet set ~ delete _;
+		public Vec3d min, max;
 
 		public this(BitSet set, Vec3d min, Vec3d max) {
 			this.set = set;
@@ -20,6 +20,6 @@ namespace Meteorite {
 			return new .(set, .(x1 / 16.0, y1 / 16.0, z1 / 16.0), .(x2 / 16.0, y2 / 16.0, z2 / 16.0));
 		}
 
-		public static VoxelShape Block() => Box(0, 0, 0, 1, 1, 1);
+		public static VoxelShape Block() => Box(0, 0, 0, 16, 16, 16);
 	}
 }

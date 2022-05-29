@@ -74,7 +74,7 @@ namespace Meteorite {
 			if (!window.minimized) {
 				if (player != null && player.gamemode == .Spectator) {
 					Vec3d pos = player.pos.Lerp(tickCounter.tickDelta, player.lastPos);
-					camera.pos = .((.) pos.x, (.) pos.y + 1.62f, (.) pos.z);
+					camera.pos = .((.) (pos.x + player.type.width / 2), (.) pos.y + 1.62f, (.) (pos.z + player.type.width / 2));
 					camera.yaw = player.yaw;
 					camera.pitch = player.pitch;
 				}

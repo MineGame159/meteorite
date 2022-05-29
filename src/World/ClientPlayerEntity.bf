@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 
 namespace Meteorite {
 	class ClientPlayerEntity : LivingEntity {
@@ -87,7 +88,35 @@ namespace Meteorite {
 			deltaMovement += GetInputVector(relative, amount, yaw); // TODO: Hopefully yaw
 		}
 
-		private Vec3d Collide(Vec3d vec) {
+		private Vec3d Collide(Vec3d _vec) {
+			Vec3d vec = _vec;
+
+			/*Vec3d playerMin = pos + vec;
+			Vec3d playerMax = pos + vec + .(type.width, type.height, type.width);
+
+			Meteorite.INSTANCE.world.GetPossibleCollisions(GetAABB().Expand(vec), scope [&](shapePos, shape) => {
+				Vec3d shapeMin = shapePos + shape.min;
+				Vec3d shapeMax = shapePos + shape.max;
+
+				if (!(playerMax.x <= shapeMin.x || playerMax.z <= shapeMin.z || playerMin.x >= shapeMax.x || playerMin.z >= shapeMax.z)) {
+					if (vec.y > 0 && playerMax.y >= shapeMin.y && pos.y <= shapeMin.y) vec.y = shapeMin.y - (pos.y + type.height);
+					else if (vec.y < 0 && playerMin.y <= shapeMax.y && pos.y >= shapeMax.y) vec.y = shapeMax.y - pos.y;
+				}
+
+				/*if (!(playerMax.x <= shapeMin.x || playerMax.y <= shapeMin.y || playerMin.x >= shapeMax.x || playerMin.y >= shapeMax.y)) {
+					if (vec.z > 0 && playerMax.z >= shapeMin.z && pos.z <= shapeMin.z) vec.z = shapeMin.z - (pos.z + type.width);
+					else if (vec.z < 0 && playerMin.z <= shapeMax.z && pos.z >= shapeMax.z) vec.z = shapeMax.z - pos.z;
+				}
+
+				if (!(playerMax.z <= shapeMin.z || playerMax.y <= shapeMin.y || playerMin.z >= shapeMax.z || playerMin.y >= shapeMax.y)) {
+					if (vec.x > 0 && playerMax.x >= shapeMin.x && pos.x <= shapeMin.x) vec.x = shapeMin.x - (pos.x + type.width);
+					else if (vec.x < 0 && playerMin.x <= shapeMax.x && pos.x >= shapeMax.x) vec.x = shapeMax.x - pos.x;
+				}
+				*/
+				playerMin = pos + vec;
+				playerMax = pos + vec + .(type.width, type.height, type.width);
+			});*/
+			
 			return vec;
 		}
 

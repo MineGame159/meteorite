@@ -64,7 +64,7 @@ namespace Meteorite {
 				.FragmentShader(CHUNK_TRANSPARENT_SHADER, "fs_main")
 				.PushConstants(.Vertex, 0, sizeof(ChunkPushConstants))
 				.Primitive(.TriangleList, true)
-				.Depth(true, false)
+				.Depth(true, true, false)
 				.Create();
 			LINES_PIPELINE = Gfx.NewPipeline()
 				.Attributes(.Float3, .UByte4)
