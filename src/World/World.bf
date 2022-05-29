@@ -308,7 +308,10 @@ namespace Meteorite {
 			chunk.mesh.Begin();
 			chunk.meshTransparent.Begin();
 
-			for (int i < SectionCount) {
+			int minI = (.) chunk.min.y / Section.SIZE;
+			int maxI = (.) chunk.max.y / Section.SIZE;
+
+			for (int i = minI; i <= maxI; i++) {
 				Section section = chunk.GetSection(i);
 				if (section == null) continue;
 
