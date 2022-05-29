@@ -87,6 +87,10 @@ namespace Meteorite {
 			deltaMovement += GetInputVector(relative, amount, yaw); // TODO: Hopefully yaw
 		}
 
+		private Vec3d Collide(Vec3d vec) {
+			return vec;
+		}
+
 		// TODO: Only implemented Self movement type
 		public void Move(Vec3d pos) {
 			if (noPhysics) {
@@ -94,9 +98,11 @@ namespace Meteorite {
 				return;
 			}
 
-			double d = pos.LengthSquared;
+			Vec3d vec = Collide(pos);
+
+			double d = vec.LengthSquared;
 			if (d > 1.0E-7) {
-				this.pos += pos;
+				this.pos += vec;
 			}
 		}
 
