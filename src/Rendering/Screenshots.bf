@@ -8,7 +8,6 @@ namespace Meteorite{
 	static class Screenshots {
 		public static bool rendering;
 		public static int width, height;
-		public static int originalWidth, originalHeight;
 		public static Texture texture;
 
 		private static WBuffer buffer;
@@ -58,8 +57,6 @@ namespace Meteorite{
 
 		private static void Take(Window window) {
 			rendering = true;
-			originalWidth = window.width;
-			originalHeight = window.height;
 
 			switch (resolution) {
 			case 1:
@@ -81,16 +78,14 @@ namespace Meteorite{
 				width = 7680;
 				height = 4320;
 			default:
-				width = originalWidth;
-				height = originalHeight;
+				width = window.width;
+				height = window.height;
 			}
 
 			width = (.) (width * scale);
 			height = (.) (height * scale);
 
 			texture = Gfx.CreateTexture(.RenderAttachment | .CopySrc, width, height, 1, null, .BGRA8Unorm);
-
-			Gfx.[Friend]CreateDepthTexture(width, height);
 		}
 
 		public static void AfterRender(Wgpu.CommandEncoder encoder) {
@@ -114,7 +109,7 @@ namespace Meteorite{
 			encoder.CopyTextureToBuffer(&src, &dst, &size);
 		}
 
-		public static void AfterRender2() {
+		public static void Save() {
 			buffer.[Friend]handle.MapAsync(.Read, 0, buffer.size, => AfterMap, null);
 		}
 
@@ -143,6 +138,8 @@ namespace Meteorite{
 				delete w;
 				
 				buffer.[Friend]handle.Unmap();
+
+				Log.Info("Saved screenshot to run/screenshot.ppm");
 			}
 			else Log.Error("Failed to map screenshot buffer: {}", status);
 

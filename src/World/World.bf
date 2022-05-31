@@ -7,44 +7,24 @@ namespace Meteorite {
 		public int viewDistance;
 
 		private Dictionary<ChunkPos, Chunk> chunks ~ DeleteDictionaryAndValues!(_);
-		private List<Chunk> visibleChunks = new .() ~ delete _;
 		private List<Chunk> chunksToDelete = new .() ~ delete _;
 
 		private Dictionary<int, Entity> entities = new .() ~ DeleteDictionaryAndValues!(_);
-
-		private Mesh meshEntities ~ delete _;
-		private Mesh meshLines ~ delete _;
-
-		private ThreadPool threadPool;
 
 		public int minY, height;
 		public int renderedChunks;
 
 		public int64 worldAge, timeOfDay;
 
-		private bool shuttingDown;
-
 		public this(int viewDistance, int minY, int height) {
 			this.viewDistance = viewDistance;
 			this.chunks = new Dictionary<ChunkPos, Chunk>();
-			this.threadPool = new .();
 			this.minY = minY;
 			this.height = height;
 		}
 
-		public ~this() {
-			shuttingDown = true;
-
-			// Thread pool needs to be deleted before ending un-uploaded meshes
-			delete threadPool;
-
-			for (Chunk chunk in chunks.Values) {
-				if (chunk.status == .Upload) {
-					chunk.mesh.End(false);
-					chunk.meshTransparent.End(false);
-				}
-			}
-		}
+		public Dictionary<ChunkPos, Chunk>.ValueEnumerator Chunks => chunks.Values;
+		public Dictionary<int, Entity>.ValueEnumerator Entities => entities.Values;
 
 		public int SectionCount => height / Section.SIZE;
 		public int ChunkCount => chunks.Count;
@@ -133,219 +113,6 @@ namespace Meteorite {
 
 		public bool IsChunkInRange(int x1, int z1, int x2, int z2) {
 			return Math.Abs(x1 - x2) <= viewDistance + 1 && Math.Abs(z1 - z2) <= viewDistance + 1;
-		}
-
-		public void Render(Camera camera, double delta, double tickDelta, bool mipmaps, bool sortChunks) {
-			Gfx.PushDebugGroup("World");
-
-			// Gather visible chunks
-			visibleChunks.Clear();
-			renderedChunks = 0;
-
-			for (Chunk chunk in chunks.Values) {
-				if (chunk.dirty && chunk.status == .Ready && IsChunkLoaded(chunk.pos.x + 1, chunk.pos.z) && IsChunkLoaded(chunk.pos.x - 1, chunk.pos.z) && IsChunkLoaded(chunk.pos.x, chunk.pos.z + 1) && IsChunkLoaded(chunk.pos.x, chunk.pos.z - 1)) {
-					chunk.status = .Building;
-					if (chunk.mesh == null) {
-						chunk.mesh = new Mesh(Buffers.QUAD_INDICES);
-						chunk.meshTransparent = new Mesh();
-					}
-					threadPool.Add(new () => GenerateChunkMesh(chunk));
-				}
-				if (chunk.status == .Upload) {
-					chunk.meshTransparent.End();
-					chunk.mesh.End();
-					chunk.status = .Ready;
-				}
-
-				if (camera.IsBoxVisible(chunk.min, chunk.max)) {
-					visibleChunks.Add(chunk);
-					renderedChunks++;
-				}
-			}
-
-			// Sort chunks
-			if (sortChunks) {
-				visibleChunks.Sort(scope (lhs, rhs) => {
-					double x1 = (lhs.pos.x + 0.5) * 16 - camera.pos.x;
-					double z1 = (lhs.pos.z + 0.5) * 16 - camera.pos.z;
-					double dist1 = x1 * x1 + z1 * z1;
-
-					double x2 = (rhs.pos.x + 0.5) * 16 - camera.pos.x;
-					double z2 = (rhs.pos.z + 0.5) * 16 - camera.pos.z;
-					double dist2 = x2 * x2 + z2 * z2;
-
-					return dist2.CompareTo(dist1);
-				});
-			}
-
-			// Sky
-			SkyRenderer.Render(this, camera, tickDelta);
-
-			// Chunks solid
-			ChunkPushConstants pc = .();
-			pc.projectionView = camera.proj * camera.view;
-
-			mixin UpdateChunkPushConstants(Chunk chunk) {
-				if (chunk.goingDown) {
-					chunk.yOffset -= delta * 20;
-				}
-				else if (chunk.yOffset < 0) {
-					chunk.yOffset += delta * 20;
-					if (chunk.yOffset > 0) chunk.yOffset = 0;
-				}
-
-				pc.chunkPos = .(chunk.pos.x * Section.SIZE, (.) chunk.yOffset, chunk.pos.z * Section.SIZE);
-				Gfx.SetPushConstants(.Vertex, 0, sizeof(ChunkPushConstants), &pc);
-			}
-
-			Gfx.PushDebugGroup("Chunks - Solid");
-			Gfxa.CHUNK_PIPELINE.Bind();
-			Meteorite.INSTANCE.textures.Bind(mipmaps);
-
-			for (Chunk chunk in visibleChunks) {
-				if (chunk.mesh == null) continue;
-
-				UpdateChunkPushConstants!(chunk);
-				chunk.mesh.Render();
-			}
-
-			Gfx.PopDebugGroup();
-
-			// Entities
-			Gfx.PushDebugGroup("Entities");
-			Gfxa.QUADS_PIPELINE.Bind();
-			Gfx.SetPushConstants(.Vertex, 0, sizeof(Mat4), &pc.projectionView);
-
-			if (meshEntities == null) meshEntities = new .(Buffers.QUAD_INDICES);
-			meshEntities.Begin();
-
-			for (Entity entity in entities.Values) {
-				if (entity == Meteorite.INSTANCE.player && Meteorite.INSTANCE.player.gamemode == .Spectator) continue;
-
-				entity.Render(meshEntities, tickDelta);
-			}
-
-			meshEntities.End();
-			meshEntities.Render();
-
-			Gfx.PopDebugGroup();
-
-			// Chunks transparent
-			Gfx.PushDebugGroup("Chunks - Transparent");
-			Gfxa.CHUNK_TRANSPARENT_PIPELINE.Bind();
-			Meteorite.INSTANCE.textures.Bind(mipmaps);
-
-			for (Chunk chunk in visibleChunks) {
-				if (chunk.meshTransparent == null) continue;
-
-				UpdateChunkPushConstants!(chunk);
-				chunk.meshTransparent.Render();
-			}
-
-			Gfx.PopDebugGroup();
-			Gfx.PopDebugGroup();
-		}
-
-		public void RenderChunkBoundaries(Camera camera) {
-			Gfx.PushDebugGroup("Chunk Boundaries");
-			Gfxa.LINES_PIPELINE.Bind();
-
-			Mat4 projectionView = camera.proj * camera.view;
-			Gfx.SetPushConstants(.Vertex, 0, sizeof(Mat4), &projectionView);
-
-			if (meshLines == null) meshLines = new .();
-			meshLines.Begin();
-
-			int x = ((.) camera.pos.x >> 4) * 16;
-			int z = ((.) camera.pos.z >> 4) * 16;
-
-			Color color1 = .(225, 25, 25);
-			Color color2 = .(225, 225, 25);
-
-			Line(meshLines, x, z, color1);
-			Line(meshLines, x + 16, z, color1);
-			Line(meshLines, x, z + 16, color1);
-			Line(meshLines, x + 16, z + 16, color1);
-
-			x -= 16;
-			z -= 16;
-
-			Line(meshLines, x, z, color2);
-			Line(meshLines, x + 48, z, color2);
-			Line(meshLines, x, z + 48, color2);
-			Line(meshLines, x + 48, z + 48, color2);
-
-			Line(meshLines, x, z, color2);
-			Line(meshLines, x + 16, z, color2);
-			Line(meshLines, x + 32, z, color2);
-
-			Line(meshLines, x, z, color2);
-			Line(meshLines, x, z + 16, color2);
-			Line(meshLines, x, z + 32, color2);
-
-			Line(meshLines, x + 48, z, color2);
-			Line(meshLines, x + 48, z + 16, color2);
-			Line(meshLines, x + 48, z + 32, color2);
-
-			Line(meshLines, x, z + 48, color2);
-			Line(meshLines, x + 16, z + 48, color2);
-			Line(meshLines, x + 32, z + 48, color2);
-
-			meshLines.End();
-			meshLines.Render();
-
-			Gfx.PopDebugGroup();
-		}
-
-		private void Line(Mesh mesh, int x, int z, Color color) {
-			mesh.Line(
-				mesh.Vec3(.(x, 0, z)).Color(color).Next(),
-				mesh.Vec3(.(x, height, z)).Color(color).Next()
-			);
-		}
-
-		private void GenerateChunkMesh(Chunk chunk) {
-			chunk.mesh.Begin();
-			chunk.meshTransparent.Begin();
-
-			int minI = (.) chunk.min.y / Section.SIZE;
-			int maxI = (.) chunk.max.y / Section.SIZE;
-
-			for (int i = minI; i <= maxI; i++) {
-				Section section = chunk.GetSection(i);
-				if (section == null) continue;
-
-				int sectionY = i * Section.SIZE;
-
-				for (int x < Section.SIZE) {
-					for (int y < Section.SIZE) {
-						for (int z < Section.SIZE) {
-							int by = sectionY + y;
-							int sy = y % Section.SIZE;
-							BlockState blockState = section.Get(x, sy, z);
-
-							BlockRenderer.Render(this, chunk, x, by, z, blockState, section.GetBiome(x, sy, z));
-						}
-					}
-				}
-			}
-
-			if (shuttingDown) {
-				chunk.mesh.End(false);
-				chunk.meshTransparent.End(false);
-
-				chunk.status = .Ready;
-			}
-			else {
-				chunk.status = .Upload;
-			}
-
-			chunk.dirty = false;
-
-			if (chunk.firstBuild) {
-				chunk.yOffset = -16;
-				chunk.firstBuild = false;
-			}
 		}
 
 		public void GetPossibleCollisions(AABB aabb, delegate void(Vec3d, VoxelShape) callback) {

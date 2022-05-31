@@ -45,7 +45,7 @@ namespace Meteorite {
 			this.handle = handle;
 		}
 
-		public void Bind() => Gfx.[Friend]pass.SetPipeline(handle);
+		public void Bind(RenderPass pass) => pass.[Friend]pass.SetPipeline(handle);
 	}
 
 	class PipelineBuilder {

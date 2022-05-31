@@ -151,11 +151,11 @@ namespace Meteorite {
 			bufferBindGroup = Gfxa.BUFFER_SAMPLER_LAYOUT.Create(buffer);
 		}
 
-		public void Bind(bool mipmaps) {
-			if (mipmaps) textureMipmapBindGroup.Bind();
-			else textureBindGroup.Bind();
+		public void Bind(RenderPass pass, bool mipmaps) {
+			if (mipmaps) textureMipmapBindGroup.Bind(pass);
+			else textureBindGroup.Bind(pass);
 
-			bufferBindGroup.Bind(1);
+			bufferBindGroup.Bind(pass, 1);
 		}
 
 		struct TempTexture : this(String path, UV[] uvs, int size, TextureAnimationMetadata animation) {

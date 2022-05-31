@@ -31,8 +31,13 @@ namespace Meteorite {
 			playerId = packet.playerId;
 			gamemode = packet.gamemode;
 
-			if (me.world != null) delete me.world;
+			if (me.world != null) {
+				delete me.world;
+				delete me.worldRenderer;
+			}
+
 			me.world = new .(connection.viewDistance, packet.dimension["min_y"].AsInt, packet.dimension["height"].AsInt);
+			me.worldRenderer = new .();
 		}
 
 		private void OnPlayerAbilities(PlayerAbilitiesS2CPacket packet) {

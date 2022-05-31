@@ -143,11 +143,12 @@ namespace Meteorite {
 			building = false;
 		}
 
-		public void Render() {
+		public void Render(RenderPass pass) {
 			if (renderIndicesCount > 0) {
-				vbo.Bind();
-				ibo.Bind();
-				Gfx.Draw(renderIndicesCount);
+				vbo.Bind(pass);
+				ibo.Bind(pass);
+
+				pass.Draw(renderIndicesCount);
 			}
 		}
 	}

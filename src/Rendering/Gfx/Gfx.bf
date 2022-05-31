@@ -39,9 +39,9 @@ namespace Meteorite {
 			Gfx.ALLOCATED -= size;
 		}
 
-		public void Bind() {
-			if (usage.HasFlag(.Vertex)) Gfx.[Friend]pass.SetVertexBuffer(0, handle, 0, 0);
-			else if (usage.HasFlag(.Index)) Gfx.[Friend]pass.SetIndexBuffer(handle, .Uint32, 0, 0);
+		public void Bind(RenderPass pass) {
+			if (usage.HasFlag(.Vertex)) pass.[Friend]pass.SetVertexBuffer(0, handle, 0, 0);
+			else if (usage.HasFlag(.Index)) pass.[Friend]pass.SetIndexBuffer(handle, .Uint32, 0, 0);
             else {
 				Log.Error("Unknown buffer type: {}", usage);
 				Runtime.NotImplemented();
@@ -109,18 +109,10 @@ namespace Meteorite {
 	}
 
 	static class Gfx {
-		private static Wgpu.Surface surface;
-		private static Wgpu.Device device;
-		private static Wgpu.SwapChain swapChain;
-		private static Wgpu.Queue queue;
-
-		private static Wgpu.TextureView view;
-		private static Wgpu.CommandEncoder encoder;
-		private static Wgpu.RenderPassEncoder pass;
-
-		private static Wgpu.Texture depthTexture;
-		private static Wgpu.TextureView depthView;
-		private static Wgpu.Sampler depthSampler;
+		public static Wgpu.Surface surface;
+		public static Wgpu.Device device;
+		public static Wgpu.SwapChain swapChain;
+		public static Wgpu.Queue queue;
 
 		public static uint64 ALLOCATED = 0;
 
@@ -134,22 +126,6 @@ namespace Meteorite {
 
 			// Swap chain
 			CreateSwapChain(width, height);
-
-			// Depth texture
-			CreateDepthTexture(width, height);
-
-			Wgpu.SamplerDescriptor samplerDesc = .() {
-				addressModeU = .ClampToEdge,
-				addressModeV = .ClampToEdge,
-				addressModeW = .ClampToEdge,
-				magFilter = .Linear,
-				minFilter = .Linear,
-				mipmapFilter = .Nearest,
-				compare = .LessEqual,
-				lodMinClamp = -100,
-				lodMaxClamp = 100
-			};
-			depthSampler = device.CreateSampler(&samplerDesc);
 
 			// ImGui
 			ImGui.CHECKVERSION();
@@ -171,23 +147,6 @@ namespace Meteorite {
 			swapChain = device.CreateSwapChain(surface, &swapChainDesc);
 		}
 
-		private static void CreateDepthTexture(int width, int height) {
-			Wgpu.Extent3D size = .((.) width, (.) height, 1);
-			Wgpu.TextureDescriptor textureDesc = .() {
-				label = "Depth",
-				size = size,
-				mipLevelCount = 1,
-				sampleCount = 1,
-				dimension = ._2D,
-				format = .Depth32Float,
-				usage = .RenderAttachment | .TextureBinding
-			};
-			depthTexture = device.CreateTexture(&textureDesc);
-
-			Wgpu.TextureViewDescriptor viewDesc = .();
-			depthView = depthTexture.CreateView(&viewDesc);
-		}
-
 		public static void Shutdown() {
 			// ImGui
 			ImGuiImplWgpu.Shutdown();
@@ -195,96 +154,7 @@ namespace Meteorite {
 			ImGui.DestroyContext();
 		}
 
-		public static void BeginFrame(Color clearColor) {
-			Wgpu.CommandEncoderDescriptor encoderDesc = .();
-
-			if (Screenshots.rendering) view = Screenshots.texture.CreateView();
-			else view = swapChain.GetCurrentTextureView();
-
-			encoder = device.CreateCommandEncoder(&encoderDesc);
-
-			Wgpu.RenderPassColorAttachment colorDesc = .() {
-				view = view,
-				loadOp = .Clear,
-				storeOp = .Store,
-				clearValue = .(clearColor.R, clearColor.G, clearColor.B, clearColor.A)
-			};
-			Wgpu.RenderPassDepthStencilAttachment depthDesc = .() {
-				view = depthView,
-				depthLoadOp = .Clear,
-				depthStoreOp = .Store,
-				depthClearValue = 1,
-				stencilLoadOp = .Load,
-				stencilStoreOp = .Store,
-				stencilReadOnly = true
-			};
-			Wgpu.RenderPassDescriptor passDesc = .() {
-				label = "Main",
-				colorAttachmentCount = 1,
-				colorAttachments = &colorDesc,
-				depthStencilAttachment = &depthDesc
-			};
-			pass = encoder.BeginRenderPass(&passDesc);
-			pass.PushDebugGroup("Main");
-
-			// ImGui
-			ImGuiImplWgpu.NewFrame();
-			ImGuiImplGlfw.NewFrame();
-			ImGui.NewFrame();
-		}
-
-		public static void PushDebugGroup(StringView name) => pass.PushDebugGroup(name.ToScopeCStr!());
-		public static void PopDebugGroup() => pass.PopDebugGroup();
-
-		public static void EndFrame() {
-			// Submit
-			pass.PopDebugGroup();
-			pass.End();
-
-			// ImGui
-			ImGui.Render();
-			if (!Screenshots.rendering || Screenshots.includeGui) {
-				Wgpu.RenderPassColorAttachment colorDesc = .() {
-					view = view,
-					loadOp = .Load,
-					storeOp = .Store
-				};
-				Wgpu.RenderPassDescriptor passDesc = .() {
-					label = "ImGui",
-					colorAttachmentCount = 1,
-					colorAttachments = &colorDesc
-				};
-				Wgpu.RenderPassEncoder guiPass = encoder.BeginRenderPass(&passDesc);
-				guiPass.PushDebugGroup("ImGui");
-				ImGuiImplWgpu.RenderDrawData(ImGui.GetDrawData(), guiPass);
-				guiPass.PopDebugGroup();
-				guiPass.End();
-			}
-
-			if (afterScreenshot) {
-				Screenshots.AfterRender(encoder);
-			}
-
-			// Submit
-			Wgpu.CommandBufferDescriptor cbDesc = .();
-			Wgpu.CommandBuffer cb = encoder.Finish(&cbDesc);
-			queue.Submit(1, &cb);
-
-			if (!Screenshots.rendering) swapChain.Present();
-			view.Drop();
-
-			if (afterScreenshot) {
-				afterScreenshot = false;
-				Screenshots.AfterRender2();
-			}
-
-			if (Screenshots.rendering) {
-				afterScreenshot = true;
-				Screenshots.rendering = false;
-
-				CreateDepthTexture(Screenshots.originalWidth, Screenshots.originalHeight);
-			}
-		}
+		public static RenderPassBuilder NewRenderPass() => new [Friend].();
 
 		public static BindGroupLayoutBuilder NewBindGroupLayout() => new [Friend].();
 
@@ -367,14 +237,6 @@ namespace Meteorite {
 
 			delete image;
 			return texture;
-		}
-
-		public static void SetPushConstants(Wgpu.ShaderStage stages, int offset, int size, void* data) {
-			pass.SetPushConstants(stages, (.) offset, (.) size, data);
-		}
-
-		public static void Draw(int indexCount) {
-			pass.DrawIndexed((.) indexCount, 1, 0, 0, 0);
 		}
 
 		// Internal

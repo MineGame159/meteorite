@@ -4,6 +4,11 @@ using System.Collections;
 
 namespace Meteorite {
 	class Options {
+		public bool ao = true;
+		public bool mipmaps = true;
+		public bool sortChunks = true;
+		public bool chunkBoundaries;
+
 		public List<String> resourcePacks = new .() ~ DeleteContainerAndItems!(_);
 
 		public this() {

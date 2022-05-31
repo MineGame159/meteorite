@@ -40,6 +40,7 @@ namespace Meteorite {
 
 			Foo foo = .(world, chunk, x, y, z);
 			Mesh m = blockState.block == Blocks.NETHER_PORTAL ? chunk.meshTransparent : chunk.mesh; // TODO: Fix this
+			bool ao = Meteorite.INSTANCE.options.ao;
 
 			for (Quad quad in blockState.model.quads) {
 				// Cull
@@ -53,7 +54,7 @@ namespace Meteorite {
 				float ao3 = 1;
 				float ao4 = 1;
 
-				if (Program.AO && blockState.model.fullBlock) {
+				if (ao && blockState.model.fullBlock) {
 				    switch (quad.direction) {
 			        case .Up:
 			            ao1 = AoY(world, chunk, x, y, z, (.) quad.vertices[0].x, 1, (.) quad.vertices[0].z);

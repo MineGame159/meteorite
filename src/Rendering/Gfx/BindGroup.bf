@@ -9,8 +9,8 @@ namespace Meteorite {
 			this.handle = handle;
 		}
 
-		public void Bind(int index = 0) {
-			Gfx.[Friend]pass.SetBindGroup((.) index, handle, 0, null);
+		public void Bind(RenderPass pass, int index = 0) {
+			pass.[Friend]pass.SetBindGroup((.) index, handle, 0, null);
 		}
 	}
 

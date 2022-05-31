@@ -167,8 +167,8 @@ namespace Meteorite {
 			mesh.End();
 		}
 
-		public static void Render(World world, Camera camera, double tickDelta) {
-			Gfx.PushDebugGroup("Sky");
+		public static void Render(RenderPass pass, World world, Camera camera, double tickDelta) {
+			pass.PushDebugGroup("Sky");
 
 			Vec3f skyColor = world.GetSkyColor(camera.pos, tickDelta);
 			Mat4 baseMatrix = camera.proj * camera.viewRotationOnly;
@@ -177,21 +177,21 @@ namespace Meteorite {
 			PushConstaints2 pc2 = .();
 
 			// Light
-			PIPELINE1.Bind();
+			PIPELINE1.Bind(pass);
 			
 			SetupFog(world, ref pc2);
 			pc2.projectionView = baseMatrix;
 			pc2.color = .(skyColor.x, skyColor.y, skyColor.z, 1);
 			Color clearColor = world.GetClearColor(camera, tickDelta);
 			pc2.fogColor = .(clearColor.R, clearColor.G, clearColor.B, clearColor.A);
-			Gfx.SetPushConstants(.Vertex | .Fragment, 0, sizeof(PushConstaints2), &pc2);
+			pass.SetPushConstants(.Vertex | .Fragment, 0, sizeof(PushConstaints2), &pc2);
 
-			LIGHT_MESH.Render();
+			LIGHT_MESH.Render(pass);
 
 			// Sunrise
 			Vec4? sunriseColor = world.GetSunriseColor(world.GetSkyAngle());
 			if (sunriseColor != null) {
-				PIPELINE2.Bind();
+				PIPELINE2.Bind(pass);
 				pc1.color = .(1, 1, 1, 1);
 
 				Mat4 matrix = .Identity();
@@ -201,7 +201,7 @@ namespace Meteorite {
 				matrix = matrix.Rotate(.(0, 0, 1), 90);
 				pc1.projectionView = baseMatrix * matrix;
 
-				Gfx.SetPushConstants(.Vertex | .Fragment, 0, sizeof(PushConstaints1), &pc1);
+				pass.SetPushConstants(.Vertex | .Fragment, 0, sizeof(PushConstaints1), &pc1);
 				MESH1.Begin();
 
 				Color color = .(sunriseColor.Value.x, sunriseColor.Value.y, sunriseColor.Value.z, sunriseColor.Value.w);
@@ -222,17 +222,17 @@ namespace Meteorite {
 				}
 
 				MESH1.End();
-				MESH1.Render();
+				MESH1.Render(pass);
 			}
 
 			// Sun
-			PIPELINE3.Bind();
-			SUN_BIND_GROUP.Bind();
+			PIPELINE3.Bind(pass);
+			SUN_BIND_GROUP.Bind(pass);
 
 			float alpha = 1.0F - world.GetRainLevel(tickDelta);
 			pc1.projectionView = baseMatrix * Mat4.Identity().Rotate(.(0, 1, 0), -90).Rotate(.(1, 0, 0), world.GetSkyAngle() * 360);
 			pc1.color = .(1, 1, 1, alpha);
-			Gfx.SetPushConstants(.Vertex | .Fragment, 0, sizeof(PushConstaints1), &pc1);
+			pass.SetPushConstants(.Vertex | .Fragment, 0, sizeof(PushConstaints1), &pc1);
 
 			float k = 30.0F;
 			MESH2.Begin();
@@ -243,10 +243,10 @@ namespace Meteorite {
 				MESH2.Vec3(.(-k, 100, k)).Vec2(.(0, 1)).Next()
 			);
 			MESH2.End();
-			MESH2.Render();
+			MESH2.Render(pass);
 
 			// Moon
-			MOON_BIND_GROUP.Bind();
+			MOON_BIND_GROUP.Bind(pass);
 
 			k = 20.0F;
 			int r = world.GetMoonPhase();
@@ -265,35 +265,35 @@ namespace Meteorite {
 				MESH3.Vec3(.(-k, -100, -k)).Vec2(.(p, o)).Next()
 			);
 			MESH3.End();
-			MESH3.Render();
+			MESH3.Render(pass);
 
 			// Stars
 			float u = world.GetStarBrightness() * alpha;
 			if (u > 0) {
-				PIPELINE4.Bind();
+				PIPELINE4.Bind(pass);
 
 				pc2.fogStart = float.MaxValue;
 				pc2.color = .(u, u, u, u);
-				Gfx.SetPushConstants(.Vertex | .Fragment, 0, sizeof(PushConstaints2), &pc2);
+				pass.SetPushConstants(.Vertex | .Fragment, 0, sizeof(PushConstaints2), &pc2);
 
-				STARS_MESH.Render();
+				STARS_MESH.Render(pass);
 			}
 
 			// Dark
 			//double d = this.minecraft.player.getEyePosition(partialTick).y - this.level.getLevelData().getHorizonHeight(this.level); // TODO
 			double d = camera.pos.y + world.minY - 63;
 			if (d < 0.0) {
-				PIPELINE1.Bind();
+				PIPELINE1.Bind(pass);
 
 				SetupFog(world, ref pc2);
 				pc2.projectionView = baseMatrix * Mat4.Identity().Translate(.(0, 12, 0));
 				pc2.color = .(0, 0, 0, 1);
-				Gfx.SetPushConstants(.Vertex | .Fragment, 0, sizeof(PushConstaints2), &pc2);
+				pass.SetPushConstants(.Vertex | .Fragment, 0, sizeof(PushConstaints2), &pc2);
 
-				DARK_MESH.Render();
+				DARK_MESH.Render(pass);
 			}
 
-			Gfx.PopDebugGroup();
+			pass.PopDebugGroup();
 		}
 
 		private static void SetupFog(World world, ref PushConstaints2 pc) {

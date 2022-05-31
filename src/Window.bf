@@ -77,7 +77,6 @@ namespace Meteorite {
 				this.minimized = false;
 				
 				Gfx.[Friend]CreateSwapChain(width, height);
-				Gfx.[Friend]CreateDepthTexture(width, height);
 			});
 
 			Glfw.SetCursorPosCallback(handle, new (window, x, y) => {

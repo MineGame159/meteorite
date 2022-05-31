@@ -13,6 +13,9 @@ namespace Meteorite {
 		public Camera camera ~ delete _;
 		public RenderTickCounter tickCounter ~ delete _;
 
+		public GameRenderer gameRenderer;
+		public WorldRenderer worldRenderer;
+
 		public ClientConnection connection;
 		public World world;
 		public ClientPlayerEntity player;
@@ -32,6 +35,8 @@ namespace Meteorite {
 			camera = new .();
 			tickCounter = new .(20, 0);
 
+			gameRenderer = new .();
+
 			camera.pos.y = 160;
 			camera.yaw = 45;
 
@@ -47,6 +52,10 @@ namespace Meteorite {
 		}
 
 		public ~this() {
+			// Rendering needs to be deleted before Gfx is shut down
+			delete worldRenderer;
+			delete gameRenderer;
+
 			// Connection needs to be deleted before world
 			delete connection;
 			delete world;
@@ -60,30 +69,18 @@ namespace Meteorite {
 		}
 
 		private void Tick(float tickDelta) {
+			if (world == null) return;
+
 			world.Tick();
 
 			textures.Tick();
 		}
 
-		public void Render(bool mipmaps, bool sortChunks, bool chunkBoundaries, float delta) {
-			if (world == null) return;
-
+		public void Render(float delta) {
 			int tickCount = tickCounter.BeginRenderTick();
 			for (int i < Math.Min(10, tickCount)) Tick(tickCounter.tickDelta);
-
-			if (!window.minimized) {
-				if (player != null && player.gamemode == .Spectator) {
-					Vec3d pos = player.pos.Lerp(tickCounter.tickDelta, player.lastPos);
-					camera.pos = .((.) (pos.x + player.type.width / 2), (.) pos.y + 1.62f, (.) (pos.z + player.type.width / 2));
-					camera.yaw = player.yaw;
-					camera.pitch = player.pitch;
-				}
-				else camera.FlightMovement(delta);
-				camera.Update();
-
-				world.Render(camera, delta, tickCounter.tickDelta, mipmaps, sortChunks);
-				if (chunkBoundaries) world.RenderChunkBoundaries(camera);
-			}
+			
+			if (!window.minimized) gameRenderer.Render(delta);
 		}
 	}
 }
