@@ -9,7 +9,7 @@ namespace Meteorite {
 		private static String STR1, STR2;
 
 		private static void BeforeRegister() {
-			IDS = Meteorite.INSTANCE.resources.ReadJson("data/blockstates.json");
+			IDS = Meteorite.INSTANCE.resources.ReadJson("data/block_states.json");
 			STR1 = new .();
 			STR2 = new .();
 		}

@@ -17,7 +17,7 @@ namespace Meteorite {
 		private static Color[16] redstoneColors;
 
 		public static void Init() {
-			Meteorite.INSTANCE.resources.ReadJsons("data/blockcolors.json", scope (json) => {
+			Meteorite.INSTANCE.resources.ReadJsons("data/block_colors.json", scope (json) => {
 				for (let pair in json.AsObject) {
 					Block block = Registry.BLOCKS.Get(pair.key);
 
