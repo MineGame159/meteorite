@@ -80,12 +80,19 @@ namespace Meteorite {
 		}
 
 		private void OnChunkData(ChunkDataS2CPacket packet) {
-			Chunk chunk = new .(me.world, packet.pos, packet.sections);
+			Chunk chunk = new .(me.world, packet.pos, packet.sections, packet.blockEntities);
 
 			chunk.min.y = packet.minY;
 			chunk.max.y = packet.maxY;
 
 			me.world.AddChunk(chunk);
+		}
+
+		private void OnBlockEntityData(BlockEntityDataS2CPacket packet) {
+			if (packet.remove) me.world.RemoveBlockEntity(packet.pos.x, packet.pos.y, packet.pos.z);
+
+			BlockEntity blockEntity = me.world.GetBlockEntity(packet.pos.x, packet.pos.y, packet.pos.z);
+			if (blockEntity != null && blockEntity.type == packet.type) blockEntity.Load(packet.data);
 		}
 
 		private void OnSpawnEntity(SpawnEntityS2CPacket packet) {
@@ -147,6 +154,7 @@ namespace Meteorite {
 			case PlayerAbilitiesS2CPacket.ID: return new PlayerAbilitiesS2CPacket();
 			case PlayerPositionAndLookS2CPacket.ID: return new PlayerPositionAndLookS2CPacket();
 			case ChunkDataS2CPacket.ID: return new ChunkDataS2CPacket();
+			case BlockEntityDataS2CPacket.ID: return new BlockEntityDataS2CPacket();
 			case SpawnEntityS2CPacket.ID: return new SpawnEntityS2CPacket();
 			case SpawnLivingEntityC2SPacket.ID: return new SpawnLivingEntityC2SPacket();
 			case DestroyEntitiesS2CPacket.ID: return new DestroyEntitiesS2CPacket();
@@ -172,6 +180,7 @@ namespace Meteorite {
 			case PlayerAbilitiesS2CPacket.ID: OnPlayerAbilities((.) packet);
 			case PlayerPositionAndLookS2CPacket.ID: OnPlayerPositionAndLook((.) packet);
 			case ChunkDataS2CPacket.ID: OnChunkData((.) packet);
+			case BlockEntityDataS2CPacket.ID: OnBlockEntityData((.) packet);
 			case SpawnEntityS2CPacket.ID: OnSpawnEntity((.) packet);
 			case SpawnLivingEntityC2SPacket.ID: OnSpawnLivingEntity((.) packet);
 			case DestroyEntitiesS2CPacket.ID: OnDestroyEntities((.) packet);

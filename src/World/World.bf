@@ -30,6 +30,12 @@ namespace Meteorite {
 		public int ChunkCount => chunks.Count;
 		public int EntityCount => entities.Count;
 
+		public int BlockEntityCount { get {
+			int count = 0;
+			for (Chunk chunk in Chunks) count += chunk.BlockEntityCount;
+			return count;
+		} }
+
 		public void AddChunk(Chunk chunk) {
 			ChunkPos p;
 			Chunk c;
@@ -55,6 +61,16 @@ namespace Meteorite {
 		public BlockState GetBlock(int x, int y, int z) {
 			Chunk chunk = GetChunk(x >> 4, z >> 4);
 			return chunk != null ? chunk.Get(x & 15, y, z & 15) : Blocks.AIR.defaultBlockState;
+		}
+
+		public BlockEntity GetBlockEntity(int x, int y, int z) {
+			Chunk chunk = GetChunk(x >> 4, z >> 4);
+			return chunk != null ? chunk.GetBlockEntity(x & 15, y, z & 15) : null;
+		}
+
+		public void RemoveBlockEntity(int x, int y, int z) {
+			Chunk chunk = GetChunk(x >> 4, z >> 4);
+			if (chunk != null) chunk.RemoveBlockEntity(x & 15, y, z & 15);
 		}
 
 		public Biome GetBiome(int x, int y, int z) {
@@ -91,7 +107,7 @@ namespace Meteorite {
 				int x = ((.) Meteorite.INSTANCE.player.pos.x >> 4);
 				int z = ((.) Meteorite.INSTANCE.player.pos.z >> 4);
 	
-				for (Chunk chunk in chunks.Values) {
+				for (Chunk chunk in Chunks) {
 					if (IsChunkInRange(chunk.pos.x, chunk.pos.z, x, z)) continue;
 
 					chunk.goingDown = true;

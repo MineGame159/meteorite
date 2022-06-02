@@ -8,6 +8,7 @@ namespace Meteorite {
 		public ChunkPos pos;
 		public int minY, maxY;
 		public Section[] sections;
+		public Dictionary<Vec3i, BlockEntity> blockEntities;
 
 		public this() : base(ID, .World) {}
 
@@ -16,7 +17,8 @@ namespace Meteorite {
 
 			buf.ReadNbt().Dispose(); // Heightmaps
 
-			buf.ReadVarInt(); // Size
+			int size = buf.ReadVarInt(); // Size
+			int afterDataPos = buf.pos + size;
 
 			sections = new .[me.world.SectionCount];
 			minY = sections.Count * Section.SIZE;
@@ -69,8 +71,36 @@ namespace Meteorite {
 				}
 			}
 
+			buf.pos = afterDataPos;
+
 			minY--;
 			maxY++;
+
+			// Block Entities
+			int32 count = buf.ReadVarInt();
+			if (count > 0) {
+				blockEntities = new .(count);
+
+				for (int i < count) {
+					int8 packedXZ = buf.ReadByte();
+					int x = (packedXZ >> 4) & 15;
+					int z = packedXZ & 15;
+
+					int16 y = buf.ReadShort();
+																				
+					int32 typeId = buf.ReadVarInt();
+					Result<Tag> tag = buf.ReadNbt();
+					
+					BlockEntity blockEntity = BlockEntityTypes.TYPES[typeId].Create(.(x, y, z));
+					if (blockEntity != null) {
+						if (tag case .Ok) blockEntity.Load(tag);
+
+						blockEntities[.(x, y, z)] = blockEntity;
+					}
+
+					tag.Dispose();
+				}
+			}
 		}
 
 		private static IPalette<T> ReadPalette<T>(NetBuffer buf, int bitsPerEntry, int maxIndirect, T[] global) where T : IID {

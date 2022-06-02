@@ -230,16 +230,30 @@ namespace Meteorite {
 			return string;
 		}
 
-		public Tag ReadNbt() {
+		public Result<Tag> ReadNbt() {
 			SpanMemoryStream s = scope .(SpanAtPos);
-			Tag tag = NbtReader.Read(s);
+			Result<Tag> result = NbtReader.Read(s);
 			Skip(s.Position);
 
-			return tag;
+			return result;
 		}
 
 		public float ReadAngle() {
 			return ReadByte() * 360.0f / 256.0f;
+		}
+
+		public Vec3i ReadPosition() {
+			int64 val = ReadLong();
+
+			int x = (.) (val >> 38);
+			int y = (.) (val & 0xFFF);
+			int z = (.) ((val >> 12) & 0x03FFFFFF);
+
+			if (x >= 1 << 25) x -= 1 << 26;
+			if (y >= 1 << 11) y -= 1 << 12;
+			if (z >= 1 << 25) z -= 1 << 26;
+
+			return .(x, y, z);
 		}
 
 		// Other

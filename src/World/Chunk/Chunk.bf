@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 
 namespace Meteorite {
 	struct ChunkPos : IHashable {
@@ -33,10 +34,13 @@ namespace Meteorite {
 			Upload
 		}
 
+		private static Dictionary<Vec3i, BlockEntity> EMPTY = new .(0) ~ delete _;
+
 		public World world;
 		public ChunkPos pos;
 
 		private Section[] sections;
+		private Dictionary<Vec3i, BlockEntity> blockEntities ~ DeleteDictionaryAndValues!(_);
 
 		public Status status = .Ready;
 		public bool dirty, firstBuild = true;
@@ -48,10 +52,11 @@ namespace Meteorite {
 
 		public Vec3f min, max;
 
-		public this(World world, ChunkPos pos, Section[] sections) {
+		public this(World world, ChunkPos pos, Section[] sections, Dictionary<Vec3i, BlockEntity> blockEntities) {
 			this.world = world;
 			this.pos = pos;
 			this.sections = sections;
+			this.blockEntities = blockEntities;
 
 			this.dirty = true;
 
@@ -80,5 +85,15 @@ namespace Meteorite {
 
 		[Inline]
 		public Section GetSection(int i) => sections[i];
+		
+		public Dictionary<Vec3i, BlockEntity>.ValueEnumerator BlockEntities => (blockEntities != null ? blockEntities : EMPTY).Values;
+
+		public int BlockEntityCount => blockEntities != null ? blockEntities.Count : 0;
+
+		public BlockEntity GetBlockEntity(int x, int y, int z) => blockEntities != null ? blockEntities.GetValueOrDefault(.(x, y, z)) : null;
+
+		public void RemoveBlockEntity(int x, int y, int z) {
+			if (blockEntities != null) blockEntities.Remove(Vec3i(x, y, z));
+		}
 	}
 }

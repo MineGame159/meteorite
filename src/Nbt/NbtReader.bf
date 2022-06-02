@@ -4,12 +4,19 @@ using System.IO;
 namespace Meteorite {
 	static class NbtReader {
 		public static Result<Tag> Read(Stream s) {
-			if (s.Read<uint8>() != (.) TagType.Compound) return .Err;
+			uint8 id = s.Read<uint8>();
+			if (id == (.) TagType.End) return .Err;
 
 			String a = scope .();
 			ReadString(s, a);
 
-			return ReadCompount(s);
+			Tag tag = ReadTag(s, (.) id);
+			if (!tag.IsCompound) {
+				tag.Dispose();
+				return .Err;
+			}
+
+			return tag;
 		}
 
 		private static Tag ReadCompount(Stream s) {
