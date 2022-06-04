@@ -8,6 +8,4 @@ StartupProject = "meteorite"
 AllocStackTraceDepth = 5
 
 [Configs.Release.Win64]
-AllocType = "Custom"
-AllocMalloc = "je_malloc"
-AllocFree = "je_free"
+AllocType = "JEMalloc"

@@ -5,7 +5,3 @@ Dependencies = {corlib = "*", GLFW = "*", ImGui = "*", ImGuiImplGlfw = "*", Mini
 Name = "meteorite"
 StartupObject = "Meteorite.Program"
 DefaultNamespace = "Meteorite"
-
-[Configs.Release.Win64]
-LibPaths = ["$(ProjectDir)/dist/windows/jemallocso.lib"]
-PostBuildCmds = ["CopyFilesIfNewer(\"$(ProjectDir)/dist/windows/*.dll\", \"$(BuildDir)\")"]
