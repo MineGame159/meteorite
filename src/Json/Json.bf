@@ -113,9 +113,11 @@ namespace Meteorite {
 			}
 		}
 
-		public void Merge(Json json) {
+		public void Merge(Json json, delegate bool(StringView) mergeKey) {
 			if (IsObject) {
 				for (let pair in json.AsObject) {
+					if (!mergeKey(pair.key)) continue;
+
 					switch (pair.value.type) {
 					case .Object:
 						Json a = this[pair.key];
@@ -124,7 +126,7 @@ namespace Meteorite {
 							this[pair.key] = a;
 						}
 	
-						a.Merge(pair.value);
+						a.Merge(pair.value, mergeKey);
 					case .Array:
 						Json a = this[pair.key];
 						if (!a.IsArray) {
@@ -132,7 +134,7 @@ namespace Meteorite {
 							this[pair.key] = a;
 						}
 	
-						a.Merge(pair.value);
+						a.Merge(pair.value, mergeKey);
 					case .String: this[pair.key] = .String(pair.value.AsString);
 					case .Number, .Bool: this[pair.key] = pair.value;
 					default:
@@ -146,12 +148,12 @@ namespace Meteorite {
 						Json a = .Object();
 						Add(a);
 
-						a.Merge(j);
+						a.Merge(j, mergeKey);
 					case .Array:
 						Json a = .Array();
 						Add(a);
 
-						a.Merge(j);
+						a.Merge(j, mergeKey);
 					case .String: Add(.String(j.AsString));
 					case .Number, .Bool: Add(j);
 					default:
@@ -159,6 +161,7 @@ namespace Meteorite {
 				}
 			}
 		}
+		public void Merge(Json json) => Merge(json, scope (key) => true);
 		
 		public void Dispose() {
 			if (IsObject) {

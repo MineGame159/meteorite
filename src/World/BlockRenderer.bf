@@ -20,10 +20,10 @@ namespace Meteorite {
 			Property p = blockState.GetProperty("level");
 			float yOffset = (p.value == 0 ? 15 : 15 - p.value) / 16f;
 
-			uint32 i1 = Vertex!(m, x + 0, y + yOffset, z + 0, quad.region.x1, quad.region.y1, quad.texture, c);
-			uint32 i2 = Vertex!(m, x + 1, y + yOffset, z + 0, quad.region.x2, quad.region.y1, quad.texture, c);
-			uint32 i3 = Vertex!(m, x + 1, y + yOffset, z + 1, quad.region.x2, quad.region.y2, quad.texture, c);
-			uint32 i4 = Vertex!(m, x + 0, y + yOffset, z + 1, quad.region.x1, quad.region.y2, quad.texture, c);
+			uint32 i1 = Vertex!(m, x, y, z, Vertex(.(0, yOffset, 0), quad.vertices[0].uv), quad.texture, c);
+			uint32 i2 = Vertex!(m, x, y, z, Vertex(.(1, yOffset, 0), quad.vertices[1].uv), quad.texture, c);
+			uint32 i3 = Vertex!(m, x, y, z, Vertex(.(1, yOffset, 1), quad.vertices[2].uv), quad.texture, c);
+			uint32 i4 = Vertex!(m, x, y, z, Vertex(.(0, yOffset, 1), quad.vertices[3].uv), quad.texture, c);
 
 			m.Quad(i1, i2, i3, i4); // Top
 			m.Quad(i1, i4, i3, i2); // Bottom
@@ -57,35 +57,35 @@ namespace Meteorite {
 				if (ao && blockState.model.fullBlock) {
 				    switch (quad.direction) {
 			        case .Up:
-			            ao1 = AoY(world, chunk, x, y, z, (.) quad.vertices[0].x, 1, (.) quad.vertices[0].z);
-			            ao2 = AoY(world, chunk, x, y, z, (.) quad.vertices[1].x, 1, (.) quad.vertices[1].z);
-			            ao3 = AoY(world, chunk, x, y, z, (.) quad.vertices[2].x, 1, (.) quad.vertices[2].z);
-			            ao4 = AoY(world, chunk, x, y, z, (.) quad.vertices[3].x, 1, (.) quad.vertices[3].z);
+			            ao1 = AoY(world, chunk, x, y, z, (.) quad.vertices[0].pos.x, 1, (.) quad.vertices[0].pos.z);
+			            ao2 = AoY(world, chunk, x, y, z, (.) quad.vertices[1].pos.x, 1, (.) quad.vertices[1].pos.z);
+			            ao3 = AoY(world, chunk, x, y, z, (.) quad.vertices[2].pos.x, 1, (.) quad.vertices[2].pos.z);
+			            ao4 = AoY(world, chunk, x, y, z, (.) quad.vertices[3].pos.x, 1, (.) quad.vertices[3].pos.z);
 			        case .Down:
-			            ao1 = AoY(world, chunk, x, y, z, (.) quad.vertices[0].x, 0, (.) quad.vertices[0].z);
-			            ao2 = AoY(world, chunk, x, y, z, (.) quad.vertices[1].x, 0, (.) quad.vertices[1].z);
-			            ao3 = AoY(world, chunk, x, y, z, (.) quad.vertices[2].x, 0, (.) quad.vertices[2].z);
-			            ao4 = AoY(world, chunk, x, y, z, (.) quad.vertices[3].x, 0, (.) quad.vertices[3].z);
+			            ao1 = AoY(world, chunk, x, y, z, (.) quad.vertices[0].pos.x, 0, (.) quad.vertices[0].pos.z);
+			            ao2 = AoY(world, chunk, x, y, z, (.) quad.vertices[1].pos.x, 0, (.) quad.vertices[1].pos.z);
+			            ao3 = AoY(world, chunk, x, y, z, (.) quad.vertices[2].pos.x, 0, (.) quad.vertices[2].pos.z);
+			            ao4 = AoY(world, chunk, x, y, z, (.) quad.vertices[3].pos.x, 0, (.) quad.vertices[3].pos.z);
 			        case .East:
-			            ao1 = AoX(world, chunk, x, y, z, 1, (.) quad.vertices[0].y, (.) quad.vertices[0].z);
-			            ao2 = AoX(world, chunk, x, y, z, 1, (.) quad.vertices[1].y, (.) quad.vertices[1].z);
-			            ao3 = AoX(world, chunk, x, y, z, 1, (.) quad.vertices[2].y, (.) quad.vertices[2].z);
-			            ao4 = AoX(world, chunk, x, y, z, 1, (.) quad.vertices[3].y, (.) quad.vertices[3].z);
+			            ao1 = AoX(world, chunk, x, y, z, 1, (.) quad.vertices[0].pos.y, (.) quad.vertices[0].pos.z);
+			            ao2 = AoX(world, chunk, x, y, z, 1, (.) quad.vertices[1].pos.y, (.) quad.vertices[1].pos.z);
+			            ao3 = AoX(world, chunk, x, y, z, 1, (.) quad.vertices[2].pos.y, (.) quad.vertices[2].pos.z);
+			            ao4 = AoX(world, chunk, x, y, z, 1, (.) quad.vertices[3].pos.y, (.) quad.vertices[3].pos.z);
 			        case .West:
-			            ao1 = AoX(world, chunk, x, y, z, 0, (.) quad.vertices[0].y, (.) quad.vertices[0].z);
-			            ao2 = AoX(world, chunk, x, y, z, 0, (.) quad.vertices[1].y, (.) quad.vertices[1].z);
-			            ao3 = AoX(world, chunk, x, y, z, 0, (.) quad.vertices[2].y, (.) quad.vertices[2].z);
-			            ao4 = AoX(world, chunk, x, y, z, 0, (.) quad.vertices[3].y, (.) quad.vertices[3].z);
+			            ao1 = AoX(world, chunk, x, y, z, 0, (.) quad.vertices[0].pos.y, (.) quad.vertices[0].pos.z);
+			            ao2 = AoX(world, chunk, x, y, z, 0, (.) quad.vertices[1].pos.y, (.) quad.vertices[1].pos.z);
+			            ao3 = AoX(world, chunk, x, y, z, 0, (.) quad.vertices[2].pos.y, (.) quad.vertices[2].pos.z);
+			            ao4 = AoX(world, chunk, x, y, z, 0, (.) quad.vertices[3].pos.y, (.) quad.vertices[3].pos.z);
 			        case .North:
-			            ao1 = AoZ(world, chunk, x, y, z, (.) quad.vertices[0].x, (.) quad.vertices[0].y, 0);
-			            ao2 = AoZ(world, chunk, x, y, z, (.) quad.vertices[1].x, (.) quad.vertices[1].y, 0);
-			            ao3 = AoZ(world, chunk, x, y, z, (.) quad.vertices[2].x, (.) quad.vertices[2].y, 0);
-			            ao4 = AoZ(world, chunk, x, y, z, (.) quad.vertices[3].x, (.) quad.vertices[3].y, 0);
+			            ao1 = AoZ(world, chunk, x, y, z, (.) quad.vertices[0].pos.x, (.) quad.vertices[0].pos.y, 0);
+			            ao2 = AoZ(world, chunk, x, y, z, (.) quad.vertices[1].pos.x, (.) quad.vertices[1].pos.y, 0);
+			            ao3 = AoZ(world, chunk, x, y, z, (.) quad.vertices[2].pos.x, (.) quad.vertices[2].pos.y, 0);
+			            ao4 = AoZ(world, chunk, x, y, z, (.) quad.vertices[3].pos.x, (.) quad.vertices[3].pos.y, 0);
 			        case .South:
-			            ao1 = AoZ(world, chunk, x, y, z, (.) quad.vertices[0].x, (.) quad.vertices[0].y, 1);
-			            ao2 = AoZ(world, chunk, x, y, z, (.) quad.vertices[1].x, (.) quad.vertices[1].y, 1);
-			            ao3 = AoZ(world, chunk, x, y, z, (.) quad.vertices[2].x, (.) quad.vertices[2].y, 1);
-			            ao4 = AoZ(world, chunk, x, y, z, (.) quad.vertices[3].x, (.) quad.vertices[3].y, 1);
+			            ao1 = AoZ(world, chunk, x, y, z, (.) quad.vertices[0].pos.x, (.) quad.vertices[0].pos.y, 1);
+			            ao2 = AoZ(world, chunk, x, y, z, (.) quad.vertices[1].pos.x, (.) quad.vertices[1].pos.y, 1);
+			            ao3 = AoZ(world, chunk, x, y, z, (.) quad.vertices[2].pos.x, (.) quad.vertices[2].pos.y, 1);
+			            ao4 = AoZ(world, chunk, x, y, z, (.) quad.vertices[3].pos.x, (.) quad.vertices[3].pos.y, 1);
 					default:
 			        }
 				}
@@ -100,43 +100,19 @@ namespace Meteorite {
 				if (quad.tint && biome != null) Tint(chunk, blockState, x, y, z, ref c);
 				
 				// Emit quad
-				switch (quad.direction) {
-				case .Up:
-					m.Quad(
-						Vertex!(m, x + quad.vertices[0].x, y + quad.vertices[0].y, z + quad.vertices[0].z, quad.region.x1, quad.region.y1, quad.texture, c.MulWithoutA(quad.light * ao1)),
-						Vertex!(m, x + quad.vertices[1].x, y + quad.vertices[1].y, z + quad.vertices[1].z, quad.region.x2, quad.region.y1, quad.texture, c.MulWithoutA(quad.light * ao2)),
-						Vertex!(m, x + quad.vertices[2].x, y + quad.vertices[2].y, z + quad.vertices[2].z, quad.region.x2, quad.region.y2, quad.texture, c.MulWithoutA(quad.light * ao3)),
-						Vertex!(m, x + quad.vertices[3].x, y + quad.vertices[3].y, z + quad.vertices[3].z, quad.region.x1, quad.region.y2, quad.texture, c.MulWithoutA(quad.light * ao4))
-					);
-				case .Down:
-					m.Quad(
-						Vertex!(m, x + quad.vertices[0].x, y + quad.vertices[0].y, z + quad.vertices[0].z, quad.region.x1, quad.region.y2, quad.texture, c.MulWithoutA(quad.light * ao1)),
-						Vertex!(m, x + quad.vertices[1].x, y + quad.vertices[1].y, z + quad.vertices[1].z, quad.region.x1, quad.region.y1, quad.texture, c.MulWithoutA(quad.light * ao2)),
-						Vertex!(m, x + quad.vertices[2].x, y + quad.vertices[2].y, z + quad.vertices[2].z, quad.region.x2, quad.region.y1, quad.texture, c.MulWithoutA(quad.light * ao3)),
-						Vertex!(m, x + quad.vertices[3].x, y + quad.vertices[3].y, z + quad.vertices[3].z, quad.region.x2, quad.region.y2, quad.texture, c.MulWithoutA(quad.light * ao4))
-					);
-				case .North, .East:
-					m.Quad(
-						Vertex!(m, x + quad.vertices[0].x, y + quad.vertices[0].y, z + quad.vertices[0].z, quad.region.x2, quad.region.y2, quad.texture, c.MulWithoutA(quad.light * ao1)),
-						Vertex!(m, x + quad.vertices[1].x, y + quad.vertices[1].y, z + quad.vertices[1].z, quad.region.x1, quad.region.y2, quad.texture, c.MulWithoutA(quad.light * ao2)),
-						Vertex!(m, x + quad.vertices[2].x, y + quad.vertices[2].y, z + quad.vertices[2].z, quad.region.x1, quad.region.y1, quad.texture, c.MulWithoutA(quad.light * ao3)),
-						Vertex!(m, x + quad.vertices[3].x, y + quad.vertices[3].y, z + quad.vertices[3].z, quad.region.x2, quad.region.y1, quad.texture, c.MulWithoutA(quad.light * ao4))
-					);
-				case .South, .West:
-					m.Quad(
-						Vertex!(m, x + quad.vertices[0].x, y + quad.vertices[0].y, z + quad.vertices[0].z, quad.region.x1, quad.region.y2, quad.texture, c.MulWithoutA(quad.light * ao1)),
-						Vertex!(m, x + quad.vertices[1].x, y + quad.vertices[1].y, z + quad.vertices[1].z, quad.region.x1, quad.region.y1, quad.texture, c.MulWithoutA(quad.light * ao2)),
-						Vertex!(m, x + quad.vertices[2].x, y + quad.vertices[2].y, z + quad.vertices[2].z, quad.region.x2, quad.region.y1, quad.texture, c.MulWithoutA(quad.light * ao3)),
-						Vertex!(m, x + quad.vertices[3].x, y + quad.vertices[3].y, z + quad.vertices[3].z, quad.region.x2, quad.region.y2, quad.texture, c.MulWithoutA(quad.light * ao4))
-					);
-				}
+				m.Quad(
+					Vertex!(m, x, y, z, quad.vertices[0], quad.texture, c.MulWithoutA(quad.light * ao1)),
+					Vertex!(m, x, y, z, quad.vertices[1], quad.texture, c.MulWithoutA(quad.light * ao2)),
+					Vertex!(m, x, y, z, quad.vertices[2], quad.texture, c.MulWithoutA(quad.light * ao3)),
+					Vertex!(m, x, y, z, quad.vertices[3], quad.texture, c.MulWithoutA(quad.light * ao4))
+				);
 			}
 		}
 
-		private static mixin Vertex(Mesh mesh, float x, float y, float z, uint16 u, uint16 v, uint16 texture, Color color) {
+		private static mixin Vertex(Mesh mesh, int x, int y, int z, Vertex v, uint16 texture, Color color) {
 			mesh
-				.Vec3(.(x, y, z))
-				.UShort2(u, v)
+				.Vec3(.(x + v.pos.x, y + v.pos.y, z + v.pos.z))
+				.UShort2(v.uv.x, v.uv.y)
 				.Color(color)
 				.UShort2(texture, 0)
 				.Next()

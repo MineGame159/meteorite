@@ -30,7 +30,7 @@ namespace Meteorite {
 			this.input = input;
 		}
 
-		public void Turn(Vec2 vec) {
+		public void Turn(Vec2f vec) {
 			yaw += vec.x / 7;
 			pitch -= vec.y / 7;
 			pitch = Math.Clamp(pitch, -89.5f, 89.5f);

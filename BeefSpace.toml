@@ -4,8 +4,8 @@ Projects = {meteorite = {Path = "."}, GLFW = "*", ImGui = "*", ImGuiImplGlfw = "
 [Workspace]
 StartupProject = "meteorite"
 
-[Configs.Debug.Win64]
-AllocStackTraceDepth = 5
-
 [Configs.Release.Win64]
 AllocType = "JEMalloc"
+
+[Configs.Debug.Win64]
+AllocStackTraceDepth = 5

@@ -47,30 +47,30 @@ namespace Meteorite {
 		public static Self operator%(Self lhs, Self rhs) => .(lhs.x % rhs.x, lhs.y % rhs.y, lhs.z % rhs.z);
 
 		[Commutable]
-		public static Self operator+(Self lhs, float rhs) => .(lhs.x + rhs, lhs.y + rhs, lhs.z + rhs);
-		public static Self operator-(Self lhs, float rhs) => .(lhs.x - rhs, lhs.y - rhs, lhs.z - rhs);
-		public static Self operator-(float lhs, Self rhs) => .(lhs - rhs.x, lhs - rhs.y, lhs - rhs.z);
+		public static Self operator+(Self lhs, T rhs) => .(lhs.x + rhs, lhs.y + rhs, lhs.z + rhs);
+		public static Self operator-(Self lhs, T rhs) => .(lhs.x - rhs, lhs.y - rhs, lhs.z - rhs);
+		public static Self operator-(T lhs, Self rhs) => .(lhs - rhs.x, lhs - rhs.y, lhs - rhs.z);
 		[Commutable]
-		public static Self operator*(Self lhs, float rhs) => .(lhs.x * rhs, lhs.y * rhs, lhs.z * rhs);
-		public static Self operator/(Self lhs, float rhs) => .(lhs.x / rhs, lhs.y / rhs, lhs.z / rhs);
-		public static Self operator/(float lhs, Self rhs) => .(lhs / rhs.x, lhs / rhs.y, lhs / rhs.z);
-		public static Self operator%(Self lhs, float rhs) => .(lhs.x % rhs, lhs.y % rhs, lhs.z % rhs);
-		public static Self operator%(float lhs, Self rhs) => .(lhs % rhs.x, lhs % rhs.y, lhs % rhs.z);
+		public static Self operator*(Self lhs, T rhs) => .(lhs.x * rhs, lhs.y * rhs, lhs.z * rhs);
+		public static Self operator/(Self lhs, T rhs) => .(lhs.x / rhs, lhs.y / rhs, lhs.z / rhs);
+		public static Self operator/(T lhs, Self rhs) => .(lhs / rhs.x, lhs / rhs.y, lhs / rhs.z);
+		public static Self operator%(Self lhs, T rhs) => .(lhs.x % rhs, lhs.y % rhs, lhs.z % rhs);
+		public static Self operator%(T lhs, Self rhs) => .(lhs % rhs.x, lhs % rhs.y, lhs % rhs.z);
 
 		public static Self operator-(Self rhs) => .(-rhs.x, -rhs.y, -rhs.z);
 
 		public static bool operator>(Self lhs, Self rhs) => lhs.Length > rhs.Length;
-		public static bool operator>(Self lhs, float rhs) => lhs.Length > rhs;
-		public static bool operator>(float lhs, Self rhs) => lhs > rhs.Length;
+		public static bool operator>(Self lhs, T rhs) => lhs.Length > rhs;
+		public static bool operator>(T lhs, Self rhs) => lhs > rhs.Length;
 		public static bool operator>=(Self lhs, Self rhs) => lhs.Length >= rhs.Length;
-		public static bool operator>=(Self lhs, float rhs) => lhs.Length >= rhs;
-		public static bool operator>=(float lhs, Self rhs) => lhs >= rhs.Length;
+		public static bool operator>=(Self lhs, T rhs) => lhs.Length >= rhs;
+		public static bool operator>=(T lhs, Self rhs) => lhs >= rhs.Length;
 
 		public static bool operator<(Self lhs, Self rhs) => lhs.Length < rhs.Length;
-		public static bool operator<(Self lhs, float rhs) => lhs.Length < rhs;
-		public static bool operator<(float lhs, Self rhs) => lhs < rhs.Length;
+		public static bool operator<(Self lhs, T rhs) => lhs.Length < rhs;
+		public static bool operator<(T lhs, Self rhs) => lhs < rhs.Length;
 		public static bool operator<=(Self lhs, Self rhs) => lhs.Length <= rhs.Length;
-		public static bool operator<=(Self lhs, float rhs) => lhs.Length <= rhs;
-		public static bool operator<=(float lhs, Self rhs) => lhs <= rhs.Length;
+		public static bool operator<=(Self lhs, T rhs) => lhs.Length <= rhs;
+		public static bool operator<=(T lhs, Self rhs) => lhs <= rhs.Length;
 	}
 }

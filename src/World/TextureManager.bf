@@ -213,7 +213,7 @@ namespace Meteorite {
 		struct Frame : this(UV uv, int time) {}
 
 		struct BufferTexture {
-			public Vec2 uv1, uv2;
+			public Vec2f uv1, uv2;
 			public float size, blend;
 		}
 

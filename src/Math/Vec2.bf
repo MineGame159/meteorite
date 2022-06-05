@@ -1,10 +1,13 @@
 using System;
 
 namespace Meteorite {
-	struct Vec2 : IEquatable, IEquatable<Vec2>, IHashable {
-		public float x, y;
+	typealias Vec2f = Vec2<float>;
+	typealias Vec2d = Vec2<double>;
 
-		public this(float x, float y) {
+	struct Vec2<T> : IEquatable, IEquatable<Self>, IHashable where T : var, operator T + T, operator T * T, operator T / T, operator T % T, IHashable {
+		public T x, y;
+
+		public this(T x, T y) {
 			this = ?;
 			this.x = x;
 			this.y = y;
@@ -35,22 +38,22 @@ namespace Meteorite {
 		public static Self operator%(Self lhs, Self rhs) => .(lhs.x % rhs.x, lhs.y % rhs.y);
 
 		[Commutable]
-		public static Self operator+(Self lhs, float rhs) => .(lhs.x + rhs, lhs.y + rhs);
-		public static Self operator-(Self lhs, float rhs) => .(lhs.x - rhs, lhs.y - rhs);
-		public static Self operator-(float lhs, Self rhs) => .(lhs - rhs.x, lhs - rhs.y);
+		public static Self operator+(Self lhs, T rhs) => .(lhs.x + rhs, lhs.y + rhs);
+		public static Self operator-(Self lhs, T rhs) => .(lhs.x - rhs, lhs.y - rhs);
+		public static Self operator-(T lhs, Self rhs) => .(lhs - rhs.x, lhs - rhs.y);
 		[Commutable]
-		public static Self operator*(Self lhs, float rhs) => .(lhs.x * rhs, lhs.y * rhs);
-		public static Self operator/(Self lhs, float rhs) => .(lhs.x / rhs, lhs.y / rhs);
-		public static Self operator/(float lhs, Self rhs) => .(lhs / rhs.x, lhs / rhs.y);
-		public static Self operator%(Self lhs, float rhs) => .(lhs.x % rhs, lhs.y % rhs);
-		public static Self operator%(float lhs, Self rhs) => .(lhs % rhs.x, lhs % rhs.y);
+		public static Self operator*(Self lhs, T rhs) => .(lhs.x * rhs, lhs.y * rhs);
+		public static Self operator/(Self lhs, T rhs) => .(lhs.x / rhs, lhs.y / rhs);
+		public static Self operator/(T lhs, Self rhs) => .(lhs / rhs.x, lhs / rhs.y);
+		public static Self operator%(Self lhs, T rhs) => .(lhs.x % rhs, lhs.y % rhs);
+		public static Self operator%(T lhs, Self rhs) => .(lhs % rhs.x, lhs % rhs.y);
 
 		public static bool operator>(Self lhs, Self rhs) => lhs.Length > rhs.Length;
-		public static bool operator>(Self lhs, float rhs) => lhs.Length > rhs;
-		public static bool operator>(float lhs, Self rhs) => lhs > rhs.Length;
+		public static bool operator>(Self lhs, T rhs) => lhs.Length > rhs;
+		public static bool operator>(T lhs, Self rhs) => lhs > rhs.Length;
 
 		public static bool operator<(Self lhs, Self rhs) => lhs.Length < rhs.Length;
-		public static bool operator<(Self lhs, float rhs) => lhs.Length < rhs;
-		public static bool operator<(float lhs, Self rhs) => lhs < rhs.Length;
+		public static bool operator<(Self lhs, T rhs) => lhs.Length < rhs;
+		public static bool operator<(T lhs, Self rhs) => lhs < rhs.Length;
 	}
 }

@@ -3,7 +3,7 @@ using GLFW;
 
 namespace Meteorite {
 	static class Input {
-		public static Vec2 mouse, mouseLast, mouseDelta;
+		public static Vec2f mouse, mouseLast, mouseDelta;
 
 		private static bool[512] keys, keysLast;
 

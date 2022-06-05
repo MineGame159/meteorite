@@ -59,7 +59,7 @@ namespace Meteorite {
 			return this;
 		}
 
-		public Self Vec2(Vec2 v) {
+		public Self Vec2(Vec2f v) {
 			vertices.Float(v.x);
 			vertices.Float(v.y);
 

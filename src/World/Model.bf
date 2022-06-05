@@ -12,35 +12,42 @@ namespace Meteorite {
 		South // Juh
 	}
 
+	struct Vertex {
+		public Vec3f pos;
+		public Vec2<uint16> uv;
+
+		public this(Vec3f pos, Vec2<uint16> uv) {
+			this.pos = pos;
+			this.uv = uv;
+		}
+	}
+
 	class Quad {
 		public Direction direction;
-		public Vec3f[4] vertices;
-		public QuadCullFace cullFace;
+		public Vertex[4] vertices;
 		public float light;
-		public TextureRegion region;
 		public uint16 texture;
 		public bool tint;
 		public Vec3f min, max;
 		public bool adjacent;
 
-		public this(Direction direction, Vec3f[4] vertices, QuadCullFace cullFace, float light, bool tint) {
+		public this(Direction direction, Vertex[4] vertices, float light, bool tint) {
 			this.direction = direction;
 			this.vertices = vertices;
-			this.cullFace = cullFace;
 			this.light = light;
 			this.tint = tint;
 
 			// Calculate min and max
 			min = .(1, 1, 1);
 
-			for (Vec3f vertex in vertices) {
-				min.x = Math.Min(min.x, vertex.x);
-				min.y = Math.Min(min.y, vertex.y);
-				min.z = Math.Min(min.z, vertex.z);
+			for (Vertex vertex in vertices) {
+				min.x = Math.Min(min.x, vertex.pos.x);
+				min.y = Math.Min(min.y, vertex.pos.y);
+				min.z = Math.Min(min.z, vertex.pos.z);
 
-				max.x = Math.Max(max.x, vertex.x);
-				max.y = Math.Max(max.y, vertex.y);
-				max.z = Math.Max(max.z, vertex.z);
+				max.x = Math.Max(max.x, vertex.pos.x);
+				max.y = Math.Max(max.y, vertex.pos.y);
+				max.z = Math.Max(max.z, vertex.pos.z);
 			}
 		}
 	}
@@ -67,8 +74,8 @@ namespace Meteorite {
 			case .Up, .Down:
 				int y = quad.direction == .Up ? 1 : 0;
 
-				for (Vec3f vertex in quad.vertices) {
-					if (vertex.y != y) {
+				for (Vertex vertex in quad.vertices) {
+					if (vertex.pos.y != y) {
 						quad.adjacent = false;
 						break;
 					}
@@ -76,8 +83,8 @@ namespace Meteorite {
 			case .East, .West:
 				int x = quad.direction == .East ? 1 : 0;
 
-				for (Vec3f vertex in quad.vertices) {
-					if (vertex.x != x) {
+				for (Vertex vertex in quad.vertices) {
+					if (vertex.pos.x != x) {
 						quad.adjacent = false;
 						break;
 					}
@@ -85,8 +92,8 @@ namespace Meteorite {
 			case .North, .South:
 				int z = quad.direction == .South ? 1 : 0;
 
-				for (Vec3f vertex in quad.vertices) {
-					if (vertex.z != z) {
+				for (Vertex vertex in quad.vertices) {
+					if (vertex.pos.z != z) {
 						quad.adjacent = false;
 						break;
 					}

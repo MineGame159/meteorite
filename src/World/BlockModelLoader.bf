@@ -14,7 +14,7 @@ namespace Meteorite{
 			//let omg = Profiler.StartSampling();
 
 			MODEL_CACHE = new .();
-			Dictionary<String, List<(Quad, uint16[4])>> textures = new .();
+			Dictionary<String, List<Quad>> textures = new .();
 
 			// Load models
 			for (Block block in Registry.BLOCKS) {
@@ -35,7 +35,7 @@ namespace Meteorite{
 	
 							for (RawModel rawModel in modelJsons) {
 								for (let j in rawModel.json["elements"].AsArray) {
-									ParseElement(block, textures, model, rawModel.json, j, rawModel.rotation);
+									ParseElement(block, textures, model, rawModel.json, j, rawModel.rotation, rawModel.uvlock);
 								}
 							}
 	
@@ -45,7 +45,7 @@ namespace Meteorite{
 							if (GetVariantModel(block, blockState, blockstateJson.Value) case .Ok(let rawModel)) {
 								if (rawModel.json.Contains("elements")) {
 									for (let j in rawModel.json["elements"].AsArray) {
-										ParseElement(block, textures, model, rawModel.json, j, rawModel.rotation);
+										ParseElement(block, textures, model, rawModel.json, j, rawModel.rotation, rawModel.uvlock);
 									}
 								}
 	
@@ -68,14 +68,7 @@ namespace Meteorite{
 				let texture = t.Add(scope $"{pair.key}.png");
 
 				for (let a in pair.value) {
-					a.0.region = .(
-						(.) (a.1[0] / 16f * uint16.MaxValue),
-						(.) (a.1[1] / 16f * uint16.MaxValue),
-						(.) (a.1[2] / 16f * uint16.MaxValue),
-						(.) (a.1[3] / 16f * uint16.MaxValue)
-					);
-
-					a.0.texture = texture;
+					a.texture = texture;
 				}
 			}
 
@@ -121,76 +114,67 @@ namespace Meteorite{
 			return json;
 		}
 
-		private static void ParseElement(Block block, Dictionary<String, List<(Quad, uint16[4])>> textures, Model model, Json modelJson, Json json, Vec3f blockStateRotation) {
+		private static void ParseElement(Block block, Dictionary<String, List<Quad>> textures, Model model, Json modelJson, Json json, Vec3f blockStateRotation, bool uvlock) {
 			// Parse from
 			Json fromJson = json["from"];
-			Vec3f from = .((.) fromJson[0].AsNumber / 16, (.) fromJson[1].AsNumber / 16, (.) fromJson[2].AsNumber / 16);
+			Vec3f fromF = .((.) fromJson[0].AsNumber, (.) fromJson[1].AsNumber, (.) fromJson[2].AsNumber);
+			Vec3f from = fromF / 16;
 
 			// Parse to
 			Json toJson = json["to"];
-			Vec3f to = .((.) toJson[0].AsNumber / 16, (.) toJson[1].AsNumber / 16, (.) toJson[2].AsNumber / 16);
+			Vec3f toF = .((.) toJson[0].AsNumber, (.) toJson[1].AsNumber, (.) toJson[2].AsNumber);
+			Vec3f to = toF / 16;
 
 			for (let pair in json["faces"].AsObject) {
-				// Parse cull face
-				QuadCullFace cullFace = .None;
-
-				if (pair.value.Contains("cullface")) {
-					switch (pair.value["cullface"].AsString) {
-					case "up": cullFace = .Top;
-					case "down": cullFace = .Bottom;
-					case "east": cullFace = .East;
-					case "west": cullFace = .West;
-					case "north": cullFace = .North;
-					case "south": cullFace = .South;
-					}
-				}
-
 				// Get direction. vertices and light
 				Direction direction = default;
-				Vec3f[4] vertices = .();
+				Vec3f[4] positions = .();
+				Vec2f[4] uvs = .();
 				float light = 1;
 
 				switch (pair.key) {
 				case "up":
 					direction = .Up;
-					vertices[0] = .(from.x, to.y, from.z);
-					vertices[1] = .(to.x, to.y, from.z);
-					vertices[2] = .(to.x, to.y, to.z);
-					vertices[3] = .(from.x, to.y, to.z);
+					positions[0] = .(from.x, to.y, from.z);
+					positions[1] = .(to.x, to.y, from.z);
+					positions[2] = .(to.x, to.y, to.z);
+					positions[3] = .(from.x, to.y, to.z);
 				case "down":
 					direction = .Down;
-					vertices[0] = .(from.x, from.y, from.z);
-					vertices[1] = .(from.x, from.y, to.z);
-					vertices[2] = .(to.x, from.y, to.z);
-					vertices[3] = .(to.x, from.y, from.z);
+					positions[0] = .(from.x, from.y, from.z);
+					positions[1] = .(from.x, from.y, to.z);
+					positions[2] = .(to.x, from.y, to.z);
+					positions[3] = .(to.x, from.y, from.z);
 				case "east":
 					direction = .East;
-					vertices[0] = .(to.x, from.y, from.z);
-					vertices[1] = .(to.x, from.y, to.z);
-					vertices[2] = .(to.x, to.y, to.z);
-					vertices[3] = .(to.x, to.y, from.z);
+					positions[0] = .(to.x, from.y, from.z);
+					positions[1] = .(to.x, from.y, to.z);
+					positions[2] = .(to.x, to.y, to.z);
+					positions[3] = .(to.x, to.y, from.z);
 				case "west":
 					direction = .West;
-					vertices[0] = .(from.x, from.y, from.z);
-					vertices[1] = .(from.x, to.y, from.z);
-					vertices[2] = .(from.x, to.y, to.z);
-					vertices[3] = .(from.x, from.y, to.z);
+					positions[0] = .(from.x, from.y, from.z);
+					positions[1] = .(from.x, to.y, from.z);
+					positions[2] = .(from.x, to.y, to.z);
+					positions[3] = .(from.x, from.y, to.z);
 				case "north":
 					direction = .North;
-					vertices[0] = .(from.x, from.y, from.z);
-					vertices[1] = .(to.x, from.y, from.z);
-					vertices[2] = .(to.x, to.y, from.z);
-					vertices[3] = .(from.x, to.y, from.z);
+					positions[0] = .(from.x, from.y, from.z);
+					positions[1] = .(to.x, from.y, from.z);
+					positions[2] = .(to.x, to.y, from.z);
+					positions[3] = .(from.x, to.y, from.z);
 				case "south":
 					direction = .South;
-					vertices[0] = .(from.x, from.y, to.z);
-					vertices[1] = .(from.x, to.y, to.z);
-					vertices[2] = .(to.x, to.y, to.z);
-					vertices[3] = .(to.x, from.y, to.z);
+					positions[0] = .(from.x, from.y, to.z);
+					positions[1] = .(from.x, to.y, to.z);
+					positions[2] = .(to.x, to.y, to.z);
+					positions[3] = .(to.x, from.y, to.z);
 				}
 
+				Direction finalDirection = direction;
+
 				// Get UV
-				uint16[4] uv = .(0, 0, 16, 16);
+				float[4] uv = ?;
 
 				if (pair.value.Contains("uv")) {
 					let uvJson = pair.value["uv"].AsArray;
@@ -200,57 +184,85 @@ namespace Meteorite{
 					uv[2] = (.) uvJson[2].AsNumber;
 					uv[3] = (.) uvJson[3].AsNumber;
 				}
+				else {
+					switch (direction) {
+					case .North, .South:
+						uv[0] = fromF.x;
+						uv[2] = toF.x;
+						uv[1] = 16 - toF.y;
+						uv[3] = 16 - fromF.y;
+					case .West, .East:
+						uv[0] = fromF.z;
+						uv[2] = toF.z;
+						uv[1] = 16 - toF.y;
+						uv[3] = 16 - fromF.y;
+					case .Down, .Up:
+						uv[0] = fromF.x;
+						uv[2] = toF.x;
+						uv[1] = 16 - toF.z;
+						uv[3] = 16 - fromF.z;
+					}
+				}
+
+				// Rotate direction
+				if (blockStateRotation.x > 0) {
+					int o = (.) blockStateRotation.x/ 90;
+					finalDirection = RotateDirection(finalDirection, o, FACE_ROTATION_X, scope .(.East, .West));
+				}
+
+				if (blockStateRotation.y > 0) {
+					int o = (.) blockStateRotation.y / 90;
+					finalDirection = RotateDirection(finalDirection, o, FACE_ROTATION, scope .(.Up, .Down));
+				}
+
+				let tw = 16;
+				let th = 16;
 
 				// UV Rotation
 				if (pair.value.Contains("rotation")) {
 					int rotation = (.) pair.value["rotation"].AsNumber;
 
-					uint16 u1 = GetU(uv, GetReverseIndex(0, rotation), rotation);
-					uint16 v1 = GetV(uv, GetReverseIndex(0, rotation), rotation);
+					let ox1 = uv[0];
+					let ox2 = uv[2];
+					let oy1 = uv[1];
+					let oy2 = uv[3];
 
-					uint16 u2 = GetU(uv, GetReverseIndex(2, rotation), rotation);
-					uint16 v2 = GetV(uv, GetReverseIndex(2, rotation), rotation);
-
-					/*uint16 n;
-					uint16 o;
-					if (Math.Sign(j - f) == Math.Sign(l - h)) {
-						n = h;
-						o = l;
-					} else {
-						n = l;
-						o = h;
+					switch (rotation) {
+						case 270:
+						    uv[1] = tw - ox2;
+						    uv[3] = tw - ox1;
+						    uv[0] = oy1;
+						    uv[2] = oy2;
+						case 180:
+						    uv[1] = th - oy2;
+						    uv[3] = th - oy1;
+						    uv[0] = tw - ox2;
+						    uv[2] = tw - ox1;
+						case 90:
+						    uv[1] = ox1;
+						    uv[3] = ox2;
+						    uv[0] = th - oy2;
+						    uv[2] = th - oy1;
 					}
-
-					uint16 p;
-					uint16 q;
-					if (Math.Sign(k - g) == Math.Sign(m - i)) {
-						p = i;
-						q = m;
-					} else {
-						p = m;
-						q = i;
-					}*/
-
-					uv = .(u1, v1, u2, v2);
 				}
 
-				// Block state rotation
-				/*if (blockStateRotation.y != 0) {
-					// Vertices
-					Vec3f origin = .(0.5f, 0.5f, 0.5f);
-					Mat4 m = Mat4.Identity().Translate(origin).Rotate(.(0, 1, 0), -blockStateRotation.y).Translate(-origin);
-	
-					for (int i < 4) {
-						vertices[i] = .(m * Vec4(vertices[i], 1));
-					}
-
-					int count = (int) blockStateRotation.y / 90;
-					for (int i < count) {
-						//direction = Rotate(direction);
-
-						//if (direction == .Up) Rotate(ref uv);
-					}
-				}*/
+				switch (direction) {
+				case .Up:
+					uvs[0] = .(uv[0], uv[1]);
+					uvs[1] = .(uv[2], uv[1]);
+					uvs[2] = .(uv[2], uv[3]);
+					uvs[3] = .(uv[0], uv[3]);
+				case .Down, .South, .West:
+					uvs[0] = .(uv[0], uv[3]);
+					uvs[1] = .(uv[0], uv[1]);
+					uvs[2] = .(uv[2], uv[1]);
+					uvs[3] = .(uv[2], uv[3]);
+				case .North, .East:
+					uvs[0] = .(uv[2], uv[3]);
+					uvs[1] = .(uv[0], uv[3]);
+					uvs[2] = .(uv[0], uv[1]);
+					uvs[3] = .(uv[2], uv[1]);
+				}
 
 				// Rotation
 				if (json.Contains("rotation")) {
@@ -288,12 +300,85 @@ namespace Meteorite{
 					matrix = matrix.Rotate(axis, angle).Translate(-origin);
 
 					for (int i < 4) {
-						vertices[i] = .(matrix * Vec4(vertices[i], 1));
+						positions[i] = .(matrix * Vec4(positions[i], 1));
+					}
+				}
+
+				// Block state rotation
+				if (blockStateRotation.x > 0) {
+					let rot_x = blockStateRotation.x * (Math.PI_f / 180f);
+					let c = Math.Cos(rot_x);
+					let s = Math.Sin(rot_x);
+
+					for (var v in ref positions) {
+						let z = v.z - 0.5f;
+						let y = v.y - 0.5f;
+						v.z = 0.5f + (z * c - y * s);
+						v.y = 0.5f + (y * c + z * s);
+					}
+				}
+
+				if (blockStateRotation.y > 0) {
+				    let rot_y = blockStateRotation.y * (Math.PI_f / 180f);
+					let c = Math.Cos(rot_y);
+					let s = Math.Sin(rot_y);
+
+					for (var v in ref positions) {
+						let x = v.x - 0.5f;
+						let z = v.z - 0.5f;
+						v.x = 0.5f + (x * c - z * s);
+						v.z = 0.5f + (z * c + x * s);
+					}
+				}
+
+				// Rotation
+				if (pair.value.Contains("rotation")) {
+					/*int rotation = (.) pair.value["rotation"].AsNumber;
+				    let rot_y = -rotation * (Math.PI_f / 180f);
+
+				    let c = Math.Cos(rot_y);
+				    let s = Math.Sin(rot_y);
+
+					for (var v in ref uvs) {
+					    let x = v.x - tw;
+					    let y = v.y - th;
+	
+					    v.x = x * c - y * s;
+					    v.y = y * c + x * s;
+					}*/
+
+					Vec3f origin = .(8, 8, 0);
+					Mat4 matrix = Mat4.Identity().Translate(origin).Rotate(.(0, 0, 1), (.) -pair.value["rotation"].AsNumber).Translate(-origin);
+
+					for (int i < 4) {
+						let a = matrix * Vec4(uvs[i].x, uvs[i].y, 0, 1);
+						uvs[i] = .(a.x, a.y);
+					}
+				}
+
+				// UV lock
+				if (uvlock && blockStateRotation.y > 0.0 && (finalDirection == .Up || finalDirection == .Down)) {
+					Vec3f origin = .(8, 0, 8);
+					Mat4 matrix = Mat4.Identity().Translate(origin).Rotate(.(0, 1, 0), -blockStateRotation.y).Translate(-origin);
+
+					for (int i < 4) {
+						let a = matrix * Vec4(uvs[i].x, 0, uvs[i].y, 1);
+						uvs[i] = .(a.x, a.z);
+					}
+				}
+
+				if (uvlock && blockStateRotation.x > 0.0 && (finalDirection != .Up && finalDirection != .Down)) {
+				    Vec3f origin = .(0, 8, 8);
+					Mat4 matrix = Mat4.Identity().Translate(origin).Rotate(.(1, 0, 0), -blockStateRotation.x).Translate(-origin);
+
+					for (int i < 4) {
+						let a = matrix * Vec4(0, uvs[i].x, uvs[i].y, 1);
+						uvs[i] = .(a.y, a.z);
 					}
 				}
 
 				// Light
-				switch (direction) {
+				switch (finalDirection) {
 				case .Down: light = 0.4f;
 				case .East, .West: light = 0.6f;
 				case .North, .South: light = 0.8f;
@@ -308,7 +393,7 @@ namespace Meteorite{
 
 				String texture = _texture.Contains(':') ? scope .(_texture.Substring(10)) : _texture;
 
-				List<(Quad, uint16[4])> textureQuads = textures.GetValueOrDefault(texture);
+				List<Quad> textureQuads = textures.GetValueOrDefault(texture);
 				if (textureQuads == null) {
 					textureQuads = new .();
 					textures[new .(texture)] = textureQuads;
@@ -317,43 +402,68 @@ namespace Meteorite{
 				// Tint
 				bool tint = pair.value.Contains("tintindex");
 
-				// Create quad
-				Quad quad = new .(direction, vertices, cullFace, light, tint);
-				textureQuads.Add((quad, uv));
+				// Round vertices and uvs
+				// Hopefully this doesn't break anything 2.0
+				if (fromF.x >= 0 && fromF.y >= 0 && fromF.z >= 0 && toF.x <= 16 && toF.y <= 16 && toF.z <= 16) {
+					for (var v in ref positions) {
+						if (v.x < 0.0001) v.x = 0;
+						else if (v.x > 0.9999) v.x = 1;
+	
+						if (v.y < 0.0001) v.y = 0;
+						else if (v.y > 0.9999) v.y = 1;
+	
+						if (v.z < 0.0001) v.z = 0;
+						else if (v.z > 0.9999) v.z = 1;
+					}
+				}
 
+				for (var v in ref uvs) {
+					if (v.x < 0.0001) v.x = 0;
+					else if (v.x > 15.9999) v.x = 16;
+
+					if (v.y < 0.0001) v.y = 0;
+					else if (v.y > 15.9999) v.y = 16;
+				}
+
+				// Create quad
+				mixin ToVertexUv(float u, float v) {
+					Vec2<uint16>((.) (u / 16f * uint16.MaxValue), (.) (v / 16f * uint16.MaxValue))
+				}
+
+				Quad quad = new .(
+					finalDirection,
+					.(
+						.(positions[0], ToVertexUv!(uvs[0].x, uvs[0].y)),
+						.(positions[1], ToVertexUv!(uvs[1].x, uvs[1].y)),
+						.(positions[2], ToVertexUv!(uvs[2].x, uvs[2].y)),
+						.(positions[3], ToVertexUv!(uvs[3].x, uvs[3].y))
+					),
+					light,
+					tint
+				);
+				
+				textureQuads.Add(quad);
 				model.Add(quad);
 			}
 		}
 
-		private static uint16 GetU(uint16[4] uv, int index, int rotation) {
-			int i = GetShiftedIndex(index, rotation);
-			return uv[i != 0 && i != 1 ? 2 : 0];
-		}
+		private static Direction[] FACE_ROTATION = new .(.North, .East, .South, .West) ~ delete _;
+		private static Direction[] FACE_ROTATION_X = new .(.North, .Down, .South, .Up) ~ delete _;
 
-		private static uint16 GetV(uint16[4] uv, int index, int rotation) {
-			int i = GetShiftedIndex(index, rotation);
-			return uv[i != 0 && i != 3 ? 3 : 1];
-		}
+		private static Direction RotateDirection(Direction val, int offset, Direction[] rots, Direction[] invalid) {
+		    for (let d in invalid) {
+		        if (d == val) return val;
+		    }
 
-		private static int GetShiftedIndex(int index, int rotation) => (index + rotation / 90) % 4;
-		private static int GetReverseIndex(int index, int rotation) => (index + 4 - rotation / 90) % 4;
-
-		private static Direction Rotate(Direction direction) {
-			switch (direction) {
-			case .South: return .West;
-			case .West: return .North;
-			case .North: return .East;
-			case .East: return .South;
-			default: return direction;
+			int pos = 0;
+			for (int i < rots.Count) {
+				if (rots[i] == val) {
+					pos = i;
+					break;
+				}
 			}
-		}
 
-		private static void Rotate<T>(ref T[4] array) {
-			T temp = array[0];
-			array[0] = array[1];
-			array[1] = array[2];
-			array[2] = array[3];
-			array[3] = temp;
+			return rots[(rots.Count + pos + offset) % rots.Count];
 		}
 
 		private static String ResolveTexture(Json json, String name) {
@@ -398,7 +508,7 @@ namespace Meteorite{
 					);
 
 					if (GetMergedModel(json2) case .Ok(let j)) {
-						modelJsons.Add(.(j, rotation));
+						modelJsons.Add(.(j, rotation, a.GetBool("uvlock")));
 					}
 				}
 			}
@@ -408,10 +518,27 @@ namespace Meteorite{
 
 		private static void EvaluateWhen(Json json, BlockState blockState, String str1, String str2, ref bool apply) {
 			for (let pair in json.AsObject) {
+				defer {
+					str1.Clear();
+					str2.Clear();
+				}
+
 				if (pair.key == "OR") {
+					bool a = false;
+
 					for (let j in pair.value.AsArray) {
-						EvaluateWhen(j, blockState, str1, str2, ref apply);
-						if (!apply) break;
+						bool b = true;
+						EvaluateWhen(j, blockState, str1, str2, ref b);
+
+						if (b) {
+							a = true;
+							break;
+						}
+					}
+
+					if (!a) {
+						apply = false;
+						break;
 					}
 
 					continue;
@@ -420,13 +547,24 @@ namespace Meteorite{
 				blockState.GetProperty(pair.key).GetValueString(str1);
 				pair.value.ToString(str2);
 
-				if (str1 != str2) {
-					apply = false;
-					break;
-				}
+				if (str2.Contains('|')) {
+					bool a = false;
 
-				str1.Clear();
-				str2.Clear();
+					for (let value in str2.Split('|')) {
+						if (str1 == value) a = true;
+					}
+
+					if (!a) {
+						apply = false;
+						break;
+					}
+				}
+				else {
+					if (str1 != str2) {
+						apply = false;
+						break;
+					}
+				}
 			}
 		}
 
@@ -457,10 +595,15 @@ namespace Meteorite{
 			if (variant.Contains("y")) rotation.y = (.) variant["y"].AsNumber;
 			if (variant.Contains("z")) rotation.z = (.) variant["z"].AsNumber;
 			
-			return RawModel(json, rotation);
+			return RawModel(json, rotation, variant.GetBool("uvlock"));
 		}
 
 		private static Result<Json> GetMergedModel(Json json) {
+			void Merge(Json json, Json j) {
+				if (j.Contains("elements") && json.Contains("elements")) json.Merge(j, scope (key) => key != "elements");
+				else json.Merge(j);
+			}
+
 			while (json.Contains("parent")) {
 				StringView model = json["parent"].AsString;
 				if (model.Contains(':')) model = model.Substring(10);
@@ -473,7 +616,7 @@ namespace Meteorite{
 				String _;
 				Json cachedJson;
 				if (MODEL_CACHE.TryGet(scope .(modelPath), out _, out cachedJson)) {
-					json.Merge(cachedJson);
+					Merge(json, cachedJson);
 				} else {
 					// Merge and add to cache
 					Result<Json> j = Meteorite.INSTANCE.resources.ReadJson(modelPath);
@@ -484,7 +627,7 @@ namespace Meteorite{
 					}
 
 					MODEL_CACHE[new .(modelPath)] = j;
-					json.Merge(j);
+					Merge(json, j);
 				}
 			}
 
@@ -533,10 +676,12 @@ namespace Meteorite{
 		private struct RawModel : IDisposable {
 			public Json json;
 			public Vec3f rotation;
+			public bool uvlock;
 
-			public this(Json json, Vec3f rotation) {
+			public this(Json json, Vec3f rotation, bool uvlock) {
 				this.json = json;
 				this.rotation = rotation;
+				this.uvlock = uvlock;
 			}
 
 			public void Dispose() {

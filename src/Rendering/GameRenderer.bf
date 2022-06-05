@@ -57,7 +57,7 @@ namespace Meteorite {
 				me.camera.FlightMovement(delta);
 			}
 			
-			me.camera.Update();
+			me.camera.Update(me.world.viewDistance * Section.SIZE * 4);
 		}
 
 		private void RenderMain(RenderPass pass) {
