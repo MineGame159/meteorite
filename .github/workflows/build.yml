@@ -50,6 +50,7 @@ jobs:
           path: |
             build/Release_Win64/meteorite/*.dll
             build/Release_Win64/meteorite/meteorite.exe
+            assets
       
       - name: Create ZIP archive
         if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)  # Only runs if this CI was triggered by the default branch
