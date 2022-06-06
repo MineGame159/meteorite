@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 
 using Wgpu;
 using ImGui;
@@ -117,29 +116,10 @@ namespace Meteorite{
 			if (status == .Success) {
 				uint8* data = (.) buffer.[Friend]handle.GetMappedRange(0, buffer.size);
 
-				StreamWriter w = new .();
-				w.Create("run/screenshot.ppm");
+				Image image = scope .(width, height, 4, data, false);
+				image.Write("run/screenshot.png", true);
 
-				w.WriteLine("P3");
-				w.WriteLine("{} {}", width, height);
-				w.WriteLine("255");
-
-				for (int i < width * height) {
-					uint8* pixel = &data[i * 4];
-
-					uint8 b = *pixel;
-					uint8 g = pixel[1];
-					uint8 r = pixel[2];
-
-					w.WriteLine("{} {} {}", r, g, b);
-				}
-
-				w.Flush();
-				delete w;
-				
-				buffer.[Friend]handle.Unmap();
-
-				Log.Info("Saved screenshot to run/screenshot.ppm");
+				Log.Info("Saved screenshot to run/screenshot.png");
 			}
 			else Log.Error("Failed to map screenshot buffer: {}", status);
 
