@@ -9,6 +9,8 @@ namespace Meteorite {
 		public bool sortChunks = true;
 		public bool chunkBoundaries;
 
+		public float fov = 75;
+
 		public List<String> resourcePacks = new .() ~ DeleteContainerAndItems!(_);
 
 		public this() {

@@ -28,6 +28,9 @@ namespace Meteorite {
 			ImGui.Checkbox("Mipmaps", &me.options.mipmaps);
 			ImGui.Checkbox("Sort Chunks", &me.options.sortChunks);
 			ImGui.Checkbox("Chunk Boundaries", &me.options.chunkBoundaries);
+
+			ImGui.SliderFloat("FOV", &me.options.fov, 10, 170, "%.0f");
+
 			ImGui.End();
 		}
 	}
