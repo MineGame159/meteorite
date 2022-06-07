@@ -142,6 +142,17 @@ namespace Meteorite {
 			);
 		}
 
+		public static Self operator*(Self lhs, float rhs) {
+			Self mat = lhs;
+
+			mat.vecs[0] *= rhs;
+			mat.vecs[1] *= rhs;
+			mat.vecs[2] *= rhs;
+			mat.vecs[3] *= rhs;
+
+			return mat;
+		}
+
 		public static Vec4 operator*(Self lhs, Vec4 rhs) {
 			let mov0 = rhs[0];
 			let mov1 = rhs[1];

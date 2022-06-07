@@ -86,12 +86,12 @@ namespace Meteorite {
 					int x = (packedXZ >> 4) & 15;
 					int z = packedXZ & 15;
 
-					int16 y = buf.ReadShort();
+					int y = buf.ReadShort() - me.world.minY;
 																				
 					int32 typeId = buf.ReadVarInt();
 					Result<Tag> tag = buf.ReadNbt();
 					
-					BlockEntity blockEntity = BlockEntityTypes.TYPES[typeId].Create(.(x, y, z));
+					BlockEntity blockEntity = BlockEntityTypes.TYPES[typeId].Create(.(this.pos.x * Section.SIZE + x, y, this.pos.z * Section.SIZE + z));
 					if (blockEntity != null) {
 						if (tag case .Ok) blockEntity.Load(tag);
 

@@ -5,8 +5,8 @@ namespace Meteorite {
 		case Up;
 		case Down;
 		case East; // Východ
-		case West; // Západ
 		case North; // Sever
+		case West; // Západ
 		case South; // Juh
 
 		public Vec3i GetOffset() {
@@ -30,6 +30,19 @@ namespace Meteorite {
 			case .South: return .North;
 			}
 		}
+
+		public int Data2D { get {
+			switch (this) {
+			case .Up, .Down: return -1;
+
+			case .East:  return 3;
+			case .North: return 2;
+			case .West:  return 1;
+			case .South: return 0;
+			}
+		} }
+
+		public int YRot => (Data2D & 3) * 90;
 	}
 
 	static class Utils {

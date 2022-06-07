@@ -38,6 +38,7 @@ namespace Meteorite {
 			SkyRenderer.Render(pass, me.world, me.camera, tickDelta);
 
 			RenderChunks(pass, true, Gfxa.CHUNK_PIPELINE, delta);
+			RenderBlockEntities(pass, tickDelta);
 			RenderEntities(pass, tickDelta);
 			RenderChunks(pass, false, Gfxa.CHUNK_TRANSPARENT_PIPELINE, delta);
 
@@ -119,6 +120,20 @@ namespace Meteorite {
 				else chunk.meshTransparent.Render(pass);
 			}
 
+			pass.PopDebugGroup();
+		}
+
+		private void RenderBlockEntities(RenderPass pass, float tickDelta) {
+			pass.PushDebugGroup("Block Entities");
+			me.blockEntityRenderDispatcher.Begin();
+
+			for (Chunk chunk in visibleChunks) {
+				for (BlockEntity blockEntity in chunk.BlockEntities) {
+					me.blockEntityRenderDispatcher.Render(blockEntity, tickDelta);
+				}
+			}
+
+			me.blockEntityRenderDispatcher.End(pass, me.camera);
 			pass.PopDebugGroup();
 		}
 

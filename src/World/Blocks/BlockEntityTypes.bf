@@ -5,9 +5,9 @@ namespace Meteorite {
 		public static BlockEntityType[] TYPES = new .[34] ~ delete _;
 
 		public static BlockEntityType FURNACE = Create(0, "furnace", new Block[] (Blocks.FURNACE)) ~ delete _;
-		public static BlockEntityType CHEST = Create(1, "chest", new Block[] (Blocks.CHEST)) ~ delete _;
-		public static BlockEntityType TRAPPED_CHEST = Create(2, "trapped_chest", new Block[] (Blocks.TRAPPED_CHEST)) ~ delete _;
-		public static BlockEntityType ENDER_CHEST = Create(3, "ender_chest", new Block[] (Blocks.ENDER_CHEST)) ~ delete _;
+		public static BlockEntityType CHEST = Create(1, "chest", new Block[] (Blocks.CHEST), new (pos) => new ChestBlockEntity(pos)) ~ delete _;
+		public static BlockEntityType TRAPPED_CHEST = Create(2, "trapped_chest", new Block[] (Blocks.TRAPPED_CHEST), new (pos) => new TrappedChestBlockEntity(pos)) ~ delete _;
+		public static BlockEntityType ENDER_CHEST = Create(3, "ender_chest", new Block[] (Blocks.ENDER_CHEST), new (pos) => new EnderChestBlockEntity(pos)) ~ delete _;
 		public static BlockEntityType JUKEBOX = Create(4, "jukebox", new Block[] (Blocks.JUKEBOX)) ~ delete _;
 		public static BlockEntityType DISPENSER = Create(5, "dispenser", new Block[] (Blocks.DISPENSER)) ~ delete _;
 		public static BlockEntityType DROPPER = Create(6, "dropper", new Block[] (Blocks.DROPPER)) ~ delete _;
@@ -33,7 +33,7 @@ namespace Meteorite {
 		public static BlockEntityType SMOKER = Create(26, "smoker", new Block[] (Blocks.SMOKER)) ~ delete _;
 		public static BlockEntityType BLAST_FURNACE = Create(27, "blast_furnace", new Block[] (Blocks.BLAST_FURNACE)) ~ delete _;
 		public static BlockEntityType LECTERN = Create(28, "lectern", new Block[] (Blocks.LECTERN)) ~ delete _;
-		public static BlockEntityType BELL = Create(29, "bell", new Block[] (Blocks.BELL)) ~ delete _;
+		public static BlockEntityType BELL = Create(29, "bell", new Block[] (Blocks.BELL), new (pos) => new BellBlockEntity(pos)) ~ delete _;
 		public static BlockEntityType JIGSAW = Create(30, "jigsaw", new Block[] (Blocks.JIGSAW)) ~ delete _;
 		public static BlockEntityType CAMPFIRE = Create(31, "campfire", new Block[] (Blocks.CAMPFIRE, Blocks.SOUL_CAMPFIRE)) ~ delete _;
 		public static BlockEntityType BEEHIVE = Create(32, "beehive", new Block[] (Blocks.BEE_NEST, Blocks.BEEHIVE)) ~ delete _;

@@ -36,7 +36,7 @@ namespace Meteorite {
 			bool escaped = Screenshots.Update();
 			if (!escaped && Input.IsKeyPressed(.Escape)) me.window.MouseHidden = !me.window.MouseHidden;
 
-			if (me.world != null) {
+			if (me.world != null && me.worldRenderer != null) {
 				SetupWorldRendering();
 				passes.Add(mainPass);
 			}

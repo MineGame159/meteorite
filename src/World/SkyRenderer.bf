@@ -41,7 +41,7 @@ namespace Meteorite {
 				.VertexShader(Gfxa.POS_FOG, "vs_main")
 				.FragmentShader(Gfxa.POS_FOG, "fs_main")
 				.PushConstants(.Vertex | .Fragment, 0, sizeof(PushConstaints2))
-				.Primitive(.TriangleList, false)
+				.Primitive(.TriangleList, .None)
 				.Blend(false)
 				.Depth(true, false, false)
 				.Create();
@@ -50,7 +50,7 @@ namespace Meteorite {
 				.VertexShader(Gfxa.POS_COLOR_SHADER, "vs_main")
 				.FragmentShader(Gfxa.POS_COLOR_SHADER, "fs_main")
 				.PushConstants(.Vertex | .Fragment, 0, sizeof(PushConstaints1))
-				.Primitive(.TriangleList, false)
+				.Primitive(.TriangleList, .None)
 				.Depth(true, false, false)
 				.Create();
 			PIPELINE3 = Gfx.NewPipeline()
@@ -59,7 +59,7 @@ namespace Meteorite {
 				.VertexShader(Gfxa.POS_TEX_SHADER, "vs_main")
 				.FragmentShader(Gfxa.POS_TEX_SHADER, "fs_main")
 				.PushConstants(.Vertex | .Fragment, 0, sizeof(PushConstaints1))
-				.Primitive(.TriangleList, false)
+				.Primitive(.TriangleList, .None)
 				.BlendState(Wgpu.BlendState() {
 					color = .(.Add, .SrcAlpha, .One),
 					alpha = .(.Add, .One, .Zero)
@@ -71,7 +71,7 @@ namespace Meteorite {
 				.VertexShader(Gfxa.POS_FOG, "vs_main")
 				.FragmentShader(Gfxa.POS_FOG, "fs_main")
 				.PushConstants(.Vertex | .Fragment, 0, sizeof(PushConstaints2))
-				.Primitive(.TriangleList, false)
+				.Primitive(.TriangleList, .None)
 				.BlendState(Wgpu.BlendState() {
 					color = .(.Add, .SrcAlpha, .One),
 					alpha = .(.Add, .One, .Zero)

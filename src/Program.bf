@@ -11,7 +11,6 @@ namespace Meteorite {
 			Meteorite me = new .();
 
 			double lastTime = Glfw.GetTime();
-			bool a = false;
 
 			while (!me.window.ShouldClose) {
 				FRAME_START = Glfw.GetTime();
@@ -22,11 +21,6 @@ namespace Meteorite {
 				me.window.PollEvents();
 
 				me.Render(delta);
-
-				if (a) {
-					GC.Collect(false);
-					GC.Report();
-				}
 
 				if (me.window.minimized) Thread.Sleep(1);
 			}

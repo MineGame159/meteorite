@@ -15,6 +15,7 @@ namespace Meteorite {
 
 		public GameRenderer gameRenderer;
 		public WorldRenderer worldRenderer;
+		public BlockEntityRenderDispatcher blockEntityRenderDispatcher;
 
 		public ClientConnection connection;
 		public World world;
@@ -36,6 +37,7 @@ namespace Meteorite {
 			tickCounter = new .(20, 0);
 
 			gameRenderer = new .();
+			blockEntityRenderDispatcher = new .();
 
 			camera.pos.y = 160;
 			camera.yaw = 45;
@@ -53,6 +55,7 @@ namespace Meteorite {
 
 		public ~this() {
 			// Rendering needs to be deleted before Gfx is shut down
+			delete blockEntityRenderDispatcher;
 			delete worldRenderer;
 			delete gameRenderer;
 

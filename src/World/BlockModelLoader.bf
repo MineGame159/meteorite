@@ -333,20 +333,6 @@ namespace Meteorite{
 
 				// Rotation
 				if (pair.value.Contains("rotation")) {
-					/*int rotation = (.) pair.value["rotation"].AsNumber;
-				    let rot_y = -rotation * (Math.PI_f / 180f);
-
-				    let c = Math.Cos(rot_y);
-				    let s = Math.Sin(rot_y);
-
-					for (var v in ref uvs) {
-					    let x = v.x - tw;
-					    let y = v.y - th;
-	
-					    v.x = x * c - y * s;
-					    v.y = y * c + x * s;
-					}*/
-
 					Vec3f origin = .(8, 8, 0);
 					Mat4 matrix = Mat4.Identity().Translate(origin).Rotate(.(0, 0, 1), (.) -pair.value["rotation"].AsNumber).Translate(-origin);
 

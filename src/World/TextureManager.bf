@@ -17,9 +17,25 @@ namespace Meteorite {
 		private BindGroup textureMipmapBindGroup ~ delete _;
 		private BindGroup bufferBindGroup ~ delete _;
 
+		private Dictionary<String, BindableTexture> bindableTextures = new .() ~ DeleteDictionaryAndKeysAndValues!(_);
+
 		public this() {
 			packer = new .(8192);
 			textures = new .();
+		}
+
+		public void Bind(RenderPass pass, String name) {
+			String outKey;
+			BindableTexture outTexture;
+			if (bindableTextures.TryGet(name, out outKey, out outTexture)) {
+				outTexture.Bind(pass);
+				return;
+			}
+
+			BindableTexture texture = new .(Gfx.CreateTexture(name));
+			texture.Bind(pass);
+
+			bindableTextures[new .(name)] = texture;
 		}
 
 		public void Tick() {
@@ -218,5 +234,17 @@ namespace Meteorite {
 		}
 
 		struct UV : this(int index, int x, int y) {}
+
+		class BindableTexture {
+			private BindGroup bindGroup ~ delete _;
+			private Texture texture ~ delete _;
+
+			public this(Texture texture) {
+				this.bindGroup = Gfxa.TEXTURE_SAMPLER_LAYOUT.Create(texture, Gfxa.NEAREST_SAMPLER);
+				this.texture = texture;
+			}
+
+			public void Bind(RenderPass pass) => bindGroup.Bind(pass);
+		}
 	}
 }

@@ -1,7 +1,7 @@
 using System;
 
 namespace Meteorite {
-	class BlockEntity {
+	abstract class BlockEntity {
 		public BlockEntityType type;
 		public Vec3i pos;
 

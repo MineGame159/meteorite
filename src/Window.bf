@@ -18,9 +18,14 @@ namespace Meteorite {
 			width = 1280;
 			height = 720;
 
+			StringView title = "Meteorite";
+#if DEBUG
+			title = "Meteorite (DEBUG)";
+#endif
+
 			Glfw.WindowHint(.ClientApi, Glfw.ClientApi.NoApi);
 			Glfw.WindowHint(.Visible, false);
-			handle = Glfw.CreateWindow(width, height, "Meteorite", null, null);
+			handle = Glfw.CreateWindow(width, height, title, null, null);
 			Log.Info("Created window");
 
 			Wgpu.SetLogLevel(.Warn);

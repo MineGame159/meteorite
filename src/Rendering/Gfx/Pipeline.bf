@@ -49,6 +49,12 @@ namespace Meteorite {
 	}
 
 	class PipelineBuilder {
+		enum Cull {
+			None,
+			Clockwise,
+			CounterClockwise
+		}
+
 		private Wgpu.BindGroupLayout[] bindGroupLayouts ~ delete _;
 		private VertexAttribute[] attributes ~ delete _;
 
@@ -59,7 +65,7 @@ namespace Meteorite {
 		private int start, end;
 
 		private Wgpu.PrimitiveTopology topology;
-		private bool cull;
+		private Cull cull = .None;
 
 		private bool blend = true;
 		private Wgpu.BlendState? blendState;
@@ -104,7 +110,7 @@ namespace Meteorite {
 			return this;
 		}
 
-		public Self Primitive(Wgpu.PrimitiveTopology topology, bool cull) {
+		public Self Primitive(Wgpu.PrimitiveTopology topology, Cull cull) {
 			this.topology = topology;
 			this.cull = cull;
 
@@ -217,8 +223,8 @@ namespace Meteorite {
 				primitive = .() {
 					topology = topology,
 					stripIndexFormat = .Undefined,
-					frontFace = .CW,
-					cullMode = cull ? .Back : .None,
+					frontFace = cull == .CounterClockwise ? .CCW : .CW,
+					cullMode = cull == .None ? .None : .Back,
 				},
 				depthStencil = depth ? &depthStencil : null,
 				multisample = .() {
