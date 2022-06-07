@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections;
 
 using stb_image;
+using MiniZ;
 
 namespace Meteorite {
 	class Image {
@@ -74,9 +75,9 @@ namespace Meteorite {
 					else Internal.MemCpy(&row[1], &this.data[y * (width * components)], width * components);
 				}
 
-				uint compressedLength = (.) dataLength;
+				int compressedLength = dataLength;
 				uint8* compressedData = new uint8[compressedLength]*;
-				MiniZ.mz_compress(compressedData, &compressedLength, data, (.) dataLength);
+				MiniZ.Compress(compressedData, ref compressedLength, data, dataLength);
 
 				cs.TryWrite(.(compressedData, (.) compressedLength));
 

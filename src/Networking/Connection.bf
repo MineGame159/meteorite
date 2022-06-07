@@ -3,6 +3,8 @@ using System.Net;
 using System.Threading;
 using System.Collections;
 
+using MiniZ;
+
 namespace Meteorite {
 	abstract class Connection {
 		private const int32 S2C_SET_COMPRESSION = 0x03;
@@ -85,9 +87,8 @@ namespace Meteorite {
 
 						if (uncompressedLength != -1) {
 							NetBuffer packet = scope .(uncompressedLength);
-							uint uLength = (.) uncompressedLength;
-							MiniZ.ReturnStatus status = MiniZ.mz_uncompress(packet.data, &uLength, &buffer.data[buffer.pos], (.) (neededLength + lengthSize - buffer.pos));
-							packet.size = (.) uLength;
+							MiniZ.ReturnStatus status = MiniZ.Uncompress(packet.data, ref uncompressedLength, &buffer.data[buffer.pos], (.) (neededLength + lengthSize - buffer.pos));
+							packet.size = uncompressedLength;
 
 							if (status == .OK) {
 								int id = packet.ReadVarInt();
