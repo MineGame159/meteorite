@@ -17,11 +17,29 @@ namespace Meteorite {
 	class Section {
 		public const int SIZE = 16;
 
+		public int y;
+		public Chunk chunk;
+
 		public PalettedContainer<BlockState> blocks ~ delete _;
 		public PalettedContainer<Biome> biomes ~ delete _;
 
+		public this(int y) {
+			this.y = y;
+		}
+
 		[Inline]
 		public BlockState Get(int x, int y, int z) => blocks.Get(x, y, z);
+
+		[Inline]
+		public void Set(int x, int y, int z, BlockState blockState) {
+			blocks.Set(x, y, z, blockState);
+
+			int by = this.y * SIZE + y;
+			if (by < chunk.min.y) chunk.min.y = by;
+			else if (by > chunk.max.y) chunk.max.y = by;
+
+			chunk.dirty = true;
+		}
 		
 		[Inline]
 		public Biome GetBiome(int x, int y, int z) => biomes.Get((x >> 2) & 3, (y >> 2) & 3, (z >> 2) & 3);
@@ -62,6 +80,8 @@ namespace Meteorite {
 
 			this.min = .(pos.x * Section.SIZE, 0, pos.z * Section.SIZE);
 			this.max = .(pos.x * Section.SIZE + Section.SIZE, 0, pos.z * Section.SIZE + Section.SIZE);
+
+			for (Section section in sections) section.chunk = this;
 		}
 
 		public ~this() {
@@ -76,6 +96,11 @@ namespace Meteorite {
 		[Inline]
 		public BlockState Get(int x, int y, int z) {
 			return sections[y / Section.SIZE].Get(x, y % Section.SIZE, z);
+		}
+
+		[Inline]
+		public void Set(int x, int y, int z, BlockState blockState) {
+			sections[y / Section.SIZE].Set(x, y % Section.SIZE, z, blockState);
 		}
 
 		[Inline]

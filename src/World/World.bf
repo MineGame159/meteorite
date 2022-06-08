@@ -12,7 +12,6 @@ namespace Meteorite {
 		private Dictionary<int, Entity> entities = new .() ~ DeleteDictionaryAndValues!(_);
 
 		public int minY, height;
-		public int renderedChunks;
 
 		public int64 worldAge, timeOfDay;
 
@@ -61,6 +60,11 @@ namespace Meteorite {
 		public BlockState GetBlock(int x, int y, int z) {
 			Chunk chunk = GetChunk(x >> 4, z >> 4);
 			return chunk != null ? chunk.Get(x & 15, y, z & 15) : Blocks.AIR.defaultBlockState;
+		}
+
+		public void SetBlock(int x, int y, int z, BlockState blockState) {
+			Chunk chunk = GetChunk(x >> 4, z >> 4);
+			if (chunk != null) chunk.Set(x & 15, y, z & 15, blockState);
 		}
 
 		public BlockEntity GetBlockEntity(int x, int y, int z) {

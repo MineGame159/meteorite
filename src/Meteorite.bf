@@ -77,6 +77,8 @@ namespace Meteorite {
 			world.Tick();
 
 			textures.Tick();
+
+			if (!window.minimized) gameRenderer.Tick();
 		}
 
 		public void Render(float delta) {

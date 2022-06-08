@@ -27,6 +27,10 @@ namespace Meteorite {
 				.Create();
 		}
 
+		public void Tick() {
+			if (me.world != null && me.worldRenderer != null) me.worldRenderer.Tick();
+		}
+
 		public void Render(float delta) {
 			this.delta = delta;
 

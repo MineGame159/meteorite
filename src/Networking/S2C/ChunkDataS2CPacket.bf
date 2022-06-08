@@ -2,7 +2,8 @@ using System;
 using System.Collections;
 
 namespace Meteorite {
-	class ChunkDataS2CPacket : S2CPacket {
+	class
+		ChunkDataS2CPacket : S2CPacket {
 		public const int32 ID = 0x22;
 
 		public ChunkPos pos;
@@ -27,7 +28,7 @@ namespace Meteorite {
 			for (int i < sections.Count) {
 				Section section = sections[i];
 				if (section == null) {
-					section = new .();
+					section = new .(i);
 					sections[i] = section;
 				}
 				

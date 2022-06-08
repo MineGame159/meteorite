@@ -88,6 +88,21 @@ namespace Meteorite {
 			me.world.AddChunk(chunk);
 		}
 
+		private void OnBlockChange(BlockChangeS2CPacket packet) {
+			me.world.SetBlock(packet.pos.x, packet.pos.y, packet.pos.z, packet.blockState);
+		}
+
+		private void OnMultiBlockChange(MultiBlockChangeS2CPacket packet) {
+			Chunk chunk = me.world.GetChunk(packet.sectionPos.x, packet.sectionPos.z);
+			if (chunk == null) return;
+
+			Section section = chunk.GetSection(packet.sectionPos.y);
+
+			for (let block in packet.blocks) {
+				section.Set(block.pos.x, block.pos.y, block.pos.z, block.blockState);
+			}
+		}
+
 		private void OnBlockEntityData(BlockEntityDataS2CPacket packet) {
 			if (packet.remove) me.world.RemoveBlockEntity(packet.pos.x, packet.pos.y, packet.pos.z);
 
@@ -154,6 +169,8 @@ namespace Meteorite {
 			case PlayerAbilitiesS2CPacket.ID: return new PlayerAbilitiesS2CPacket();
 			case PlayerPositionAndLookS2CPacket.ID: return new PlayerPositionAndLookS2CPacket();
 			case ChunkDataS2CPacket.ID: return new ChunkDataS2CPacket();
+			case BlockChangeS2CPacket.ID: return new BlockChangeS2CPacket();
+			case MultiBlockChangeS2CPacket.ID: return new MultiBlockChangeS2CPacket();
 			case BlockEntityDataS2CPacket.ID: return new BlockEntityDataS2CPacket();
 			case SpawnEntityS2CPacket.ID: return new SpawnEntityS2CPacket();
 			case SpawnLivingEntityC2SPacket.ID: return new SpawnLivingEntityC2SPacket();
@@ -180,6 +197,8 @@ namespace Meteorite {
 			case PlayerAbilitiesS2CPacket.ID: OnPlayerAbilities((.) packet);
 			case PlayerPositionAndLookS2CPacket.ID: OnPlayerPositionAndLook((.) packet);
 			case ChunkDataS2CPacket.ID: OnChunkData((.) packet);
+			case BlockChangeS2CPacket.ID: OnBlockChange((.) packet);
+			case MultiBlockChangeS2CPacket.ID: OnMultiBlockChange((.) packet);
 			case BlockEntityDataS2CPacket.ID: OnBlockEntityData((.) packet);
 			case SpawnEntityS2CPacket.ID: OnSpawnEntity((.) packet);
 			case SpawnLivingEntityC2SPacket.ID: OnSpawnLivingEntity((.) packet);

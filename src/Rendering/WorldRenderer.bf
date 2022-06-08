@@ -12,8 +12,10 @@ namespace Meteorite {
 		private Mesh meshEntities ~ delete _;
 		private Mesh meshLines ~ delete _;
 
+		public Counter<int> chunkUpdates = new .(20) ~ delete _;
 		public int renderedChunks;
 
+		private int chunkUpdatesThisTick;
 		private bool shuttingDown;
 
 		public ~this() {
@@ -28,6 +30,11 @@ namespace Meteorite {
 					chunk.meshTransparent.End(false);
 				}
 			}
+		}
+
+		public void Tick() {
+			chunkUpdates.Add(chunkUpdatesThisTick);
+			chunkUpdatesThisTick = 0;
 		}
 
 		public void Render(RenderPass pass, float tickDelta, float delta) {
@@ -59,7 +66,9 @@ namespace Meteorite {
 						chunk.mesh = new Mesh(Buffers.QUAD_INDICES);
 						chunk.meshTransparent = new Mesh();
 					}
+
 					threadPool.Add(new () => GenerateChunkMesh(chunk));
+					chunkUpdatesThisTick++;
 				}
 				if (chunk.status == .Upload) {
 					chunk.meshTransparent.End();
