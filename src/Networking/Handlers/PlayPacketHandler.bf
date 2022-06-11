@@ -71,7 +71,10 @@ namespace Meteorite {
 
 				connection.Send(scope ClientStatusC2SPacket(0));
 
-				if (abilities == null) Log.Error("Player Abilities packet was not received before spawning the player");
+				if (abilities == null) {
+					Log.Warning("Player Abilities packet was not received before spawning the player");
+					abilities = new .();
+				}
 
 				me.world.AddEntity(new ClientPlayerEntity(playerId, .(packet.x, packet.y - 2, packet.z), (.) packet.yaw, (.) packet.pitch, gamemode, abilities));
 

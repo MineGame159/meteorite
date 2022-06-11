@@ -10,6 +10,10 @@ namespace Meteorite {
 
 		// Handlers
 
+		private void OnLoginDisconnect(LoginDisconnectS2CPacket packet) {
+			Log.Error("Failed to login: {}", packet.reason);
+		}
+
 		private void OnLoginSuccess(LoginSuccessS2CPacket packet) {
 			connection.SetHandler(new PlayPacketHandler(connection));
 		}
@@ -17,11 +21,19 @@ namespace Meteorite {
 		// Base
 
 		public override S2CPacket GetPacket(int32 id) {
-			return id == LoginSuccessS2CPacket.ID ? new LoginSuccessS2CPacket() : null;
+			switch (id) {
+			case LoginDisconnectS2CPacket.ID: return new LoginDisconnectS2CPacket();
+			case LoginSuccessS2CPacket.ID: return new LoginSuccessS2CPacket();
+			}
+
+			return null;
 		}
 
 		public override void Handle(S2CPacket packet) {
-			if (packet.id == LoginSuccessS2CPacket.ID) OnLoginSuccess((.) packet);
+			switch (packet.id) {
+			case LoginDisconnectS2CPacket.ID: OnLoginDisconnect((.) packet);
+			case LoginSuccessS2CPacket.ID: OnLoginSuccess((.) packet);
+			}
 		}
 	}
 }

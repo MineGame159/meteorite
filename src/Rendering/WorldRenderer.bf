@@ -225,7 +225,7 @@ namespace Meteorite {
 			chunk.meshTransparent.Begin();
 
 			int minI = (.) chunk.min.y / Section.SIZE;
-			int maxI = (.) chunk.max.y / Section.SIZE;
+			int maxI = Math.Min((int) chunk.max.y / Section.SIZE, me.world.SectionCount - 1);
 
 			for (int i = minI; i <= maxI; i++) {
 				Section section = chunk.GetSection(i);

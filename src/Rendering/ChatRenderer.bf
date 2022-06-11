@@ -22,8 +22,6 @@ namespace Meteorite {
 			Input.keyEvent.Add(new => OnKey);
 			Input.charEvent.Add(new => OnChar);
 			Input.scrollEvent.Add(new => OnScroll);
-
-			for (int i < 40) AddMessage(scope $"<Meteorite> {i}");
 		}
 
 		public void AddMessage(StringView message) {
