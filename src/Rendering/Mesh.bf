@@ -2,8 +2,8 @@ using System;
 
 namespace Meteorite {
 	class Mesh {
-		private WBuffer vbo, ibo;
-		private bool externalIndices;
+		private WBufferSegment? vbo, ibo;
+		private bool ownsBuffers, externalIndices;
 
 		private Buffer vertices;
 		private Buffer indices;
@@ -12,14 +12,17 @@ namespace Meteorite {
 		private uint32 indicesCount, renderIndicesCount;
 		private bool building;
 
-		public this(WBuffer ibo = null) {
-			this.ibo = ibo;
+		public this(WBuffer ibo = null, bool ownsBuffers = true) {
+			if (ibo != null) this.ibo = ibo;
+			this.ownsBuffers = ownsBuffers;
 			this.externalIndices = ibo != null;
 		}
 
 		public ~this() {
-			if (!externalIndices) delete ibo;
-			delete vbo;
+			if (ownsBuffers) {
+				if (!externalIndices) delete ibo?.buffer;
+				delete vbo?.buffer;
+			}
 		}
 
 		public void Begin() {
@@ -114,23 +117,37 @@ namespace Meteorite {
 			Triangle(i3, i4, i1);
 		}
 
-		public void End(bool upload = true) {
+		public void End(BufferBumpAllocator allocator = null, bool upload = true) {
+			if ((allocator == null && !ownsBuffers) || (allocator != null && ownsBuffers)) Log.Error("Mesh.End() called with invalid allocator");
+
 			if (upload) {
-				if (vbo == null || vertices.size > (.) vbo.size) {
-					if (vbo != null) delete vbo;
-					vbo = Gfx.CreateBuffer(.Vertex | .CopyDst, vertices.size, vertices.data);
+				if (allocator == null) {
+					if (vbo == null || vertices.size > (.) vbo?.size) {
+						if (vbo != null) delete vbo?.buffer;
+						vbo = Gfx.CreateBuffer(.Vertex | .CopyDst, vertices.size, vertices.data);
+					}
+					else {
+						vbo?.Write(vertices.data, vertices.size);
+					}
 				}
 				else {
-					vbo.Write(vertices.data, vertices.size);
+					vbo = allocator.Allocate(.Vertex | .CopyDst, (.) vertices.size);
+					vbo?.Write(vertices.data, vertices.size);
 				}
 	
 				if (!externalIndices) {
-					if (ibo == null || indices.size > (.) ibo.size) {
-						if (ibo != null) delete ibo;
-						ibo = Gfx.CreateBuffer(.Index | .CopyDst, indices.size, indices.data);
+					if (allocator == null) {
+						if (ibo == null || indices.size > (.) ibo?.size) {
+							if (ibo != null) delete ibo?.buffer;
+							ibo = Gfx.CreateBuffer(.Index | .CopyDst, indices.size, indices.data);
+						}
+						else {
+							ibo?.Write(indices.data, indices.size);
+						}
 					}
 					else {
-						ibo.Write(indices.data, indices.size);
+						ibo = allocator.Allocate(.Index | .CopyDst, (.) indices.size);
+						ibo?.Write(indices.data, indices.size);
 					}
 				}
 	
@@ -145,8 +162,8 @@ namespace Meteorite {
 
 		public void Render(RenderPass pass) {
 			if (renderIndicesCount > 0) {
-				vbo.Bind(pass);
-				ibo.Bind(pass);
+				vbo?.Bind(pass);
+				ibo?.Bind(pass);
 
 				pass.Draw(renderIndicesCount);
 			}

@@ -4,8 +4,10 @@ using ImGui;
 using GLFW;
 
 namespace Meteorite {
-	static class HUD {
-		public static void Render() {
+	class HudRenderer {
+		public ChatRenderer chat = new .() ~ delete _;
+
+		public void Render(RenderPass pass, float delta) {
 			Meteorite me = .INSTANCE;
 
 			ImGui.Begin("Meteorite", null, .AlwaysAutoResize);
@@ -34,6 +36,8 @@ namespace Meteorite {
 			ImGui.PopItemWidth();
 
 			ImGui.End();
+
+			chat.Render(pass, delta);
 		}
 	}
 }

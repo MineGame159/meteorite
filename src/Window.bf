@@ -97,6 +97,22 @@ namespace Meteorite {
 
 			Glfw.SetKeyCallback(handle, new (window, key, scancode, action, mods) => {
 				Input.[Friend]keys[(.) key] = action != .Release;
+
+				for (let callback in Input.keyEvent) {
+					if (callback(key, action)) break;
+				}
+			});
+
+			Glfw.SetCharCallback(handle, new (window, char) => {
+				for (let callback in Input.charEvent) {
+					if (callback((.) char)) break;
+				}
+			});
+
+			Glfw.SetScrollCallback(handle, new (window, x, y) => {
+				for (let callback in Input.scrollEvent) {
+					if (callback((.) y)) break;
+				}
 			});
 
 			Gfx.Init(this, surface, device, width, height);

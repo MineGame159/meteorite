@@ -10,7 +10,7 @@ namespace Meteorite {
 			body = model.GetChild("bell_body");
 		}
 
-		public override void Render(MatrixStack matrices, BlockState blockState, BlockEntity _, NamedMeshProvider provider, float tickDelta) {
+		public override void Render(MatrixStack matrices, BlockState blockState, BlockEntity _, NamedMeshBuilderProvider provider, float tickDelta) {
 			body.Render(matrices, provider.Get("entity/bell/bell_body.png"));
 		}
 	}

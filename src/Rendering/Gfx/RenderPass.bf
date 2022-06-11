@@ -89,6 +89,12 @@ namespace Meteorite {
 			pass.SetPushConstants(stages, (.) offset, (.) size, data);
 		}
 
+		public void SetScissor(int x, int y, int width, int height) {
+			int screenHeight = Meteorite.INSTANCE.window.height;
+			pass.SetScissorRect((.) x, (.) (screenHeight - y - height), (.) width, (.) height);
+		}
+		public void ResetScissor() => SetScissor(0, 0, Meteorite.INSTANCE.window.width, Meteorite.INSTANCE.window.height);
+
 		public void Draw(int indexCount) {
 			pass.DrawIndexed((.) indexCount, 1, 0, 0, 0);
 		}

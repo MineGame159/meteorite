@@ -39,18 +39,37 @@ namespace Meteorite {
 			Gfx.ALLOCATED -= size;
 		}
 
-		public void Bind(RenderPass pass) {
-			if (usage.HasFlag(.Vertex)) pass.[Friend]pass.SetVertexBuffer(0, handle, 0, 0);
-			else if (usage.HasFlag(.Index)) pass.[Friend]pass.SetIndexBuffer(handle, .Uint32, 0, 0);
+		public void Bind(RenderPass pass, uint64 offset = 0, uint64 size = 0) {
+			if (usage.HasFlag(.Vertex)) pass.[Friend]pass.SetVertexBuffer(0, handle, offset, size);
+			else if (usage.HasFlag(.Index)) pass.[Friend]pass.SetIndexBuffer(handle, .Uint32, offset, size);
             else {
 				Log.Error("Unknown buffer type: {}", usage);
 				Runtime.NotImplemented();
 			}
 		}
 
-		public void Write(void* data, int size) {
-			Gfx.[Friend]queue.WriteBuffer(handle, 0, data, (.) size);
+		public void Write(void* data, int size, uint64 offset = 0) {
+			Gfx.[Friend]queue.WriteBuffer(handle, offset, data, (.) size);
 		}
+	}
+
+	struct WBufferSegment {
+		public WBuffer buffer;
+		public uint64 offset, size;
+
+		public this(WBuffer buffer, uint64 offset, uint64 size) {
+			this.buffer = buffer;
+			this.offset = offset;
+			this.size = size;
+		}
+
+		public this(WBuffer buffer) : this(buffer, 0, buffer.size) {}
+
+		public void Bind(RenderPass pass) => buffer.Bind(pass, offset, size);
+
+		public void Write(void* data, int size) => buffer.Write(data, size, offset);
+
+		public static operator WBufferSegment(WBuffer buffer) => .(buffer);
 	}
 
 	class Texture {
@@ -231,9 +250,14 @@ namespace Meteorite {
 
 			return new [Friend].(handle, view, desc);
 		}
+
+		public static Texture CreateTexture(Image image) {
+			return CreateTexture(.TextureBinding, image.width, image.height, 1, image.data);
+		}
+
 		public static Texture CreateTexture(StringView path) {
 			Image image = Meteorite.INSTANCE.resources.ReadImage(path);
-			Texture texture = CreateTexture(.TextureBinding, image.width, image.height, 1, image.data);
+			Texture texture = CreateTexture(image);
 
 			delete image;
 			return texture;

@@ -18,25 +18,30 @@ namespace Meteorite{
 		private static float scale;
 		public static bool includeGui;
 
-		public static bool Update() {
+		public static void Init() {
+			Input.keyEvent.Add(new => OnKey);
+		}
+
+		private static bool OnKey(Key key, InputAction action) {
+			if (action != .Press) return false;
+
+			if (windowOpen && key == .Escape) {
+				windowOpen = false;
+				Meteorite.INSTANCE.window.MouseHidden = wasMouseHidden;
+				return true;
+			}
+
+			return false;
+		}
+
+		public static void Update() {
 			Window window = Meteorite.INSTANCE.window;
 
 			if (take) {
 				Take(window);
 				take = false;
 
-				return false;
-			}
-
-			if (windowOpen) {
-				if (Input.IsKeyDown(.Escape)) {
-					windowOpen = false;
-					window.MouseHidden = wasMouseHidden;
-
-					return true;
-				}
-
-				return false;
+				return;
 			}
 
 			if (Input.IsKeyPressed(.F2)) {
@@ -50,8 +55,6 @@ namespace Meteorite{
 				}
 				else Take(window);
 			}
-
-			return false;
 		}
 
 		private static void Take(Window window) {

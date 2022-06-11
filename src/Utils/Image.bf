@@ -20,6 +20,10 @@ namespace Meteorite {
 			this.ownsData = ownsData;
 		}
 
+		public Color Get(int x, int y) {
+			return ((Color*) data)[y * width + x];
+		}
+
 		public void Write(StringView path, bool isBgra = false) {
 			if (components != 4) return;
 

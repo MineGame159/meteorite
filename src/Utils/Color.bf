@@ -20,5 +20,7 @@ namespace Meteorite {
 		public Vec3f ToVec3f() => .(R, G, B);
 
 		public override void ToString(String str) => str.AppendF("[{}, {}, {}, {}]", r, g, b, a);
+
+		public const Color WHITE = .(255, 255, 255);
 	}
 }

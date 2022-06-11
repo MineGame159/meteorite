@@ -36,7 +36,7 @@ namespace Meteorite {
 			}
 		}
 
-		public void Render(Mesh m, double tickDelta) {
+		public void Render(MeshBuilder mb, double tickDelta) {
 			Color color = type.GetColor();
 
 			Vec3d pos = this.pos.Lerp(tickDelta, lastPos);
@@ -50,49 +50,49 @@ namespace Meteorite {
 			double z2 = z1 + type.width;
 
 			Color c = color;
-			m.Quad(
-				m.Vec3(.((.) x1, (.) y2, (.) z1)).Color(c).Next(),
-				m.Vec3(.((.) x2, (.) y2, (.) z1)).Color(c).Next(),
-				m.Vec3(.((.) x2, (.) y2, (.) z2)).Color(c).Next(),
-				m.Vec3(.((.) x1, (.) y2, (.) z2)).Color(c).Next()
+			mb.Quad(
+				mb.Vec3(.((.) x1, (.) y2, (.) z1)).Color(c).Next(),
+				mb.Vec3(.((.) x2, (.) y2, (.) z1)).Color(c).Next(),
+				mb.Vec3(.((.) x2, (.) y2, (.) z2)).Color(c).Next(),
+				mb.Vec3(.((.) x1, (.) y2, (.) z2)).Color(c).Next()
 			);
 
 			c = color.MulWithoutA(0.4f);
-			m.Quad(
-				m.Vec3(.((.) x1, (.) y1, (.) z1)).Color(c).Next(),
-				m.Vec3(.((.) x1, (.) y1, (.) z2)).Color(c).Next(),
-				m.Vec3(.((.) x2, (.) y1, (.) z2)).Color(c).Next(),
-				m.Vec3(.((.) x2, (.) y1, (.) z1)).Color(c).Next()
+			mb.Quad(
+				mb.Vec3(.((.) x1, (.) y1, (.) z1)).Color(c).Next(),
+				mb.Vec3(.((.) x1, (.) y1, (.) z2)).Color(c).Next(),
+				mb.Vec3(.((.) x2, (.) y1, (.) z2)).Color(c).Next(),
+				mb.Vec3(.((.) x2, (.) y1, (.) z1)).Color(c).Next()
 			);
 
 			c = color.MulWithoutA(0.6f);
-			m.Quad(
-				m.Vec3(.((.) x2, (.) y1, (.) z1)).Color(c).Next(),
-				m.Vec3(.((.) x2, (.) y1, (.) z2)).Color(c).Next(),
-				m.Vec3(.((.) x2, (.) y2, (.) z2)).Color(c).Next(),
-				m.Vec3(.((.) x2, (.) y2, (.) z1)).Color(c).Next()
+			mb.Quad(
+				mb.Vec3(.((.) x2, (.) y1, (.) z1)).Color(c).Next(),
+				mb.Vec3(.((.) x2, (.) y1, (.) z2)).Color(c).Next(),
+				mb.Vec3(.((.) x2, (.) y2, (.) z2)).Color(c).Next(),
+				mb.Vec3(.((.) x2, (.) y2, (.) z1)).Color(c).Next()
 			);
 
-			m.Quad(
-				m.Vec3(.((.) x1, (.) y1, (.) z1)).Color(c).Next(),
-				m.Vec3(.((.) x1, (.) y2, (.) z1)).Color(c).Next(),
-				m.Vec3(.((.) x1, (.) y2, (.) z2)).Color(c).Next(),
-				m.Vec3(.((.) x1, (.) y1, (.) z2)).Color(c).Next()
+			mb.Quad(
+				mb.Vec3(.((.) x1, (.) y1, (.) z1)).Color(c).Next(),
+				mb.Vec3(.((.) x1, (.) y2, (.) z1)).Color(c).Next(),
+				mb.Vec3(.((.) x1, (.) y2, (.) z2)).Color(c).Next(),
+				mb.Vec3(.((.) x1, (.) y1, (.) z2)).Color(c).Next()
 			);
 
 			c = color.MulWithoutA(0.8f);
-			m.Quad(
-				m.Vec3(.((.) x1, (.) y1, (.) z1)).Color(c).Next(),
-				m.Vec3(.((.) x2, (.) y1, (.) z1)).Color(c).Next(),
-				m.Vec3(.((.) x2, (.) y2, (.) z1)).Color(c).Next(),
-				m.Vec3(.((.) x1, (.) y2, (.) z1)).Color(c).Next()
+			mb.Quad(
+				mb.Vec3(.((.) x1, (.) y1, (.) z1)).Color(c).Next(),
+				mb.Vec3(.((.) x2, (.) y1, (.) z1)).Color(c).Next(),
+				mb.Vec3(.((.) x2, (.) y2, (.) z1)).Color(c).Next(),
+				mb.Vec3(.((.) x1, (.) y2, (.) z1)).Color(c).Next()
 			);
 
-			m.Quad(
-				m.Vec3(.((.) x1, (.) y1, (.) z2)).Color(c).Next(),
-				m.Vec3(.((.) x1, (.) y2, (.) z2)).Color(c).Next(),
-				m.Vec3(.((.) x2, (.) y2, (.) z2)).Color(c).Next(),
-				m.Vec3(.((.) x2, (.) y1, (.) z2)).Color(c).Next()
+			mb.Quad(
+				mb.Vec3(.((.) x1, (.) y1, (.) z2)).Color(c).Next(),
+				mb.Vec3(.((.) x1, (.) y2, (.) z2)).Color(c).Next(),
+				mb.Vec3(.((.) x2, (.) y2, (.) z2)).Color(c).Next(),
+				mb.Vec3(.((.) x2, (.) y1, (.) z2)).Color(c).Next()
 			);
 		}
 	}

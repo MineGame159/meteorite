@@ -12,6 +12,11 @@ namespace Meteorite {
 		}
 
 		private static void ToStringComponent(Json json, String str) {
+			if (json.IsString) {
+				str.Append(json.AsString);
+				return;
+			}
+
 			if (json.Contains("text")) str.Append(json["text"].AsString);
 			else if (json.Contains("translate")) {
 				Object[] args = null;

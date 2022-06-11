@@ -9,9 +9,6 @@ namespace Meteorite {
 
 		private List<Chunk> visibleChunks = new .() ~ delete _;
 
-		private Mesh meshEntities ~ delete _;
-		private Mesh meshLines ~ delete _;
-
 		public Counter<int> chunkUpdates = new .(20) ~ delete _;
 		public int renderedChunks;
 
@@ -26,8 +23,8 @@ namespace Meteorite {
 
 			for (Chunk chunk in me.world.Chunks) {
 				if (chunk.status == .Upload) {
-					chunk.mesh.End(false);
-					chunk.meshTransparent.End(false);
+					chunk.mesh.End(null, false);
+					chunk.meshTransparent.End(null, false);
 				}
 			}
 		}
@@ -154,17 +151,15 @@ namespace Meteorite {
 			pc.projectionView = me.camera.proj * me.camera.view;
 			pass.SetPushConstants(.Vertex, 0, sizeof(Mat4), &pc.projectionView);
 
-			if (meshEntities == null) meshEntities = new .(Buffers.QUAD_INDICES);
-			meshEntities.Begin();
+			MeshBuilder mb = me.frameBuffers.AllocateImmediate(pass, Buffers.QUAD_INDICES);
 
 			for (Entity entity in me.world.Entities) {
 				if (entity == Meteorite.INSTANCE.player && Meteorite.INSTANCE.player.gamemode == .Spectator) continue;
 
-				entity.Render(meshEntities, tickDelta);
+				entity.Render(mb, tickDelta);
 			}
 
-			meshEntities.End();
-			meshEntities.Render(pass);
+			mb.Finish();
 
 			pass.PopDebugGroup();
 		}
@@ -176,8 +171,7 @@ namespace Meteorite {
 			Mat4 projectionView = me.camera.proj * me.camera.view;
 			pass.SetPushConstants(.Vertex, 0, sizeof(Mat4), &projectionView);
 
-			if (meshLines == null) meshLines = new .();
-			meshLines.Begin();
+			MeshBuilder mb = me.frameBuffers.AllocateImmediate(pass);
 
 			int x = ((.) me.camera.pos.x >> 4) * 16;
 			int z = ((.) me.camera.pos.z >> 4) * 16;
@@ -185,45 +179,44 @@ namespace Meteorite {
 			Color color1 = .(225, 25, 25);
 			Color color2 = .(225, 225, 25);
 
-			Line(meshLines, x, z, color1);
-			Line(meshLines, x + 16, z, color1);
-			Line(meshLines, x, z + 16, color1);
-			Line(meshLines, x + 16, z + 16, color1);
+			Line(mb, x, z, color1);
+			Line(mb, x + 16, z, color1);
+			Line(mb, x, z + 16, color1);
+			Line(mb, x + 16, z + 16, color1);
 
 			x -= 16;
 			z -= 16;
 
-			Line(meshLines, x, z, color2);
-			Line(meshLines, x + 48, z, color2);
-			Line(meshLines, x, z + 48, color2);
-			Line(meshLines, x + 48, z + 48, color2);
+			Line(mb, x, z, color2);
+			Line(mb, x + 48, z, color2);
+			Line(mb, x, z + 48, color2);
+			Line(mb, x + 48, z + 48, color2);
 
-			Line(meshLines, x, z, color2);
-			Line(meshLines, x + 16, z, color2);
-			Line(meshLines, x + 32, z, color2);
+			Line(mb, x, z, color2);
+			Line(mb, x + 16, z, color2);
+			Line(mb, x + 32, z, color2);
 
-			Line(meshLines, x, z, color2);
-			Line(meshLines, x, z + 16, color2);
-			Line(meshLines, x, z + 32, color2);
+			Line(mb, x, z, color2);
+			Line(mb, x, z + 16, color2);
+			Line(mb, x, z + 32, color2);
 
-			Line(meshLines, x + 48, z, color2);
-			Line(meshLines, x + 48, z + 16, color2);
-			Line(meshLines, x + 48, z + 32, color2);
+			Line(mb, x + 48, z, color2);
+			Line(mb, x + 48, z + 16, color2);
+			Line(mb, x + 48, z + 32, color2);
 
-			Line(meshLines, x, z + 48, color2);
-			Line(meshLines, x + 16, z + 48, color2);
-			Line(meshLines, x + 32, z + 48, color2);
+			Line(mb, x, z + 48, color2);
+			Line(mb, x + 16, z + 48, color2);
+			Line(mb, x + 32, z + 48, color2);
 
-			meshLines.End();
-			meshLines.Render(pass);
+			mb.Finish();
 
 			pass.PopDebugGroup();
 		}
 
-		private void Line(Mesh mesh, int x, int z, Color color) {
-			mesh.Line(
-				mesh.Vec3(.(x, 0, z)).Color(color).Next(),
-				mesh.Vec3(.(x, me.world.height, z)).Color(color).Next()
+		private void Line(MeshBuilder mb, int x, int z, Color color) {
+			mb.Line(
+				mb.Vec3(.(x, 0, z)).Color(color).Next(),
+				mb.Vec3(.(x, me.world.height, z)).Color(color).Next()
 			);
 		}
 
@@ -254,8 +247,8 @@ namespace Meteorite {
 			}
 
 			if (shuttingDown) {
-				chunk.mesh.End(false);
-				chunk.meshTransparent.End(false);
+				chunk.mesh.End(null, false);
+				chunk.meshTransparent.End(null, false);
 
 				chunk.status = .Ready;
 			}

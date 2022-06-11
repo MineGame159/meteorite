@@ -21,6 +21,8 @@ namespace Meteorite{
 		}
 
 		public static void Return(Buffer buffer) {
+			if (buffer == null) return;
+
 			MONITOR.Enter();
 
 			BUFFERS.Add(buffer);

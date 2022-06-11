@@ -5,7 +5,7 @@ namespace Meteorite {
 	class BlockEntityRenderDispatcher {
 		private Dictionary<BlockEntityType, BlockEntityRenderer> renderers = new .() ~ DeleteDictionaryAndValues!(_);
 
-		private NamedMeshProvider provider = new .() ~ delete _;
+		private NamedMeshBuilderProvider provider = new .() ~ delete _;
 		private MatrixStack matrices = new .() ~ delete _;
 
 		public this() {
@@ -40,8 +40,8 @@ namespace Meteorite {
 			for (let pair in provider.Meshes) {
 				Meteorite.INSTANCE.textures.Bind(pass, pair.key);
 
-				pair.value.End();
-				pair.value.Render(pass);
+				((ImmediateMeshBuilder) pair.value).[Friend]pass = pass; // cope about it
+				pair.value.Finish();
 			}
 
 			provider.End();

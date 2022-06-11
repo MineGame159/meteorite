@@ -21,10 +21,6 @@ namespace Meteorite {
 		private static Pipeline PIPELINE3 ~ delete _;
 		private static Pipeline PIPELINE4 ~ delete _;
 
-		private static Mesh MESH1 ~ delete _; // TODO: Uuhhhh
-		private static Mesh MESH2 ~ delete _;
-		private static Mesh MESH3 ~ delete _;
-
 		private static Mesh LIGHT_MESH ~ delete _;
 		private static Mesh DARK_MESH ~ delete _;
 		private static Mesh STARS_MESH ~ delete _;
@@ -78,10 +74,6 @@ namespace Meteorite {
 				})
 				.Depth(true, false, false)
 				.Create();
-
-			MESH1 = new .();
-			MESH2 = new .();
-			MESH3 = new .();
 
 			CreateSkyDic(ref LIGHT_MESH, 16);
 			CreateSkyDic(ref DARK_MESH, -16);
@@ -202,10 +194,10 @@ namespace Meteorite {
 				pc1.projectionView = baseMatrix * matrix;
 
 				pass.SetPushConstants(.Vertex | .Fragment, 0, sizeof(PushConstaints1), &pc1);
-				MESH1.Begin();
+				MeshBuilder mb = Meteorite.INSTANCE.frameBuffers.AllocateImmediate(pass);
 
 				Color color = .(sunriseColor.Value.x, sunriseColor.Value.y, sunriseColor.Value.z, sunriseColor.Value.w);
-				uint32 center = MESH1.Vec3(.(0, 100, 0)).Color(color).Next();
+				uint32 center = mb.Vec3(.(0, 100, 0)).Color(color).Next();
 				uint32[17] around = .();
 
 				color.a = 0;
@@ -214,69 +206,70 @@ namespace Meteorite {
 					float p = Math.Sin(o);
 					float q = Math.Cos(o);
 
-					around[i] = MESH1.Vec3(.(p * 120, q * 120, -q * 40 * sunriseColor.Value.w)).Color(color).Next();
+					around[i] = mb.Vec3(.(p * 120, q * 120, -q * 40 * sunriseColor.Value.w)).Color(color).Next();
 				}
 
 				for (int i < 16) {
-					MESH1.Triangle(center, around[i], around[i + 1]);
+					mb.Triangle(center, around[i], around[i + 1]);
 				}
 
-				MESH1.End();
-				MESH1.Render(pass);
+				mb.Finish();
 			}
 
 			// Sun
-			PIPELINE3.Bind(pass);
-			SUN_BIND_GROUP.Bind(pass);
-
 			float alpha = 1.0F - world.GetRainLevel(tickDelta);
-			pc1.projectionView = baseMatrix * Mat4.Identity().Rotate(.(0, 1, 0), -90).Rotate(.(1, 0, 0), world.GetSkyAngle() * 360);
-			pc1.color = .(1, 1, 1, alpha);
-			pass.SetPushConstants(.Vertex | .Fragment, 0, sizeof(PushConstaints1), &pc1);
+			{
+				PIPELINE3.Bind(pass);
+				SUN_BIND_GROUP.Bind(pass);
 
-			float k = 30.0F;
-			MESH2.Begin();
-			MESH2.Quad(
-				MESH2.Vec3(.(-k, 100, -k)).Vec2(.(0, 0)).Next(),
-				MESH2.Vec3(.(k, 100, -k)).Vec2(.(1, 0)).Next(),
-				MESH2.Vec3(.(k, 100, k)).Vec2(.(1, 1)).Next(),
-				MESH2.Vec3(.(-k, 100, k)).Vec2(.(0, 1)).Next()
-			);
-			MESH2.End();
-			MESH2.Render(pass);
+				pc1.projectionView = baseMatrix * Mat4.Identity().Rotate(.(0, 1, 0), -90).Rotate(.(1, 0, 0), world.GetSkyAngle() * 360);
+				pc1.color = .(1, 1, 1, alpha);
+				pass.SetPushConstants(.Vertex | .Fragment, 0, sizeof(PushConstaints1), &pc1);
+
+				float k = 30.0F;
+				MeshBuilder mb = Meteorite.INSTANCE.frameBuffers.AllocateImmediate(pass, Buffers.QUAD_INDICES);
+				mb.Quad(
+					mb.Vec3(.(-k, 100, -k)).Vec2(.(0, 0)).Next(),
+					mb.Vec3(.(k, 100, -k)).Vec2(.(1, 0)).Next(),
+					mb.Vec3(.(k, 100, k)).Vec2(.(1, 1)).Next(),
+					mb.Vec3(.(-k, 100, k)).Vec2(.(0, 1)).Next()
+				);
+				mb.Finish();
+			}
 
 			// Moon
-			MOON_BIND_GROUP.Bind(pass);
-
-			k = 20.0F;
-			int r = world.GetMoonPhase();
-			int s = r % 4;
-			int m = r / 4 % 2;
-			float t = (s + 0) / 4f;
-			float o = (m + 0) / 2f;
-			float p = (s + 1) / 4f;
-			float q = (m + 1) / 2f;
-
-			MESH3.Begin();
-			MESH3.Quad(
-				MESH3.Vec3(.(-k, -100, k)).Vec2(.(p, q)).Next(),
-				MESH3.Vec3(.(k, -100, k)).Vec2(.(t, q)).Next(),
-				MESH3.Vec3(.(k, -100, -k)).Vec2(.(t, o)).Next(),
-				MESH3.Vec3(.(-k, -100, -k)).Vec2(.(p, o)).Next()
-			);
-			MESH3.End();
-			MESH3.Render(pass);
-
-			// Stars
-			float u = world.GetStarBrightness() * alpha;
-			if (u > 0) {
-				PIPELINE4.Bind(pass);
-
-				pc2.fogStart = float.MaxValue;
-				pc2.color = .(u, u, u, u);
-				pass.SetPushConstants(.Vertex | .Fragment, 0, sizeof(PushConstaints2), &pc2);
-
-				STARS_MESH.Render(pass);
+			{
+				MOON_BIND_GROUP.Bind(pass);
+	
+				float k = 20.0F;
+				int r = world.GetMoonPhase();
+				int s = r % 4;
+				int m = r / 4 % 2;
+				float t = (s + 0) / 4f;
+				float o = (m + 0) / 2f;
+				float p = (s + 1) / 4f;
+				float q = (m + 1) / 2f;
+	
+				MeshBuilder mb = Meteorite.INSTANCE.frameBuffers.AllocateImmediate(pass, Buffers.QUAD_INDICES);
+				mb.Quad(
+					mb.Vec3(.(-k, -100, k)).Vec2(.(p, q)).Next(),
+					mb.Vec3(.(k, -100, k)).Vec2(.(t, q)).Next(),
+					mb.Vec3(.(k, -100, -k)).Vec2(.(t, o)).Next(),
+					mb.Vec3(.(-k, -100, -k)).Vec2(.(p, o)).Next()
+				);
+				mb.Finish();
+	
+				// Stars
+				float u = world.GetStarBrightness() * alpha;
+				if (u > 0) {
+					PIPELINE4.Bind(pass);
+	
+					pc2.fogStart = float.MaxValue;
+					pc2.color = .(u, u, u, u);
+					pass.SetPushConstants(.Vertex | .Fragment, 0, sizeof(PushConstaints2), &pc2);
+	
+					STARS_MESH.Render(pass);
+				}
 			}
 
 			// Dark

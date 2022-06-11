@@ -26,7 +26,7 @@ namespace Meteorite {
 			rightLock = right.GetChild("lock");
 		}
 
-		public override void Render(MatrixStack matrices, BlockState blockState, BlockEntity _, NamedMeshProvider provider, float tickDelta) {
+		public override void Render(MatrixStack matrices, BlockState blockState, BlockEntity _, NamedMeshBuilderProvider provider, float tickDelta) {
 			Type type = blockState.block == Blocks.ENDER_CHEST ? .Single : (.) blockState.GetProperty("type").value;
 			Direction facing = GetDirection(blockState.GetProperty("facing").value);
 
@@ -55,13 +55,13 @@ namespace Meteorite {
 			matrices.Pop();
 		}
 
-		private void Render(MatrixStack matrices, Mesh mesh, ModelPart bottom, ModelPart lid, ModelPart lock, float lidAngle) {
+		private void Render(MatrixStack matrices, MeshBuilder mb, ModelPart bottom, ModelPart lid, ModelPart lock, float lidAngle) {
 			lid.rot.x = -(lidAngle * (Math.PI_f / 2f));
 			lock.rot.x = lid.rot.x;
 
-			bottom.Render(matrices, mesh);
-			lid.Render(matrices, mesh);
-			lock.Render(matrices, mesh);
+			bottom.Render(matrices, mb);
+			lid.Render(matrices, mb);
+			lock.Render(matrices, mb);
 		}
 
 		private Direction GetDirection(int i) {

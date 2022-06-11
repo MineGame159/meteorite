@@ -7,7 +7,7 @@ namespace Meteorite {
 		public Json text ~ _.Dispose();
 		public int8 position;
 
-		public this() : base(ID) {}
+		public this() : base(ID, .World) {}
 
 		public override void Read(NetBuffer packet) {
 			String str = packet.ReadString();

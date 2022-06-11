@@ -23,6 +23,7 @@ namespace Meteorite {
 	}
 
 	class Camera {
+		public Mat4 proj2d;
 		public Mat4 proj, view, viewRotationOnly;
 
 		public Vec3f pos;
@@ -62,6 +63,7 @@ namespace Meteorite {
 			}
 
 			// Update matrices
+			proj2d = .Ortho(0, width / 2, 0, height / 2);
 			proj = .Perspective(Meteorite.INSTANCE.options.fov, (float) width / height, 0.05f, far);
 			view = .LookAt(pos, pos + GetDirection(true), .(0, 1, 0));
 			viewRotationOnly = .LookAt(.(), GetDirection(true), .(0, 1, 0));

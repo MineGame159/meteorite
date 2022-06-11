@@ -25,6 +25,19 @@ namespace Meteorite {
 				.Callback(new => Render2D)
 				.Color(mainPass)
 				.Create();
+
+			Input.keyEvent.Add(new => OnKey, -10);
+		}
+
+		private bool OnKey(Key key, InputAction action) {
+			if (action != .Press) return false;
+
+			if (key == .Escape) {
+				me.window.MouseHidden = !me.window.MouseHidden;
+				return true;
+			}
+
+			return false;
 		}
 
 		public void Tick() {
@@ -37,8 +50,7 @@ namespace Meteorite {
 			List<RenderPass> passes = scope .();
 			mainPass.SetClearColor(me.world != null ? me.world.GetClearColor(me.camera, me.tickCounter.tickDelta) : .(200, 200, 200, 255));
 
-			bool escaped = Screenshots.Update();
-			if (!escaped && Input.IsKeyPressed(.Escape)) me.window.MouseHidden = !me.window.MouseHidden;
+			Screenshots.Update();
 
 			if (me.world != null && me.worldRenderer != null) {
 				SetupWorldRendering();
@@ -58,7 +70,7 @@ namespace Meteorite {
 				me.camera.pitch = me.player.pitch;
 			}
 			else {
-				me.camera.FlightMovement(delta);
+				if (!Input.capturingCharacters) me.camera.FlightMovement(delta);
 			}
 			
 			me.camera.Update(me.world.viewDistance * Section.SIZE * 4);
@@ -70,12 +82,13 @@ namespace Meteorite {
 
 		private void Render2D(RenderPass pass) {
 			pass.PushDebugGroup("2D");
+
 			ImGuiImplWgpu.NewFrame();
 			ImGuiImplGlfw.NewFrame();
 			ImGui.NewFrame();
 
 			if (me.connection == null) MainMenu.Render();
-			else HUD.Render();
+			else me.hud.Render(pass, delta);
 
 			Screenshots.Render();
 

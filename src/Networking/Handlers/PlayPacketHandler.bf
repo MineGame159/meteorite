@@ -155,7 +155,7 @@ namespace Meteorite {
 				String text = scope .();
 				TextUtils.ToString(packet.text, text);
 
-				Log.Chat(text);
+				me.hud.chat.AddMessage(text);
 			}
 		}
 

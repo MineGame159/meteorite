@@ -11,14 +11,14 @@ namespace Meteorite {
 
 		public ModelPart GetChild(String name) => children[name];
 
-		private mixin Vertex(Mesh m, MatrixStack matrices, Face face, Vec4 normal, int vertexI) {
+		private mixin Vertex(MeshBuilder mb, MatrixStack matrices, Face face, Vec4 normal, int vertexI) {
 			Vertex vertex = face.vertices[vertexI];
 			Vec4 pos = matrices.Back * Vec4(vertex.pos / 16, 1);
 			
-			m.Vec3(.(pos.x, pos.y, pos.z)).Vec3(.(normal.x, normal.y, normal.z)).UShort2(vertex.uv.x, vertex.uv.y).Next()
+			mb.Vec3(.(pos.x, pos.y, pos.z)).Vec3(.(normal.x, normal.y, normal.z)).UShort2(vertex.uv.x, vertex.uv.y).Next()
 		}
 
-		public void Render(MatrixStack matrices, Mesh mesh) {
+		public void Render(MatrixStack matrices, MeshBuilder mb) {
 			if (!visible || (cubes.IsEmpty && children.IsEmpty)) return;
 
 			matrices.Push();
@@ -28,16 +28,16 @@ namespace Meteorite {
 				for (let face in cube.faces) {
 					Vec4 normal = matrices.BackNormal * Vec4(face.normal, 1);
 
-					mesh.Quad(
-						Vertex!(mesh, matrices, face, normal, 0),
-						Vertex!(mesh, matrices, face, normal, 1),
-						Vertex!(mesh, matrices, face, normal, 2),
-						Vertex!(mesh, matrices, face, normal, 3)
+					mb.Quad(
+						Vertex!(mb, matrices, face, normal, 0),
+						Vertex!(mb, matrices, face, normal, 1),
+						Vertex!(mb, matrices, face, normal, 2),
+						Vertex!(mb, matrices, face, normal, 3)
 					);
 				}
 			}
 
-			for (ModelPart child in children.Values) child.Render(matrices, mesh);
+			for (ModelPart child in children.Values) child.Render(matrices, mb);
 
 			matrices.Pop();
 		}

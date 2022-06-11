@@ -24,31 +24,31 @@ namespace Meteorite {
 
 	class PlayerKeyboardInput : PlayerInput {
 		public bool IsForward() {
-			return Input.IsKeyDown(.W);
+			return !Input.capturingCharacters && Input.IsKeyDown(.W);
 		}
 
 		public bool IsBackward() {
-			return Input.IsKeyDown(.S);
+			return !Input.capturingCharacters && Input.IsKeyDown(.S);
 		}
 
 		public bool IsRight() {
-			return Input.IsKeyDown(.D);
+			return !Input.capturingCharacters && Input.IsKeyDown(.D);
 		}
 
 		public bool IsLeft() {
-			return Input.IsKeyDown(.A);
+			return !Input.capturingCharacters && Input.IsKeyDown(.A);
 		}
 
 		public bool IsSprint() {
-			return Input.IsKeyDown(.LeftControl) || Input.IsKeyDown(.RightControl);
+			return !Input.capturingCharacters && Input.IsKeyDown(.LeftControl) || Input.IsKeyDown(.RightControl);
 		}
 
 		public bool IsSneak() {
-			return Input.IsKeyDown(.LeftShift) || Input.IsKeyDown(.RightShift);
+			return !Input.capturingCharacters && Input.IsKeyDown(.LeftShift) || Input.IsKeyDown(.RightShift);
 		}
 
 		public bool IsJump() {
-			return Input.IsKeyDown(.Space);
+			return !Input.capturingCharacters && Input.IsKeyDown(.Space);
 		}
 	}
 }
