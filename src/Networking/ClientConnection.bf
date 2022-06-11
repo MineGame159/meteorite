@@ -4,7 +4,7 @@ using System.Collections;
 
 namespace Meteorite {
 	class ClientConnection : Connection {
-		private PacketHandler handler ~ delete _;
+		private PacketHandler handler ~ DeleteAndNullify!(_);
 
 		public int32 viewDistance;
 
@@ -24,11 +24,11 @@ namespace Meteorite {
 		}
 
 		protected override void OnPacket(int id, NetBuffer packet) {
-			S2CPacket p = handler.GetPacket((.) id);
+			S2CPacket p = handler?.GetPacket((.) id);
 
 			if (p != null) {
 				p.Read(packet);
-				handler.Handle(p);
+				handler?.Handle(p);
 
 				delete p;
 			}

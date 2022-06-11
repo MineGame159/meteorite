@@ -17,6 +17,8 @@ namespace Meteorite {
 
 		public abstract void Finish();
 
+		public abstract void Cancel();
+
 		// Vertices
 
 		public Self UByte2(uint8 x, uint8 y) {
@@ -127,9 +129,13 @@ namespace Meteorite {
 			}
 
 			pass.Draw(indicesCount);
+			Cancel();
+		}
 
+		public override void Cancel() {
 			Buffers.Return(vertices);
 			Buffers.Return(indices);
+
 			delete this;
 		}
 	}

@@ -11,7 +11,7 @@ namespace Meteorite {
 			if (b == Blocks.WATER || b == Blocks.LAVA || IsFilledWithWater(b)) return;
 
 			Quad quad = blockState.model.quads[0];
-			Mesh m = blockState.block == Blocks.WATER ? chunk.meshTransparent : chunk.mesh;
+			MeshBuilder mb = (blockState.block == Blocks.WATER ? chunk.meshTransparent : chunk.mesh).Build();
 
 			Color c = .(255, 255, 255);
 			if (blockState.block == Blocks.WATER) Tint(chunk, blockState, x, y, z, ref c);
@@ -20,13 +20,13 @@ namespace Meteorite {
 			Property p = blockState.GetProperty("level");
 			float yOffset = (p.value == 0 ? 15 : 15 - p.value) / 16f;
 
-			uint32 i1 = Vertex!(m, x, y, z, Vertex(.(0, yOffset, 0), quad.vertices[0].uv), quad.texture, c);
-			uint32 i2 = Vertex!(m, x, y, z, Vertex(.(1, yOffset, 0), quad.vertices[1].uv), quad.texture, c);
-			uint32 i3 = Vertex!(m, x, y, z, Vertex(.(1, yOffset, 1), quad.vertices[2].uv), quad.texture, c);
-			uint32 i4 = Vertex!(m, x, y, z, Vertex(.(0, yOffset, 1), quad.vertices[3].uv), quad.texture, c);
+			uint32 i1 = Vertex!(mb, x, y, z, Vertex(.(0, yOffset, 0), quad.vertices[0].uv), quad.texture, c);
+			uint32 i2 = Vertex!(mb, x, y, z, Vertex(.(1, yOffset, 0), quad.vertices[1].uv), quad.texture, c);
+			uint32 i3 = Vertex!(mb, x, y, z, Vertex(.(1, yOffset, 1), quad.vertices[2].uv), quad.texture, c);
+			uint32 i4 = Vertex!(mb, x, y, z, Vertex(.(0, yOffset, 1), quad.vertices[3].uv), quad.texture, c);
 
-			m.Quad(i1, i2, i3, i4); // Top
-			m.Quad(i1, i4, i3, i2); // Bottom
+			mb.Quad(i1, i2, i3, i4); // Top
+			mb.Quad(i1, i4, i3, i2); // Bottom
 		}
 		
 		public static void Render(World world, Chunk chunk, int x, int y, int z, BlockState blockState, Biome biome) {
@@ -39,7 +39,7 @@ namespace Meteorite {
 			else if (IsFilledWithWater(blockState.block)) RenderFluid(world, chunk, x, y, z, Blocks.WATER.defaultBlockState, biome);
 
 			Foo foo = .(world, chunk, x, y, z);
-			Mesh m = blockState.block == Blocks.NETHER_PORTAL ? chunk.meshTransparent : chunk.mesh; // TODO: Fix this
+			MeshBuilder mb = (blockState.block == Blocks.NETHER_PORTAL ? chunk.meshTransparent : chunk.mesh).Build(); // TODO: Fix this
 			bool ao = Meteorite.INSTANCE.options.ao;
 
 			for (Quad quad in blockState.model.quads) {
@@ -100,17 +100,17 @@ namespace Meteorite {
 				if (quad.tint && biome != null) Tint(chunk, blockState, x, y, z, ref c);
 				
 				// Emit quad
-				m.Quad(
-					Vertex!(m, x, y, z, quad.vertices[0], quad.texture, c.MulWithoutA(quad.light * ao1)),
-					Vertex!(m, x, y, z, quad.vertices[1], quad.texture, c.MulWithoutA(quad.light * ao2)),
-					Vertex!(m, x, y, z, quad.vertices[2], quad.texture, c.MulWithoutA(quad.light * ao3)),
-					Vertex!(m, x, y, z, quad.vertices[3], quad.texture, c.MulWithoutA(quad.light * ao4))
+				mb.Quad(
+					Vertex!(mb, x, y, z, quad.vertices[0], quad.texture, c.MulWithoutA(quad.light * ao1)),
+					Vertex!(mb, x, y, z, quad.vertices[1], quad.texture, c.MulWithoutA(quad.light * ao2)),
+					Vertex!(mb, x, y, z, quad.vertices[2], quad.texture, c.MulWithoutA(quad.light * ao3)),
+					Vertex!(mb, x, y, z, quad.vertices[3], quad.texture, c.MulWithoutA(quad.light * ao4))
 				);
 			}
 		}
 
-		private static mixin Vertex(Mesh mesh, int x, int y, int z, Vertex v, uint16 texture, Color color) {
-			mesh
+		private static mixin Vertex(MeshBuilder mb, int x, int y, int z, Vertex v, uint16 texture, Color color) {
+			mb
 				.Vec3(.(x + v.pos.x, y + v.pos.y, z + v.pos.z))
 				.UShort2(v.uv.x, v.uv.y)
 				.Color(color)

@@ -23,8 +23,8 @@ namespace Meteorite {
 
 			for (Chunk chunk in me.world.Chunks) {
 				if (chunk.status == .Upload) {
-					chunk.mesh.End(null, false);
-					chunk.meshTransparent.End(null, false);
+					chunk.mesh.Build().Cancel();
+					chunk.meshTransparent.Build().Cancel();
 				}
 			}
 		}
@@ -68,8 +68,8 @@ namespace Meteorite {
 					chunkUpdatesThisTick++;
 				}
 				if (chunk.status == .Upload) {
-					chunk.meshTransparent.End();
-					chunk.mesh.End();
+					chunk.meshTransparent.Build().Finish();
+					chunk.mesh.Build().Finish();
 					chunk.status = .Ready;
 				}
 
@@ -221,9 +221,6 @@ namespace Meteorite {
 		}
 
 		private void GenerateChunkMesh(Chunk chunk) {
-			chunk.mesh.Begin();
-			chunk.meshTransparent.Begin();
-
 			int minI = (.) chunk.min.y / Section.SIZE;
 			int maxI = Math.Min((int) chunk.max.y / Section.SIZE, me.world.SectionCount - 1);
 
@@ -247,8 +244,8 @@ namespace Meteorite {
 			}
 
 			if (shuttingDown) {
-				chunk.mesh.End(null, false);
-				chunk.meshTransparent.End(null, false);
+				chunk.mesh.Build().Cancel();
+				chunk.meshTransparent.Build().Cancel();
 
 				chunk.status = .Ready;
 			}

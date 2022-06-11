@@ -89,6 +89,7 @@ namespace Meteorite {
 			chunk.max.y = packet.maxY;
 
 			me.world.AddChunk(chunk);
+			packet.Consume();
 		}
 
 		private void OnBlockChange(BlockChangeS2CPacket packet) {

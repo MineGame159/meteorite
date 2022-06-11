@@ -91,26 +91,27 @@ namespace Meteorite {
 
 			float f = Math.Sign(y) * 512.0F; // Uhhh signum?
 
-			mesh.Begin();
-			uint32 center = mesh.Vec3(.(0, y, 0)).Next();
+			MeshBuilder mb = mesh.Build();
+			uint32 center = mb.Vec3(.(0, y, 0)).Next();
 			uint32[9] around = .();
 
 			int j = 0;
 			for(int i = -180; i <= 180; i += 45) {
-				around[j++] = mesh.Vec3(.((f * Math.Cos(i * (Math.PI_f / 180f))), y, (512.0F * Math.Sin(i * (Math.PI_f / 180f))))).Next();
+				around[j++] = mb.Vec3(.((f * Math.Cos(i * (Math.PI_f / 180f))), y, (512.0F * Math.Sin(i * (Math.PI_f / 180f))))).Next();
 			}
 
 			for (int i < 8) {
-				mesh.Triangle(center, around[i], around[i + 1]);
+				mb.Triangle(center, around[i], around[i + 1]);
 			}
 
-			mesh.End();
+			mb.Finish();
 		}
 
 		private static void CreateStars(ref Mesh mesh) {
 			mesh = new .(Buffers.QUAD_INDICES);
+
 			Random random = scope .();
-			mesh.Begin();
+			MeshBuilder mb = mesh.Build();
 
 			for (int i < 1500) {
 				double d = random.NextDouble() * 2 - 1;
@@ -149,14 +150,14 @@ namespace Meteorite {
 						double ae = 0.0 * q - aa * r;
 						double af = ae * n - ab * o;
 						double ah = ab * n + ae * o;
-						indices[v] = mesh.Vec3(.((.) (j + af), (.) (k + ad), (.) (l + ah))).Next();
+						indices[v] = mb.Vec3(.((.) (j + af), (.) (k + ad), (.) (l + ah))).Next();
 					}
 
-					mesh.Quad(indices[0], indices[1], indices[2], indices[3]);
+					mb.Quad(indices[0], indices[1], indices[2], indices[3]);
 				}
 			}
 
-			mesh.End();
+			mb.Finish();
 		}
 
 		public static void Render(RenderPass pass, World world, Camera camera, double tickDelta) {

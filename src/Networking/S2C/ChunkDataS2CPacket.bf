@@ -11,7 +11,18 @@ namespace Meteorite {
 		public Section[] sections;
 		public Dictionary<Vec3i, BlockEntity> blockEntities;
 
+		private bool consumed;
+
 		public this() : base(ID, .World) {}
+
+		public ~this() {
+			if (!consumed) {
+				DeleteContainerAndItems!(sections);
+				DeleteDictionaryAndValues!(blockEntities);
+			}
+		}
+
+		public void Consume() => consumed = true;
 
 		public override void Read(NetBuffer buf) {
 			pos = .(buf.ReadInt(), buf.ReadInt());
