@@ -20,9 +20,11 @@ namespace Meteorite {
 
 	abstract class S2CPacket : Packet {
 		public PacketRequires requires;
+		public bool synchronised;
 
-		public this(int32 id, PacketRequires requires = .Nothing) : base(id) {
+		public this(int32 id, PacketRequires requires = .Nothing, bool synchronised = false) : base(id) {
 			this.requires = requires;
+			this.synchronised = synchronised;
 		}
 
 		public abstract void Read(NetBuffer buf);

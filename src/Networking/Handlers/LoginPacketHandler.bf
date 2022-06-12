@@ -8,6 +8,13 @@ namespace Meteorite {
 			this.connection = connection;
 		}
 
+		public override void OnConnectionLost() {
+			LoginDisconnectS2CPacket packet = scope .();
+			packet.reason = .Of("Connection lost");
+
+			OnLoginDisconnect(packet);
+		}
+
 		// Handlers
 
 		private void OnLoginDisconnect(LoginDisconnectS2CPacket packet) {
@@ -34,6 +41,8 @@ namespace Meteorite {
 			case LoginDisconnectS2CPacket.ID: OnLoginDisconnect((.) packet);
 			case LoginSuccessS2CPacket.ID: OnLoginSuccess((.) packet);
 			}
+
+			delete packet;
 		}
 	}
 }

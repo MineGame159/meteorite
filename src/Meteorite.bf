@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Collections;
 
 namespace Meteorite {
 	class Meteorite {
@@ -23,6 +24,8 @@ namespace Meteorite {
 		public ClientConnection connection;
 		public World world;
 		public ClientPlayerEntity player;
+
+		private List<delegate void()> tasks = new .() ~ DeleteContainerAndItems!(_);
 
 		public this() {
 			INSTANCE = this;
@@ -81,11 +84,34 @@ namespace Meteorite {
 			window.MouseHidden = true;
 		}
 
+		public void Disconnect(Text reason) {
+			if (connection == null) return;
+
+			DeleteAndNullify!(worldRenderer);
+			DeleteAndNullify!(world);
+			player = null;
+			DeleteAndNullify!(connection);
+
+			window.MouseHidden = false;
+
+			Log.Info("Disconnected: {}", reason);
+		}
+
+		public void Execute(delegate void() task) {
+			tasks.Add(task);
+		}
+
 		private void Tick(float tickDelta) {
 			if (connection != null && connection.closed) {
 				DeleteAndNullify!(connection);
 				window.MouseHidden = false;
 			}
+
+			for (let task in tasks) {
+				task();
+				delete task;
+			}
+			tasks.Clear();
 
 			if (world == null) return;
 

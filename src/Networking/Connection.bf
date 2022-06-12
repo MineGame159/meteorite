@@ -54,6 +54,8 @@ namespace Meteorite {
 
 		protected abstract void OnReady();
 
+		protected abstract void OnConnectionLost();
+
 		protected abstract void OnPacket(int id, NetBuffer packet);
 
 		private void BeforeOnPacket(int id, NetBuffer packet) {
@@ -132,7 +134,8 @@ namespace Meteorite {
 			if (compressionThreshold != -1) packet.WriteVarInt(0);
 			packet.Write(buffer);
 
-			s.Send(packet.[Friend]data, packet.size);
+			let result = s.Send(packet.[Friend]data, packet.size);
+			if (result == .Err) OnConnectionLost();
 		}
 	}
 }

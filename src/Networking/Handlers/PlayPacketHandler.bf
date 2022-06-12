@@ -13,6 +13,15 @@ namespace Meteorite {
 			this.connection = connection;
 		}
 
+		public override void OnConnectionLost() {
+			me.Execute(new () => {
+				DisconnectS2CPacket packet = scope .();
+				packet.reason = .Of("Connection lost");
+
+				OnDisconnect(packet);
+			});
+		}
+
 		// Handlers
 
 		private void OnKeepAlive(KeepAliveS2CPacket packet) {
@@ -160,6 +169,10 @@ namespace Meteorite {
 			}
 		}
 
+		private void OnDisconnect(DisconnectS2CPacket packet) {
+			me.Disconnect(packet.reason);
+		}
+
 		// Base
 
 		public override S2CPacket GetPacket(int32 id) {
@@ -183,12 +196,18 @@ namespace Meteorite {
 			case TimeUpdateS2CPacket.ID: return new TimeUpdateS2CPacket();
 			case ChangeGameStateS2CPacket.ID: return new ChangeGameStateS2CPacket();
 			case ChatMessageS2CPacket.ID: return new ChatMessageS2CPacket();
+			case DisconnectS2CPacket.ID: return new DisconnectS2CPacket();
 			}
 
 			return null;
 		}
 
 		public override void Handle(S2CPacket packet) {
+			if (packet.synchronised) me.Execute(new () => Dispatch(packet));
+			else Dispatch(packet);
+		}
+
+		private void Dispatch(S2CPacket packet) {
 			CheckPacketCondition!(packet);
 
 			switch (packet.id) {
@@ -211,7 +230,10 @@ namespace Meteorite {
 			case TimeUpdateS2CPacket.ID: OnTimeUpdate((.) packet);
 			case ChangeGameStateS2CPacket.ID: OnChangeGameState((.) packet);
 			case ChatMessageS2CPacket.ID: OnChatMessage((.) packet);
+			case DisconnectS2CPacket.ID: OnDisconnect((.) packet);
 			}
+
+			delete packet;
 		}
 	}
 }

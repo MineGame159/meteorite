@@ -23,14 +23,18 @@ namespace Meteorite {
 			Send(scope LoginStartC2SPacket("Meteorite"));
 		}
 
+		protected override void OnConnectionLost() {
+			handler?.OnConnectionLost();
+		}
+
 		protected override void OnPacket(int id, NetBuffer packet) {
 			S2CPacket p = handler?.GetPacket((.) id);
 
 			if (p != null) {
 				p.Read(packet);
-				handler?.Handle(p);
 
-				delete p;
+				if (handler != null) handler.Handle(p);
+				else delete packet;
 			}
 		}
 
