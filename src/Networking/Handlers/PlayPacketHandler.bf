@@ -156,10 +156,7 @@ namespace Meteorite {
 		private void OnChatMessage(ChatMessageS2CPacket packet) {
 			// 2 - above hotbar thing
 			if (packet.position != 2) {
-				String text = scope .();
-				TextUtils.ToString(packet.text, text);
-
-				me.hud.chat.AddMessage(text);
+				me.hud.chat.AddMessage(packet.text);
 			}
 		}
 

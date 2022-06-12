@@ -7,10 +7,10 @@ namespace Meteorite {
 
 		private Meteorite me = .INSTANCE;
 
-		private List<String> messages = new .() ~ DeleteContainerAndItems!(_);
+		private List<Text> messages = new .() ~ DeleteContainerAndItems!(_);
 		private List<Message> visibleMessages = new .() ~ DeleteContainerAndItems!(_);
 
-		private bool typing, showCursor, wasMouseHidden;
+		private bool typing, showCursor, wasMouseHidden, firstChar;
 		private String toSend = new .() ~ delete _;
 		private float cursorTimer;
 		private int renderFrom;
@@ -24,32 +24,16 @@ namespace Meteorite {
 			Input.scrollEvent.Add(new => OnScroll);
 		}
 
-		public void AddMessage(StringView message) {
-			messages.AddFront(new .(message));
+		public void AddMessage(Text message) {
+			messages.AddFront(message.Copy());
 			if (messages.Count > 100) delete messages.PopBack();
 
 			visibleMessages.AddFront(new .(message));
-
-			Log.Chat(message);
+			
+			Log.Chat("{}", message);
 		}
 
 		public void Render(RenderPass pass, float delta) {
-			// Update
-			if (!typing && Input.IsKeyPressed(.T)) {
-				typing = true;
-				showCursor = false;
-				toSend.Clear();
-				cursorTimer = 0;
-				renderFrom = 0;
-				idk = -1;
-
-				wasMouseHidden = me.window.MouseHidden;
-				me.window.MouseHidden = false;
-
-				Input.capturingCharacters = true;
-			}
-
-			// Render
 			Gfxa.TEX_QUADS_PIPELINE.Bind(pass);
 			me.textRenderer.BindTexture(pass);
 
@@ -74,7 +58,9 @@ namespace Meteorite {
 
 			if (typing) {
 				for (int i = renderFrom; i < Math.Min(messages.Count, renderFrom + 16); i++) {
-					me.textRenderer.Render(4, y, messages[i], .WHITE);
+					float x = 4;
+					messages[i].Visit(scope [&](text, color) => x = me.textRenderer.Render(x, y, text, color));
+
 					y += me.textRenderer.Height + 2;
 				}
 
@@ -90,14 +76,18 @@ namespace Meteorite {
 				}
 
 				if (@message.Index < 10) {
-					Color color = .WHITE;
+					float x = 4;
+					message.text.Visit(scope [&](text, color) => {
+						Color c = color;
 
-					if (message.timer >= 9) {
-						float f = 10 - message.timer;
-						color.a = (.) (color.A * f * 255);
-					}
+						if (message.timer >= 9) {
+							float f = 10 - message.timer;
+							c.a = (.) (c.A * f * 255);
+						}
 
-					me.textRenderer.Render(4, y, message.text, color);
+						x = me.textRenderer.Render(x, y, text, c);
+					});
+					
 					y += me.textRenderer.Height + 2;
 				}
 			}
@@ -135,7 +125,7 @@ namespace Meteorite {
 
 					Input.capturingCharacters = false;
 
-					if (key == .Enter || key == .KpEnter) {
+					if ((key == .Enter || key == .KpEnter) && !toSend.IsEmpty) {
 						me.connection.Send(scope MessageC2SPacket(toSend));
 
 						sentMessages.AddFront(new .(toSend));
@@ -160,12 +150,36 @@ namespace Meteorite {
 					return true;
 				}
 			}
+			else {
+				if (key == .T || key == .Slash || key == .KpDivide) {
+					typing = true;
+					showCursor = false;
+					firstChar = true;
+					toSend.Clear();
+					cursorTimer = 0;
+					renderFrom = 0;
+					idk = -1;
+
+					wasMouseHidden = me.window.MouseHidden;
+					me.window.MouseHidden = false;
+
+					Input.capturingCharacters = true;
+
+					if (key == .Slash || key == .KpDivide) toSend.Append('/');
+					return true;
+				}
+			}
 
 			return false;
 		}
 
 		private bool OnChar(char32 char) {
 			if (typing) {
+				if (firstChar) {
+					firstChar = false;
+					return false;
+				}
+
 				toSend.Append(char);
 				idk = -1;
 				return true;
@@ -185,11 +199,11 @@ namespace Meteorite {
 		}
 
 		class Message {
-			public String text ~ delete _;
+			public Text text ~ delete _;
 			public float timer;
 
-			public this(StringView message) {
-				text = new .(message);
+			public this(Text message) {
+				text = message.Copy();
 			}
 		}
 	}
