@@ -82,6 +82,11 @@ namespace Meteorite {
 		}
 
 		private void Tick(float tickDelta) {
+			if (connection != null && connection.closed) {
+				DeleteAndNullify!(connection);
+				window.MouseHidden = false;
+			}
+
 			if (world == null) return;
 
 			world.Tick();

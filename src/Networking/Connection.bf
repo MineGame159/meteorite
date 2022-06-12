@@ -11,6 +11,7 @@ namespace Meteorite {
 
 		public StringView address;
 		public int32 port;
+		public bool closed;
 
 		private Socket s ~ delete _;
 		private Thread t ~ delete _;
@@ -27,23 +28,28 @@ namespace Meteorite {
 			s = new .();
 			s.Blocking = false;
 
-			if (s.Connect(address, port) case .Ok) Log.Info("Connected to {}:{}", address, port);
-			else Log.Error("Failed to connect to {}:{}", address, port);
+			if (s.Connect(address, port) case .Ok) {
+				Log.Info("Connected to {}:{}", address, port);
 
-			neededLength = -1;
+				neededLength = -1;
 
-			t = new Thread(new => Receive);
-			t.SetName("Networking");
-			t.Start(false);
+				t = new Thread(new => Receive);
+				t.SetName("Networking");
+				t.Start(false);
 
-			OnReady();
+				OnReady();
+			}
+			else {
+				Log.Error("Failed to connect to {}:{}", address, port);
+				closed = true;
+			}
 		}
 
 		public ~this() {
 			Log.Info("Disconnecting");
 
 			s.Close();
-			t.Join();
+			t?.Join();
 		}
 
 		protected abstract void OnReady();
