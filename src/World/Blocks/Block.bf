@@ -3,10 +3,8 @@ using System.Collections;
 
 namespace Meteorite {
 	class Block : IEnumerable<BlockState> {
-		public static VoxelShape BLOCK_SHAPE = .Block() ~ delete _;
-
 		public String id ~ delete _;
-		public bool transparent, hasCollision;
+		public bool transparent;
 
 		private List<BlockState> blockStates ~ DeleteContainerAndItems!(_);
 		public BlockState defaultBlockState;
@@ -14,7 +12,6 @@ namespace Meteorite {
 		public this(StringView id, BlockSettings settings) {
 			this.id = new .(id);
 			this.transparent = settings.transparent;
-			this.hasCollision = settings.hasCollision;
 
 			this.blockStates = new .();
 		}
@@ -26,9 +23,9 @@ namespace Meteorite {
 
 		public List<BlockState>.Enumerator GetEnumerator() => blockStates.GetEnumerator();
 
-		public virtual VoxelShape GetShape() => BLOCK_SHAPE;
-
-		public virtual VoxelShape GetCollisionShape() => hasCollision ? GetShape() : .EMPTY;
+		public virtual VoxelShape GetShape(BlockState blockState) => blockState.[Friend]shapes.shape;
+		public virtual VoxelShape GetCollisionShape(BlockState blockState) => blockState.[Friend]shapes.collision;
+		public virtual VoxelShape GetRaycastShape(BlockState blockState) => blockState.[Friend]shapes.raycast;
 	}
 
 	class BlockState : IID {
@@ -39,10 +36,17 @@ namespace Meteorite {
 
 		public List<Property> properties ~ delete _;
 
+		private VoxelShapes.Shapes shapes;
+
 		public this(Block block, List<Property> properties) {
 			this.block = block;
 			this.properties = properties;
+			this.shapes = VoxelShapes.Get(this);
 		}
+
+		public VoxelShape Shape => block.GetShape(this);
+		public VoxelShape CollisionShape => block.GetCollisionShape(this);
+		public VoxelShape RaycastShape => block.GetRaycastShape(this);
 
 		public Property GetProperty(StringView name) {
 			for (let property in properties) {
@@ -51,10 +55,6 @@ namespace Meteorite {
 
 			return default;
 		}
-
-		public VoxelShape GetShape() => block.GetShape();
-
-		public VoxelShape GetCollisionShape() => block.GetCollisionShape();
 	}
 
 	class BlockSettings {

@@ -1004,7 +1004,7 @@ namespace Meteorite {
 		public static void Register() {
 			BeforeRegister();
 
-			AIR = Register(new AirBlock("air", scope BlockSettings().Transparent().NoCollision()));
+			AIR = Register(new .("air", scope BlockSettings().Transparent().NoCollision()));
 			STONE = Register(new .("stone", scope BlockSettings()));
 			GRANITE = Register(new .("granite", scope BlockSettings()));
 			POLISHED_GRANITE = Register(new .("polished_granite", scope BlockSettings()));

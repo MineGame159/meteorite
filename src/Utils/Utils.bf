@@ -43,6 +43,21 @@ namespace Meteorite {
 		} }
 
 		public int YRot => (Data2D & 3) * 90;
+
+		public static Direction GetFacing(Vec3d vec) {
+			Direction direction = .North;
+			double f = float.MinValue;
+
+			for (Direction direction2 in Enum.GetValues<Direction>()) {
+				Vec3i offset = direction2.GetOffset();
+			    double g = vec.x * offset.x + vec.y * offset.y + vec.z * offset.z;
+			    if (!(g > f)) continue;
+			    f = g;
+			    direction = direction2;
+			}
+
+			return direction;
+		}
 	}
 
 	static class Utils {
@@ -56,8 +71,6 @@ namespace Meteorite {
 		public static double FractionalPart(double value) {
 		    return value - (double) Lfloor(value);
 		}
-
-		public static double Lerp(double delta, double start, double end) => start + delta * (end - start);
 
 #if BF_PLATFORM_WINDOWS
 		[CRepr]

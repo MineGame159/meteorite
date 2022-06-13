@@ -94,7 +94,7 @@ namespace Meteorite {
 				.FragmentShader(POS_COLOR_SHADER, "fs_main")
 				.PushConstants(.Vertex, 0, sizeof(Mat4))
 				.Primitive(.LineList, .Clockwise)
-				.Depth(true)
+				.Depth(true, false, false)
 				.Create();
 			QUADS_PIPELINE = Gfx.NewPipeline()
 				.Attributes(.Float3, .UByte4)

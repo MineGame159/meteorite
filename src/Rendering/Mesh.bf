@@ -14,6 +14,11 @@ namespace Meteorite {
 		}
 
 		public ~this() {
+			if (mb != null) {
+				mb.Cancel();
+				delete mb;
+			}
+
 			if (!externalIndices) delete ibo;
 			delete vbo;
 		}

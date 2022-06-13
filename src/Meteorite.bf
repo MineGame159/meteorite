@@ -52,6 +52,7 @@ namespace Meteorite {
 			camera.yaw = 45;
 
 			I18N.Load();
+			VoxelShapes.Init();
 			Blocks.Register();
 			BlockModelLoader.LoadModels();
 			Biomes.Register();

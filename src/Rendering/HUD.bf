@@ -5,10 +5,21 @@ using GLFW;
 
 namespace Meteorite {
 	class HudRenderer {
+		private Meteorite me = .INSTANCE;
+
 		public ChatRenderer chat = new .() ~ delete _;
 
 		public void Render(RenderPass pass, float delta) {
-			Meteorite me = .INSTANCE;
+			if (me.world != null && me.worldRenderer != null) {
+				Gfxa.TEX_QUADS_PIPELINE.Bind(pass);
+				Gfxa.PIXEL_BIND_GRUP.Bind(pass);
+	
+				Mat4 pc = me.camera.proj2d;
+				pass.SetPushConstants(.Vertex, 0, sizeof(Mat4), &pc);
+
+				RenderCrosshair(pass);
+				chat.Render(pass, delta);
+			}
 
 			ImGui.Begin("Meteorite", null, .AlwaysAutoResize);
 			ImGui.Text("Frame: {:0.000} ms", (Glfw.GetTime() - Program.FRAME_START) * 1000);
@@ -36,8 +47,33 @@ namespace Meteorite {
 			ImGui.PopItemWidth();
 
 			ImGui.End();
+		}
 
-			chat.Render(pass, delta);
+		private void RenderCrosshair(RenderPass pass) {
+			Color color = .(200, 200, 200);
+			MeshBuilder mb = me.frameBuffers.AllocateImmediate(pass);
+
+			float x = me.window.width / 4f;
+			float y = me.window.height / 4f;
+
+			float s1 = 6;
+			float s2 = 1;
+
+			mb.Quad(
+				mb.Vec2(.(x - s1, y - s2)).Vec2(.()).Color(color).Next(),
+				mb.Vec2(.(x - s1, y + s2)).Vec2(.()).Color(color).Next(),
+				mb.Vec2(.(x + s1, y + s2)).Vec2(.()).Color(color).Next(),
+				mb.Vec2(.(x + s1, y - s2)).Vec2(.()).Color(color).Next()
+			);
+
+			mb.Quad(
+				mb.Vec2(.(x - s2, y - s1)).Vec2(.()).Color(color).Next(),
+				mb.Vec2(.(x - s2, y + s1)).Vec2(.()).Color(color).Next(),
+				mb.Vec2(.(x + s2, y + s1)).Vec2(.()).Color(color).Next(),
+				mb.Vec2(.(x + s2, y - s1)).Vec2(.()).Color(color).Next()
+			);
+
+			mb.Finish();
 		}
 	}
 }

@@ -1,25 +1,48 @@
 using System;
+using System.Collections;
 
 namespace Meteorite {
 	class VoxelShape {
-		public static VoxelShape EMPTY = new .(new .(1), .(), .()) ~ delete _;
+		public static VoxelShape EMPTY = new .() ~ delete _;
 
-		public BitSet set ~ delete _;
-		public Vec3d min, max;
+		private List<AABB> boxes = new .() ~ delete _;
 
-		public this(BitSet set, Vec3d min, Vec3d max) {
-			this.set = set;
-			this.min = min;
-			this.max = max;
+		public this() {
 		}
 
-		public static VoxelShape Box(int x1, int y1, int z1, int x2, int y2, int z2) {
-			BitSet set = new .(1);
-			set.Set(0);
-
-			return new .(set, .(x1 / 16.0, y1 / 16.0, z1 / 16.0), .(x2 / 16.0, y2 / 16.0, z2 / 16.0));
+		public VoxelShape Add(Vec3d min, Vec3d max) {
+			boxes.Add(.(min, max));
+			return this;
 		}
 
-		public static VoxelShape Block() => Box(0, 0, 0, 16, 16, 16);
+		public AABB GetBoundingBox() {
+			AABB bounding = .(.(1, 1, 1), .());
+
+			for (let aabb in boxes) {
+				if (aabb.min.x < bounding.min.x) bounding.min.x = aabb.min.x;
+				if (aabb.min.y < bounding.min.y) bounding.min.y = aabb.min.y;
+				if (aabb.min.z < bounding.min.z) bounding.min.z = aabb.min.z;
+
+				if (aabb.max.x > bounding.max.x) bounding.max.x = aabb.max.x;
+				if (aabb.max.y > bounding.max.y) bounding.max.y = aabb.max.y;
+				if (aabb.max.z > bounding.max.z) bounding.max.z = aabb.max.z;
+			}
+
+			return bounding;
+		}
+
+		public BlockHitResult Raycast(Vec3d start, Vec3d end, Vec3i pos) {
+			if (boxes.IsEmpty) return null;
+
+			Vec3d vec = end - start;
+			if (vec.LengthSquared < 1.0E-7) return null;
+
+			Vec3d vec2 = start + (vec * 0.001);
+			// TODO
+
+			return AABB.Raycast(boxes, start, end, pos);
+		}
+
+		public static VoxelShape Block() => new VoxelShape().Add(.(0, 0, 0), .(1, 1, 1));
 	}
 }

@@ -17,15 +17,15 @@ namespace Meteorite {
 			Vec3f vec3d = .();
 
 			for (int l = 0; l < 6; ++l) {
-			    double h = Utils.Lerp(d, DENSITY_CURVE[l + 1], DENSITY_CURVE[l]);
+			    double h = Math.Lerp(DENSITY_CURVE[l + 1], DENSITY_CURVE[l], d);
 			    int m = i - 2 + l;
 
 			    for (int n = 0; n < 6; ++n) {
-			        double o = Utils.Lerp(e, DENSITY_CURVE[n + 1], DENSITY_CURVE[n]);
+			        double o = Math.Lerp(DENSITY_CURVE[n + 1], DENSITY_CURVE[n], e);
 			        int p = j - 2 + n;
 
 			        for (int q = 0; q < 6; ++q) {
-			            double r = Utils.Lerp(f, DENSITY_CURVE[q + 1], DENSITY_CURVE[q]);
+			            double r = Math.Lerp(DENSITY_CURVE[q + 1], DENSITY_CURVE[q], f);
 			            int s = k - 2 + q;
 			            double t = h * o * r;
 			            g += t;

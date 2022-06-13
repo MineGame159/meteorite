@@ -61,6 +61,7 @@ namespace Meteorite {
 			Chunk chunk = GetChunk(x >> 4, z >> 4);
 			return chunk != null ? chunk.Get(x & 15, y, z & 15) : Blocks.AIR.defaultBlockState;
 		}
+		public BlockState GetBlock(Vec3i pos) => GetBlock(pos.x, pos.y, pos.z);
 
 		public void SetBlock(int x, int y, int z, BlockState blockState) {
 			Chunk chunk = GetChunk(x >> 4, z >> 4);
@@ -135,6 +136,86 @@ namespace Meteorite {
 			return Math.Abs(x1 - x2) <= viewDistance + 1 && Math.Abs(z1 - z2) <= viewDistance + 1;
 		}
 
+		public BlockHitResult Raycast(Vec3d start, Vec3d end) {
+			return Raycast(start, end, scope (pos) => {
+				BlockState blockState = GetBlock(pos);
+				VoxelShape shape = blockState.Shape;
+
+				return RaycastBlock(start, end, pos, shape, blockState);
+			}, scope () => {
+				return new BlockHitResult(end, .(), .GetFacing(start - end), true);
+			});
+		}
+
+		private BlockHitResult RaycastBlock(Vec3d start, Vec3d end, Vec3i pos, VoxelShape shape, BlockState blockState) {
+			if (shape == null) return null;
+
+			BlockHitResult blockHitResult2 = null;
+			BlockHitResult blockHitResult = shape.Raycast(start, end, pos);
+
+			if (blockHitResult != null && blockState.RaycastShape != null && (blockHitResult2 = blockState.RaycastShape.Raycast(start, end, pos)) != null && (blockHitResult2.pos - start).LengthSquared < (blockHitResult.pos - start).LengthSquared) {
+				blockHitResult.side = blockHitResult2.side;
+			}
+
+			delete blockHitResult2;
+			return blockHitResult;
+		}
+
+		public T Raycast<T>(Vec3d start, Vec3d end, delegate T(Vec3i) blockHitFactory, delegate T() missFactory) {
+			int l, k;
+			if (start == end) return missFactory();
+
+			double d = Math.Lerp(end.x, start.x, -1.0E-7);
+			double e = Math.Lerp(end.y, start.y, -1.0E-7);
+			double f = Math.Lerp(end.z, start.z, -1.0E-7);
+			double g = Math.Lerp(start.x, end.x, -1.0E-7);
+			double h = Math.Lerp(start.y, end.y, -1.0E-7);
+			double i = Math.Lerp(start.z, end.z, -1.0E-7);
+			int j = (.) Math.Floor(g);
+
+			T object = blockHitFactory(.(j, k = (.) Math.Floor(h), l = (.) Math.Floor(i)));
+			if (object != null) return object;
+
+			double m = d - g;
+			double n = e - h;
+			double o = f - i;
+
+			int p = Math.Sign(m);
+			int q = Math.Sign(n);
+			int r = Math.Sign(o);
+
+			double s = p == 0 ? double.MaxValue : (double) p / m;
+			double t = q == 0 ? double.MaxValue : (double) q / n;
+			double u = r == 0 ? double.MaxValue : (double) r / o;
+
+			double v = s * (p > 0 ? 1.0 - Utils.FractionalPart(g) : Utils.FractionalPart(g));
+			double w = t * (q > 0 ? 1.0 - Utils.FractionalPart(h) : Utils.FractionalPart(h));
+			double x = u * (r > 0 ? 1.0 - Utils.FractionalPart(i) : Utils.FractionalPart(i));
+
+			while (v <= 1.0 || w <= 1.0 || x <= 1.0) {
+			    T object2;
+			    if (v < w) {
+			        if (v < x) {
+			            j += p;
+			            v += s;
+			        } else {
+			            l += r;
+			            x += u;
+			        }
+			    } else if (w < x) {
+			        k += q;
+			        w += t;
+			    } else {
+			        l += r;
+			        x += u;
+			    }
+			    if ((object2 = blockHitFactory(.(j, k, l))) == null) continue;
+			    return object2;
+			}
+
+			return missFactory();
+		}
+
 		public void GetPossibleCollisions(AABB aabb, delegate void(Vec3d, VoxelShape) callback) {
 			int minX = (.) Math.Floor(aabb.min.x - 1.0E-7) - 1;
 			int minY = (.) Math.Floor(aabb.min.y - 1.0E-7) - 1;
@@ -148,10 +229,10 @@ namespace Meteorite {
 				for (int y = minY; y <= maxY; y++) {
 					for (int z = minZ; z <= maxZ; z++) {
 						BlockState blockState = Meteorite.INSTANCE.world.GetBlock(x, y, z);
-						VoxelShape shape = blockState.GetCollisionShape();
+						VoxelShape shape = blockState.CollisionShape;
 
-						if (shape != .EMPTY) {
-							if (shape == Block.BLOCK_SHAPE) {
+						if (shape != null) {
+							if (shape == VoxelShapes.BLOCK) {
 								Vec3d pos = .(x, y, z);
 								//if (aabb.Intersects(pos, pos + .(1, 1, 1))) callback(pos, shape);
 								callback(pos, shape);

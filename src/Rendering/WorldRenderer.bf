@@ -46,6 +46,7 @@ namespace Meteorite {
 			RenderEntities(pass, tickDelta);
 			RenderChunks(pass, false, Gfxa.CHUNK_TRANSPARENT_PIPELINE, delta);
 
+			if (me.player != null && me.player.selection != null && !me.player.selection.missed) RenderBlockSelection(pass);
 			if (me.options.chunkBoundaries) RenderChunkBoundaries(pass);
 
 			pass.PopDebugGroup();
@@ -162,6 +163,48 @@ namespace Meteorite {
 			mb.Finish();
 
 			pass.PopDebugGroup();
+		}
+
+		private void RenderBlockSelection(RenderPass pass) {
+			Gfxa.LINES_PIPELINE.Bind(pass);
+
+			Mat4 projectionView = me.camera.proj * me.camera.view;
+			pass.SetPushConstants(.Vertex, 0, sizeof(Mat4), &projectionView);
+
+			Color color = .(255, 255, 255, 100);
+			MeshBuilder mb = me.frameBuffers.AllocateImmediate(pass);
+
+			Vec3i pos = me.player.selection.blockPos;
+			AABB aabb = me.world.GetBlock(pos).Shape.GetBoundingBox();
+			Vec3d min = .(pos.x, pos.y, pos.z) + aabb.min;
+			Vec3d max = .(pos.x, pos.y, pos.z) + aabb.max;
+
+			uint32 ib1 = mb.Vec3(.((.) min.x, (.) min.y, (.) min.z)).Color(color).Next();
+			uint32 ib2 = mb.Vec3(.((.) min.x, (.) min.y, (.) max.z)).Color(color).Next();
+			uint32 ib3 = mb.Vec3(.((.) max.x, (.) min.y, (.) max.z)).Color(color).Next();
+			uint32 ib4 = mb.Vec3(.((.) max.x, (.) min.y, (.) min.z)).Color(color).Next();
+
+			uint32 it1 = mb.Vec3(.((.) min.x, (.) max.y, (.) min.z)).Color(color).Next();
+			uint32 it2 = mb.Vec3(.((.) min.x, (.) max.y, (.) max.z)).Color(color).Next();
+			uint32 it3 = mb.Vec3(.((.) max.x, (.) max.y, (.) max.z)).Color(color).Next();
+			uint32 it4 = mb.Vec3(.((.) max.x, (.) max.y, (.) min.z)).Color(color).Next();
+
+			mb.Line(ib1, ib2);
+			mb.Line(ib2, ib3);
+			mb.Line(ib3, ib4);
+			mb.Line(ib4, ib1);
+
+			mb.Line(it1, it2);
+			mb.Line(it2, it3);
+			mb.Line(it3, it4);
+			mb.Line(it4, it1);
+
+			mb.Line(ib1, it1);
+			mb.Line(ib2, it2);
+			mb.Line(ib3, it3);
+			mb.Line(ib4, it4);
+
+			mb.Finish();
 		}
 
 		private void RenderChunkBoundaries(RenderPass pass) {

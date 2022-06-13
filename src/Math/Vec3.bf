@@ -28,7 +28,7 @@ namespace Meteorite {
 
 		public Self Cross(Self v) => .(y * v.z - v.y * z, z * v.x - v.z * x, x * v.y - v.x * y);
 		public float Dot(Self v) => x * v.x + y * v.y + z * v.z;
-		public Self Lerp(double delta, Self start) => .(Utils.Lerp(delta, start.x, x), Utils.Lerp(delta, start.y, y), Utils.Lerp(delta, start.z, z));
+		public Self Lerp(double delta, Self start) => .(Math.Lerp(start.x, x, delta), Math.Lerp(start.y, y, delta), Math.Lerp(start.z, z, delta));
 
 		public bool Equals(Object o) => (o is Self) ? Equals((Self) o) : false;
 		public bool Equals(Self v) => x == v.x && y == v.y && z == v.z;

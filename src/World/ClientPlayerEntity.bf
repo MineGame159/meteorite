@@ -6,6 +6,8 @@ namespace Meteorite {
 		public Gamemode gamemode;
 		public PlayerAbilities abilities ~ delete _;
 
+		public BlockHitResult selection ~ delete _;
+
 		private Vec3d lastSentPos;
 		private float lastSentYaw, lastSentPitch;
 		private int sendPositionTimer;
@@ -51,6 +53,20 @@ namespace Meteorite {
 
 			Move();
 			SendMovement();
+		}
+
+		public override void Tick() {
+			base.Tick();
+
+			// Block Selection
+			Camera camera = Meteorite.INSTANCE.camera;
+			Vec3d pos = .(camera.pos.x, camera.pos.y, camera.pos.z);
+			Vec3f dir = -camera.GetDirection(true);
+
+			let result = Meteorite.INSTANCE.world.Raycast(pos, pos + .(dir.x, dir.y, dir.z) * 6);
+
+			if (selection != null) delete selection;
+			selection = result;
 		}
 
 		private float GetFrictionInfluencedSpeed(float f) {

@@ -34,12 +34,6 @@ namespace Meteorite {
 		}
 
 		public void Render(RenderPass pass, float delta) {
-			Gfxa.TEX_QUADS_PIPELINE.Bind(pass);
-			me.textRenderer.BindTexture(pass);
-
-			Mat4 pc = me.camera.proj2d;
-			pass.SetPushConstants(.Vertex, 0, sizeof(Mat4), &pc);
-
 			MeshBuilder mb = me.frameBuffers.AllocateImmediate(pass, Buffers.QUAD_INDICES);
 			me.textRenderer.Begin(pass);
 
