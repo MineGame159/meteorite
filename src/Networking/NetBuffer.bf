@@ -256,6 +256,18 @@ namespace Meteorite {
 			return .(x, y, z);
 		}
 
+		public Text ReadText() {
+			String str = ReadString();
+			Json json = JsonParser.ParseString(str);
+
+			Text text = .Parse(json);
+
+			json.Dispose();
+			delete str;
+
+			return text;
+		}
+
 		// Other
 
 		public static int GetVarIntSize(int32 v) {

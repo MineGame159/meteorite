@@ -9,15 +9,9 @@ namespace Meteorite {
 
 		public this() : base(ID, .World) {}
 
-		public override void Read(NetBuffer packet) {
-			String str = packet.ReadString();
-			Json json = JsonParser.ParseString(str);
-
-			text = .Parse(json);
-			position = packet.ReadByte();
-
-			json.Dispose();
-			delete str;
+		public override void Read(NetBuffer buf) {
+			text = buf.ReadText();
+			position = buf.ReadByte();
 		}
 	}
 }
