@@ -61,6 +61,16 @@ namespace Meteorite {
 			return true;
 		}
 
+		public bool ReadLines(StringView path, delegate void(StringView) callback) {
+			FileStream fs = scope .();
+			if (!GetStream(path, fs)) return false;
+
+			StreamReader reader = scope .(fs);
+			for (let line in reader.Lines) callback(line);
+
+			return true;
+		}
+
 		public Image ReadImageInfo(StringView path) {
 			String path2 = scope $"textures/{path}";
 			FileStream fs = scope .();

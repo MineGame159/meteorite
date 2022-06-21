@@ -49,6 +49,41 @@ namespace Meteorite {
 			if (me.player != null && me.player.selection != null && !me.player.selection.missed) RenderBlockSelection(pass);
 			if (me.options.chunkBoundaries) RenderChunkBoundaries(pass);
 
+			if (me.player != null) {
+				Gfxa.LINES_PIPELINE.Bind(pass);
+
+				Mat4 projectionView = me.camera.proj * me.camera.view;
+				pass.SetPushConstants(.Vertex, 0, sizeof(Mat4), &projectionView);
+
+				MeshBuilder mb = me.frameBuffers.AllocateImmediate(pass);
+
+				me.world.GetPossibleCollisions(me.player.GetAABB(), scope (pos, shape) => {
+					Color c = .(255, 255, 255);
+
+					float x = (.) pos.x + 0.5f;
+					float y = (.) pos.y + 0.5f;
+					float z = (.) pos.z + 0.5f;
+					float s = 0.05f;
+
+					mb.Line(
+						mb.Vec3(.((.) x - s, (.) y, (.) z)).Color(c).Next(),
+						mb.Vec3(.((.) x + s, (.) y, (.) z)).Color(c).Next()
+					);
+
+					mb.Line(
+						mb.Vec3(.((.) x, (.) y - s, (.) z)).Color(c).Next(),
+						mb.Vec3(.((.) x, (.) y + s, (.) z)).Color(c).Next()
+					);
+
+					mb.Line(
+						mb.Vec3(.((.) x, (.) y, (.) z - s)).Color(c).Next(),
+						mb.Vec3(.((.) x, (.) y, (.) z + s)).Color(c).Next()
+					);
+				});
+
+				mb.Finish();
+			}
+
 			pass.PopDebugGroup();
 		}
 

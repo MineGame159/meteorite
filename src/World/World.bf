@@ -232,12 +232,19 @@ namespace Meteorite {
 						VoxelShape shape = blockState.CollisionShape;
 
 						if (shape != null) {
-							if (shape == VoxelShapes.BLOCK) {
+							/*if (shape == VoxelShapes.BLOCK) {
 								Vec3d pos = .(x, y, z);
 								//if (aabb.Intersects(pos, pos + .(1, 1, 1))) callback(pos, shape);
 								callback(pos, shape);
 							}
-							else callback(.(x, y, z), shape);
+							else callback(.(x, y, z), shape);*/
+
+							for (let shapeAabb in shape.[Friend]boxes) {
+								if (shapeAabb.Offset(.(x, y, z)).Intersects(aabb)) {
+									callback(.(x, y, z), shape);
+									break;
+								}
+							}
 						}
 					}
 				}

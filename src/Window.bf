@@ -59,7 +59,7 @@ namespace Meteorite {
 				chain = .() {
 					sType = (.) Wgpu.NativeSType.DeviceExtras
 				},
-				nativeFeatures = .PUSH_CONSTANTS
+				nativeFeatures = .PUSH_CONSTANTS | .VERTEX_WRITABLE_STORAGE
 			};
 			Wgpu.DeviceDescriptor deviceDesc = .() {
 				nextInChain = (.) &deviceExtras,

@@ -107,6 +107,40 @@ namespace Meteorite {
 		private Vec3d Collide(Vec3d _vec) {
 			Vec3d vec = _vec;
 
+			/*Vec3d playerMin = this.pos + vec;
+			Vec3d playerMax = this.pos + vec + .(type.width, type.height, type.width);
+
+			mixin Calc() {
+				playerMin = this.pos + vec;
+				playerMax = this.pos + vec + .(type.width, type.height, type.width);
+			}
+
+			mixin Between(double value, double min, double max) {
+				value >= min && value <= max
+			}
+
+			Meteorite.INSTANCE.world.GetPossibleCollisions(GetAABB().Expand(vec), scope [&](pos, shape) => {
+				for (let aabb in shape.[Friend]boxes) {
+					Vec3d shapeMin = pos + aabb.min;
+					Vec3d shapeMax = pos + aabb.max;
+
+					bool x = Between!(playerMin.x, shapeMin.x, shapeMax.x) || Between!(playerMax.x, shapeMin.x, shapeMax.x);
+					bool y = Between!(playerMin.y, shapeMin.y, shapeMax.y) || Between!(playerMax.y, shapeMin.y, shapeMax.y);
+					bool z = Between!(playerMin.z, shapeMin.z, shapeMax.z) || Between!(playerMax.z, shapeMin.z, shapeMax.z);
+
+					if (Between!(playerMin.x, shapeMin.x, shapeMax.x) && y && z && vec.x < 0 && playerMin.x <= shapeMax.x) vec.x = vec.x + (shapeMax.x - playerMin.x); Calc!();
+					if (Between!(playerMax.x, shapeMin.x, shapeMax.x) && y && z && vec.x > 0 && playerMax.x >= shapeMin.x) vec.x = vec.x - (playerMax.x - shapeMin.x); Calc!();
+
+					if (Between!(playerMin.y, shapeMin.y, shapeMax.y) && x && z && vec.y < 0 && playerMin.y <= shapeMax.y) vec.y = vec.y + (shapeMax.y - playerMin.y); Calc!();
+					if (Between!(playerMax.y, shapeMin.y, shapeMax.y) && x && z && vec.y > 0 && playerMax.y >= shapeMin.y) vec.y = vec.y - (playerMax.y - shapeMin.y); Calc!();
+
+					if (Between!(playerMin.z, shapeMin.z, shapeMax.z) && x && y && vec.z < 0 && playerMin.z <= shapeMax.z) vec.z = vec.z + (shapeMax.z - playerMin.z); Calc!();
+					if (Between!(playerMax.z, shapeMin.z, shapeMax.z) && x && y && vec.z > 0 && playerMax.z >= shapeMin.z) vec.z = vec.z - (playerMax.z - shapeMin.z); Calc!();
+				}
+			});*/
+
+			//if (vec.y != 0) Log.Info("{}", vec.y);
+
 			/*Vec3d playerMin = pos + vec;
 			Vec3d playerMax = pos + vec + .(type.width, type.height, type.width);
 

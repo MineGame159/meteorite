@@ -34,8 +34,7 @@ namespace Meteorite {
 		public static void Init() {
 			PIPELINE1 = Gfx.NewPipeline()
 				.Attributes(.Float3)
-				.VertexShader(Gfxa.POS_FOG, "vs_main")
-				.FragmentShader(Gfxa.POS_FOG, "fs_main")
+				.Shader(Gfxa.POS_FOG)
 				.PushConstants(.Vertex | .Fragment, 0, sizeof(PushConstaints2))
 				.Primitive(.TriangleList, .None)
 				.Blend(false)
@@ -43,8 +42,7 @@ namespace Meteorite {
 				.Create();
 			PIPELINE2 = Gfx.NewPipeline()
 				.Attributes(.Float3, .UByte4)
-				.VertexShader(Gfxa.POS_COLOR_SHADER, "vs_main")
-				.FragmentShader(Gfxa.POS_COLOR_SHADER, "fs_main")
+				.Shader(Gfxa.POS_COLOR_SHADER)
 				.PushConstants(.Vertex | .Fragment, 0, sizeof(PushConstaints1))
 				.Primitive(.TriangleList, .None)
 				.Depth(true, false, false)
@@ -52,8 +50,7 @@ namespace Meteorite {
 			PIPELINE3 = Gfx.NewPipeline()
 				.BindGroupLayouts(Gfxa.TEXTURE_SAMPLER_LAYOUT)
 				.Attributes(.Float3, .Float2)
-				.VertexShader(Gfxa.POS_TEX_SHADER, "vs_main")
-				.FragmentShader(Gfxa.POS_TEX_SHADER, "fs_main")
+				.Shader(Gfxa.POS_TEX_SHADER)
 				.PushConstants(.Vertex | .Fragment, 0, sizeof(PushConstaints1))
 				.Primitive(.TriangleList, .None)
 				.BlendState(Wgpu.BlendState() {
@@ -64,8 +61,7 @@ namespace Meteorite {
 				.Create();
 			PIPELINE4 = Gfx.NewPipeline()
 				.Attributes(.Float3)
-				.VertexShader(Gfxa.POS_FOG, "vs_main")
-				.FragmentShader(Gfxa.POS_FOG, "fs_main")
+				.Shader(Gfxa.POS_FOG)
 				.PushConstants(.Vertex | .Fragment, 0, sizeof(PushConstaints2))
 				.Primitive(.TriangleList, .None)
 				.BlendState(Wgpu.BlendState() {

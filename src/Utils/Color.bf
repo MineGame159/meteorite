@@ -21,6 +21,8 @@ namespace Meteorite {
 
 		public override void ToString(String str) => str.AppendF("[{}, {}, {}, {}]", r, g, b, a);
 
+		public const Color ZERO = .(0, 0, 0, 0);
+		public const Color BLACK = .(0, 0, 0);
 		public const Color WHITE = .(255, 255, 255);
 	}
 }

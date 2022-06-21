@@ -8,23 +8,19 @@ namespace Meteorite {
 	class GameRenderer {
 		private Meteorite me = .INSTANCE;
 
-		private RenderPass mainPass ~ delete _;
-		private RenderPass _2dPass ~ delete _;
+		private List<Texture> textures = new .() ~ DeleteContainerAndItems!(_);
+		private Wgpu.TextureView output;
+		private Wgpu.CommandEncoder encoder;
+
+		private Texture mainColor;
+		private Texture mainDepth;
 
 		private float delta;
 		private bool afterScreenshot;
 
 		public this() {
-			mainPass = Gfx.NewRenderPass()
-				.Callback(new => RenderMain)
-				.Color(.Screen, .(0, 0, 0), true)
-				.Depth(.Screen, 1)
-				.Create();
-
-			_2dPass = Gfx.NewRenderPass()
-				.Callback(new => Render2D)
-				.Color(mainPass)
-				.Create();
+			mainColor = ColorTexture();
+			mainDepth = DepthTexture();
 
 			Input.keyEvent.Add(new => OnKey, -10);
 		}
@@ -47,19 +43,50 @@ namespace Meteorite {
 		public void Render(float delta) {
 			this.delta = delta;
 
-			List<RenderPass> passes = scope .();
-			mainPass.SetClearColor(me.world != null ? me.world.GetClearColor(me.camera, me.tickCounter.tickDelta) : .(200, 200, 200, 255));
-
 			Screenshots.Update();
+			Begin();
 
-			if (me.world != null && me.worldRenderer != null) {
+			Color clearColor = me.world != null ? me.world.GetClearColor(me.camera, me.tickCounter.tickDelta) : .(200, 200, 200, 255);
+			bool world = me.world != null && me.worldRenderer != null;
+
+			if (world) {
 				SetupWorldRendering();
-				passes.Add(mainPass);
+
+				{
+					// Main
+					RenderPass pass = RenderPass.Begin(encoder)
+						.Color(mainColor, clearColor)
+						.Depth(mainDepth, 1)
+						.Finish();
+					
+					RenderMain(pass);
+					pass.End();
+				}
+				{
+					// Post
+					RenderPass pass = RenderPass.Begin(encoder)
+						.Color(output, clearColor)
+						.Finish();
+
+					RenderPost(pass);
+					pass.End();
+				}
 			}
 
-			if (!Screenshots.rendering || Screenshots.includeGui) passes.Add(_2dPass);
+			// 2D
+			if (!Screenshots.rendering || Screenshots.includeGui) {
+				Color? clear = null;
+				if (!world) clear = clearColor;
 
-			Render(passes);
+				RenderPass pass = RenderPass.Begin(encoder)
+					.Color(output, clear)
+					.Finish();
+
+				Render2D(pass);
+				pass.End();
+			}
+
+			End();
 		}
 
 		private void SetupWorldRendering() {
@@ -80,6 +107,28 @@ namespace Meteorite {
 			me.worldRenderer.Render(pass, me.tickCounter.tickDelta, delta);
 		}
 
+		private void RenderPost(RenderPass pass) {
+			pass.PushDebugGroup("Post");
+
+			Gfxa.POST_PIPELINE.Bind(pass);
+			mainColor.Bind(pass);
+
+			PostPushConstants pc = .();
+			pc.size = .(me.window.width, me.window.height);
+			pass.SetPushConstants(.Fragment, 0, sizeof(PostPushConstants), &pc);
+
+			MeshBuilder mb = me.frameBuffers.AllocateImmediate(pass);
+			mb.Quad(
+				mb.Vec2(.(-1, -1)).Vec2(.(0, 1)).Next(),
+				mb.Vec2(.(-1, 1)).Vec2(.(0, 0)).Next(),
+				mb.Vec2(.(1, 1)).Vec2(.(1, 0)).Next(),
+				mb.Vec2(.(1, -1)).Vec2(.(1, 1)).Next()
+			);
+			mb.Finish();
+
+			pass.PopDebugGroup();
+		}
+
 		private void Render2D(RenderPass pass) {
 			pass.PushDebugGroup("2D");
 
@@ -93,30 +142,42 @@ namespace Meteorite {
 			Screenshots.Render();
 
 			ImGui.Render();
-			ImGuiImplWgpu.RenderDrawData(ImGui.GetDrawData(), pass);
+			ImGuiImplWgpu.RenderDrawData(ImGui.GetDrawData(), pass.[Friend]encoder);
 			pass.PopDebugGroup();
 		}
 
-		private void Render(List<RenderPass> passes) {
-			Wgpu.TextureView view;
+		private Texture ColorTexture() {
+			Texture texture = Gfx.CreateTexture(.RenderAttachment | .TextureBinding, 0, 0, 1, null, .BGRA8Unorm, false, Gfxa.LINEAR_SAMPLER);
+			textures.Add(texture);
+			return texture;
+		}
 
+		private Texture DepthTexture() {
+			Texture texture = Gfx.CreateTexture(.RenderAttachment | .TextureBinding, 0, 0, 1, null, .Depth32Float, false);
+			textures.Add(texture);
+			return texture;
+		}
+
+		private void Begin() {
 			int screenWidth = me.window.width;
 			int screenHeight = me.window.height;
 
 			if (Screenshots.rendering) {
-				view = Screenshots.texture.CreateView();
+				output = Screenshots.texture.CreateView();
 
 				screenWidth = Screenshots.width;
 				screenHeight = Screenshots.height;
 			}
-			else view = Gfx.swapChain.GetCurrentTextureView();
+			else output = Gfx.swapChain.GetCurrentTextureView();
+
+			for (Texture texture in textures)
+				texture.Resize(screenWidth, screenHeight);
 
 			Wgpu.CommandEncoderDescriptor encoderDesc = .();
-			Wgpu.CommandEncoder encoder = Gfx.device.CreateCommandEncoder(&encoderDesc);
-			
-			for (RenderPass pass in passes) pass.Render(encoder, view, screenWidth, screenHeight);
-			for (RenderPass pass in passes) pass.AfterRender();
+			encoder = Gfx.device.CreateCommandEncoder(&encoderDesc);
+		}
 
+		private void End() {
 			if (afterScreenshot) {
 				Screenshots.AfterRender(encoder);
 			}
@@ -126,7 +187,7 @@ namespace Meteorite {
 			Gfx.queue.Submit(1, &cb);
 
 			if (!Screenshots.rendering) Gfx.swapChain.Present();
-			view.Drop();
+			output.Drop();
 
 			if (afterScreenshot) {
 				afterScreenshot = false;

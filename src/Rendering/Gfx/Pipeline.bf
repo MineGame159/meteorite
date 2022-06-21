@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using System.Collections;
 using Wgpu;
 
 namespace Meteorite {
@@ -39,13 +41,20 @@ namespace Meteorite {
 	}
 
 	class Pipeline {
+		private PipelineBuilder builder ~ delete _;
 		private Wgpu.RenderPipeline handle ~ _.Drop();
 
-		private this(Wgpu.RenderPipeline handle) {
-			this.handle = handle;
+		private this(PipelineBuilder builder) {
+			this.builder = builder;
+			this.handle = builder.[Friend]Build();
 		}
 
-		public void Bind(RenderPass pass) => pass.[Friend]pass.SetPipeline(handle);
+		public void Bind(RenderPass pass) => pass.[Friend]encoder.SetPipeline(handle);
+
+		public void Reload() {
+			handle.Drop();
+			handle = builder.[Friend]Build();
+		}
 	}
 
 	class PipelineBuilder {
@@ -58,8 +67,8 @@ namespace Meteorite {
 		private Wgpu.BindGroupLayout[] bindGroupLayouts ~ delete _;
 		private VertexAttribute[] attributes ~ delete _;
 
-		private Shader vShader, fShader;
-		private StringView vEntryPoint, fEntryPoint;
+		private String shaderPath ~ delete _;
+		private delegate void(ShaderPreProcessor) initPreProcessor ~ delete _;
 
 		private Wgpu.ShaderStage stages;
 		private int start, end;
@@ -88,16 +97,9 @@ namespace Meteorite {
 			return this;
 		}
 
-		public Self VertexShader(Shader shader, StringView entryPoint) {
-			vShader = shader;
-			vEntryPoint = entryPoint;
-
-			return this;
-		}
-
-		public Self FragmentShader(Shader shader, StringView entryPoint) {
-			fShader = shader;
-			fEntryPoint = entryPoint;
+		public Self Shader(StringView shader, delegate void(ShaderPreProcessor) initPreProcessor = null) {
+			this.shaderPath = new .(shader);
+			this.initPreProcessor = initPreProcessor;
 
 			return this;
 		}
@@ -135,7 +137,9 @@ namespace Meteorite {
 			return this;
 		}
 
-		public Pipeline Create() {
+		public Pipeline Create() => new [Friend].(this);
+
+		private Wgpu.RenderPipeline Build() {
 			Wgpu.PipelineLayoutDescriptor layoutDesc = .();
 
 			if (bindGroupLayouts != null) {
@@ -194,8 +198,8 @@ namespace Meteorite {
 				writeMask = .All
 			};
 			Wgpu.FragmentState fragmentDesc = .() {
-				module = fShader.[Friend]handle,
-				entryPoint = fEntryPoint.ToScopeCStr!(),
+				module = GetShader!(false),
+				entryPoint = "main",
 				targetCount = 1,
 				targets = &colorTarget
 			};
@@ -214,8 +218,8 @@ namespace Meteorite {
 
 			Wgpu.RenderPipelineDescriptor desc = .() {
 				vertex = .() {
-					module = vShader.[Friend]handle,
-					entryPoint = vEntryPoint.ToScopeCStr!(),
+					module = GetShader!(true),
+					entryPoint = "main",
 					bufferCount = 1,
 					buffers = &vertexBufferLayout
 				},
@@ -233,9 +237,25 @@ namespace Meteorite {
 				}
 			};
 
-			Pipeline pipeline = new [Friend].(Gfx.[Friend]CreatePipeline(&layoutDesc, &desc));
-			delete this;
+			Wgpu.RenderPipeline pipeline = Gfx.[Friend]CreatePipeline(&layoutDesc, &desc);
 			return pipeline;
+		}
+
+		private mixin GetShader(bool vertex) {
+			StringView ext = vertex ? "vert" : "frag";
+			StringView path = scope $"shaders/{shaderPath}.{ext}";
+
+			ShaderPreProcessor preProcessor = scope .();
+			preProcessor.Define(vertex ? "VERTEX" : "FRAGMENT");
+			initPreProcessor?.Invoke(preProcessor);
+
+			String string = scope .();
+			preProcessor.PreProcess(path, string);
+			
+			Shader shader = Gfx.CreateShaderBuffer(vertex ? .Vertex : .Fragment, string);
+			defer:: delete shader;
+
+			shader.[Friend]handle
 		}
 	}
 }

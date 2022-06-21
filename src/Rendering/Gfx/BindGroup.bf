@@ -10,7 +10,7 @@ namespace Meteorite {
 		}
 
 		public void Bind(RenderPass pass, int index = 0) {
-			pass.[Friend]pass.SetBindGroup((.) index, handle, 0, null);
+			pass.[Friend]encoder.SetBindGroup((.) index, handle, 0, null);
 		}
 	}
 
@@ -29,6 +29,7 @@ namespace Meteorite {
 
 				if (args[i] is Sampler) entries[i].sampler = ((Sampler) args[i]).[Friend]handle;
 				else if (args[i] is Texture) entries[i].textureView = ((Texture) args[i]).[Friend]view;
+				else if (args[i] is Wgpu.TextureView) entries[i].textureView = (Wgpu.TextureView) args[i];
 				else if (args[i] is WBuffer) entries[i].buffer = ((WBuffer) args[i]).[Friend]handle;
 				else Log.Error("Unknown bind group entry argument: {}", args[i].GetType());
 			}

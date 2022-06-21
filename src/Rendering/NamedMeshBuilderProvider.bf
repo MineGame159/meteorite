@@ -10,7 +10,7 @@ namespace Meteorite {
 			MeshBuilder outMb;
 			if (meshes.TryGet(name, out outKey, out outMb)) return outMb;
 
-			MeshBuilder mb = Meteorite.INSTANCE.frameBuffers.AllocateImmediate(null, Buffers.QUAD_INDICES);
+			MeshBuilder mb = Meteorite.INSTANCE.frameBuffers.AllocateImmediate(.Null, Buffers.QUAD_INDICES);
 
 			meshes[new .(name)] = mb;
 			return mb;

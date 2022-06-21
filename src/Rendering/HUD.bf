@@ -34,16 +34,15 @@ namespace Meteorite {
 			ImGui.Text("Pos: {:0} {:0} {:0}", me.camera.pos.x, me.camera.pos.y, me.camera.pos.z);
 			ImGui.Separator();
 
-			bool preAO = me.options.ao;
-			ImGui.Checkbox("AO", &me.options.ao);
-			if (me.options.ao != preAO) me.world.ReloadChunks();
-
 			ImGui.Checkbox("Mipmaps", &me.options.mipmaps);
 			ImGui.Checkbox("Sort Chunks", &me.options.sortChunks);
 			ImGui.Checkbox("Chunk Boundaries", &me.options.chunkBoundaries);
-
 			ImGui.PushItemWidth(150);
 			ImGui.SliderFloat("FOV", &me.options.fov, 10, 170, "%.0f");
+			ImGui.Separator();
+
+			if (ImGui.Checkbox("AO", &me.options.ao)) me.world.ReloadChunks();
+			if (ImGui.Checkbox("FXAA", &me.options.fxaa)) Gfxa.POST_PIPELINE.Reload();
 			ImGui.PopItemWidth();
 
 			ImGui.End();

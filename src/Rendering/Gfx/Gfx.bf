@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Diagnostics;
 
 using Wgpu;
 using ImGui;
@@ -40,8 +41,8 @@ namespace Meteorite {
 		}
 
 		public void Bind(RenderPass pass, uint64 offset = 0, uint64 size = 0) {
-			if (usage.HasFlag(.Vertex)) pass.[Friend]pass.SetVertexBuffer(0, handle, offset, size);
-			else if (usage.HasFlag(.Index)) pass.[Friend]pass.SetIndexBuffer(handle, .Uint32, offset, size);
+			if (usage.HasFlag(.Vertex)) pass.[Friend]encoder.SetVertexBuffer(0, handle, offset, size);
+			else if (usage.HasFlag(.Index)) pass.[Friend]encoder.SetIndexBuffer(handle, .Uint32, offset, size);
             else {
 				Log.Error("Unknown buffer type: {}", usage);
 				Runtime.NotImplemented();
@@ -77,11 +78,14 @@ namespace Meteorite {
 		private Wgpu.TextureView view ~ _.Drop();
 		private Wgpu.TextureDescriptor descriptor;
 
-		private this(Wgpu.Texture handle, Wgpu.TextureView view, Wgpu.TextureDescriptor descriptor) {
+		private Sampler sampler;
+		private BindGroup bindGroup ~ delete _;
+
+		private this(Wgpu.Texture handle, Wgpu.TextureView view, Wgpu.TextureDescriptor descriptor, Sampler sampler = Gfxa.NEAREST_SAMPLER) {
 			this.handle = handle;
 			this.view = view;
 			this.descriptor = descriptor;
-
+			this.sampler = sampler;
 			
 			Gfx.ALLOCATED += GetUsedMemory();
 		}
@@ -89,6 +93,13 @@ namespace Meteorite {
 		public ~this() {
 			Gfx.ALLOCATED -= GetUsedMemory();
 		}
+
+		public BindGroup BindGroup { get {
+			if (bindGroup == null) bindGroup = Gfxa.TEXTURE_SAMPLER_LAYOUT.Create(this, sampler);
+			return bindGroup;
+		} }
+
+		public void Bind(RenderPass pass, int index = 0) => BindGroup.Bind(pass, index);
 
 		public uint64 GetUsedMemory() {
 			// Most probably incorrect
@@ -99,6 +110,24 @@ namespace Meteorite {
 		public Wgpu.TextureView CreateView() {
 			Wgpu.TextureViewDescriptor desc = .();
 			return handle.CreateView(&desc);
+		}
+
+		public void Resize(int width, int height) {
+			if (descriptor.size.width == width && descriptor.size.height == height) return;
+
+			if (handle != .Null) {
+				handle.Drop();
+				view.Drop();
+			}
+			DeleteAndNullify!(bindGroup);
+
+			Gfx.ALLOCATED -= GetUsedMemory();
+			descriptor.size.width = (.) width;
+			descriptor.size.height = (.) height;
+			Gfx.ALLOCATED += GetUsedMemory();
+
+			handle = Gfx.device.CreateTexture(&descriptor);
+			view = CreateView();
 		}
 
 		public void Write(int width, int height, int level, void* data) {
@@ -125,6 +154,8 @@ namespace Meteorite {
 			Wgpu.Extent3D size = .((.) width, (.) height, 1);
 			Gfx.[Friend]queue.WriteTexture(&destination, data, (.) (width * height * 4), &dataLayout, &size);
 		}
+
+		public static operator Wgpu.TextureView(Texture texture) => texture.view;
 	}
 
 	static class Gfx {
@@ -173,8 +204,6 @@ namespace Meteorite {
 			ImGui.DestroyContext();
 		}
 
-		public static RenderPassBuilder NewRenderPass() => new [Friend].();
-
 		public static BindGroupLayoutBuilder NewBindGroupLayout() => new [Friend].();
 
 		public static Sampler CreateSampler(Wgpu.AddressMode addressMode, Wgpu.FilterMode magFilter, Wgpu.FilterMode minFilter, Wgpu.MipmapFilterMode mipmapFilter = .Nearest, int mipLevels = 1) {
@@ -191,24 +220,26 @@ namespace Meteorite {
 			return new [Friend].(device.CreateSampler(&desc));
 		}
 
-		public static Shader CreateShader(StringView path) {
-			String buffer = new .();
-			Meteorite.INSTANCE.resources.ReadString(path, buffer);
-
-			Wgpu.ShaderModuleWGSLDescriptor wgslDesc = .() {
+		public static Shader CreateShaderBuffer(Wgpu.ShaderStage stage, StringView buffer) {
+			Wgpu.ShaderModuleGLSLDescriptor glslDesc = .() {
 				chain = .() {
-					sType = .ShaderModuleWGSLDescriptor
+					sType = (.) Wgpu.NativeSType.ShaderModuleGLSLDescriptor
 				},
-				code = buffer.CStr()
+				stage = stage,
+				code = buffer.ToScopeCStr!()
 			};
 			Wgpu.ShaderModuleDescriptor desc = .() {
-				nextInChain = (Wgpu.ChainedStruct*) &wgslDesc,
+				nextInChain = (.) &glslDesc,
 			};
 
-			Wgpu.ShaderModule shader = device.CreateShaderModule(&desc);
-			delete buffer;
+			return new [Friend].(device.CreateShaderModule(&desc));
+		}
+		public static Shader CreateShader(Wgpu.ShaderStage stage, StringView path) {
+			String buffer = new .();
+			defer delete buffer;
 
-			return new [Friend].(shader);
+			Meteorite.INSTANCE.resources.ReadString(path, buffer);
+			return CreateShaderBuffer(stage, buffer);
 		}
 
 		public static PipelineBuilder NewPipeline() => new [Friend].();
@@ -233,7 +264,9 @@ namespace Meteorite {
 			return new [Friend].(handle, usage, alignedSize);
 		}
 
-		public static Texture CreateTexture(Wgpu.TextureUsage usage, int width, int height, int levels, void* data, Wgpu.TextureFormat format = .RGBA8Unorm) {
+		public static Texture CreateTexture(Wgpu.TextureUsage usage, int width, int height, int levels, void* data, Wgpu.TextureFormat format = .RGBA8Unorm, bool create = true, Sampler sampler = Gfxa.NEAREST_SAMPLER) {
+			Debug.Assert(sampler != null, "Sampler cannot be null when creating a texture");
+
 			Wgpu.TextureDescriptor desc = .() {
 				usage = usage,
 				dimension = ._2D,
@@ -243,12 +276,17 @@ namespace Meteorite {
 				sampleCount = 1
 			};
 			
-			Wgpu.Texture handle = data == null ? device.CreateTexture(&desc) : device.CreateTextureWithData(queue, &desc, data);
+			Wgpu.Texture handle = .Null;
+			Wgpu.TextureView view = .Null;
 
-			Wgpu.TextureViewDescriptor viewDesc = .();
-			Wgpu.TextureView view = handle.CreateView(&viewDesc);
+			if (create) {
+				handle = data == null ? device.CreateTexture(&desc) : device.CreateTextureWithData(queue, &desc, data);
 
-			return new [Friend].(handle, view, desc);
+				Wgpu.TextureViewDescriptor viewDesc = .();
+				view = handle.CreateView(&viewDesc);
+			}
+
+			return new [Friend].(handle, view, desc, sampler);
 		}
 
 		public static Texture CreateTexture(Image image) {
