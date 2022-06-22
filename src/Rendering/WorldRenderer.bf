@@ -173,7 +173,7 @@ namespace Meteorite {
 
 			for (Chunk chunk in visibleChunks) {
 				for (BlockEntity blockEntity in chunk.BlockEntities) {
-					me.blockEntityRenderDispatcher.Render(blockEntity, tickDelta);
+					me.blockEntityRenderDispatcher.Render(blockEntity, chunk.yOffset, tickDelta);
 				}
 			}
 
