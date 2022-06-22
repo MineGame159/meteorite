@@ -12,7 +12,7 @@ namespace Meteorite {
 		private Wgpu.TextureView output;
 		private Wgpu.CommandEncoder encoder;
 
-		private Texture mainColor;
+		private Texture mainColor, mainNormal;
 		private Texture mainDepth;
 
 		private float delta;
@@ -20,6 +20,7 @@ namespace Meteorite {
 
 		public this() {
 			mainColor = ColorTexture();
+			mainNormal= ColorTexture();
 			mainDepth = DepthTexture();
 
 			Input.keyEvent.Add(new => OnKey, -10);
@@ -53,13 +54,34 @@ namespace Meteorite {
 				SetupWorldRendering();
 
 				{
-					// Main
+					// Main Pre
 					RenderPass pass = RenderPass.Begin(encoder)
 						.Color(mainColor, clearColor)
 						.Depth(mainDepth, 1)
 						.Finish();
 					
+					RenderMainPre(pass);
+					pass.End();
+				}
+				{
+					// Main
+					RenderPass pass = RenderPass.Begin(encoder)
+						.Color(mainColor)
+						.Color(mainNormal, .ZERO)
+						.Depth(mainDepth, 1)
+						.Finish();
+					
 					RenderMain(pass);
+					pass.End();
+				}
+				{
+					// Main Post
+					RenderPass pass = RenderPass.Begin(encoder)
+						.Color(mainColor)
+						.Depth(mainDepth, 1)
+						.Finish();
+					
+					RenderMainPost(pass);
 					pass.End();
 				}
 				{
@@ -103,8 +125,16 @@ namespace Meteorite {
 			me.camera.Update(me.world.viewDistance * Section.SIZE * 4);
 		}
 
+		private void RenderMainPre(RenderPass pass) {
+			me.worldRenderer.RenderPre(pass, me.tickCounter.tickDelta, delta);
+		}
+
 		private void RenderMain(RenderPass pass) {
 			me.worldRenderer.Render(pass, me.tickCounter.tickDelta, delta);
+		}
+
+		private void RenderMainPost(RenderPass pass) {
+			me.worldRenderer.RenderPost(pass, me.tickCounter.tickDelta, delta);
 		}
 
 		private void RenderPost(RenderPass pass) {

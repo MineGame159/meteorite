@@ -15,7 +15,7 @@ namespace Meteorite {
 			Vertex vertex = face.vertices[vertexI];
 			Vec4 pos = matrices.Back * Vec4(vertex.pos / 16, 1);
 			
-			mb.Vec3(.(pos.x, pos.y, pos.z)).Vec3(.(normal.x, normal.y, normal.z)).UShort2(vertex.uv.x, vertex.uv.y).Next()
+			mb.Vec3(.(pos.x, pos.y, pos.z)).Byte4((.) normal.x, (.) normal.y, (.) normal.z, 0).UShort2(vertex.uv.x, vertex.uv.y).Color(.WHITE).Next()
 		}
 
 		public void Render(MatrixStack matrices, MeshBuilder mb) {
@@ -26,13 +26,13 @@ namespace Meteorite {
 
 			for (Cube cube in cubes) {
 				for (let face in cube.faces) {
-					Vec4 normal = matrices.BackNormal * Vec4(face.normal, 1);
+					Vec4 normal = (matrices.BackNormal * Vec4(face.normal, 1)).Normalize() * 127;
 
 					mb.Quad(
 						Vertex!(mb, matrices, face, normal, 0),
-						Vertex!(mb, matrices, face, normal, 1),
+						Vertex!(mb, matrices, face, normal, 3),
 						Vertex!(mb, matrices, face, normal, 2),
-						Vertex!(mb, matrices, face, normal, 3)
+						Vertex!(mb, matrices, face, normal, 1)
 					);
 				}
 			}

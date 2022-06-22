@@ -49,51 +49,56 @@ namespace Meteorite {
 			double y2 = y1 + type.height;
 			double z2 = z1 + type.width;
 
-			Color c = color;
+			Vec3f normal = .(0, 127, 0);
 			mb.Quad(
-				mb.Vec3(.((.) x1, (.) y2, (.) z1)).Color(c).Next(),
-				mb.Vec3(.((.) x2, (.) y2, (.) z1)).Color(c).Next(),
-				mb.Vec3(.((.) x2, (.) y2, (.) z2)).Color(c).Next(),
-				mb.Vec3(.((.) x1, (.) y2, (.) z2)).Color(c).Next()
+				Vertex!(mb, x1, y2, z1, normal, color),
+				Vertex!(mb, x2, y2, z1, normal, color),
+				Vertex!(mb, x2, y2, z2, normal, color),
+				Vertex!(mb, x1, y2, z2, normal, color)
 			);
 
-			c = color.MulWithoutA(0.4f);
+			normal = .(0, -127, 0);
 			mb.Quad(
-				mb.Vec3(.((.) x1, (.) y1, (.) z1)).Color(c).Next(),
-				mb.Vec3(.((.) x1, (.) y1, (.) z2)).Color(c).Next(),
-				mb.Vec3(.((.) x2, (.) y1, (.) z2)).Color(c).Next(),
-				mb.Vec3(.((.) x2, (.) y1, (.) z1)).Color(c).Next()
+				Vertex!(mb, x1, y1, z1, normal, color),
+				Vertex!(mb, x1, y1, z2, normal, color),
+				Vertex!(mb, x2, y1, z2, normal, color),
+				Vertex!(mb, x2, y1, z1, normal, color)
 			);
 
-			c = color.MulWithoutA(0.6f);
+			normal = .(127, 0, 0);
 			mb.Quad(
-				mb.Vec3(.((.) x2, (.) y1, (.) z1)).Color(c).Next(),
-				mb.Vec3(.((.) x2, (.) y1, (.) z2)).Color(c).Next(),
-				mb.Vec3(.((.) x2, (.) y2, (.) z2)).Color(c).Next(),
-				mb.Vec3(.((.) x2, (.) y2, (.) z1)).Color(c).Next()
-			);
-
-			mb.Quad(
-				mb.Vec3(.((.) x1, (.) y1, (.) z1)).Color(c).Next(),
-				mb.Vec3(.((.) x1, (.) y2, (.) z1)).Color(c).Next(),
-				mb.Vec3(.((.) x1, (.) y2, (.) z2)).Color(c).Next(),
-				mb.Vec3(.((.) x1, (.) y1, (.) z2)).Color(c).Next()
-			);
-
-			c = color.MulWithoutA(0.8f);
-			mb.Quad(
-				mb.Vec3(.((.) x1, (.) y1, (.) z1)).Color(c).Next(),
-				mb.Vec3(.((.) x2, (.) y1, (.) z1)).Color(c).Next(),
-				mb.Vec3(.((.) x2, (.) y2, (.) z1)).Color(c).Next(),
-				mb.Vec3(.((.) x1, (.) y2, (.) z1)).Color(c).Next()
+				Vertex!(mb, x2, y1, z1, normal, color),
+				Vertex!(mb, x2, y1, z2, normal, color),
+				Vertex!(mb, x2, y2, z2, normal, color),
+				Vertex!(mb, x2, y2, z1, normal, color)
 			);
 
 			mb.Quad(
-				mb.Vec3(.((.) x1, (.) y1, (.) z2)).Color(c).Next(),
-				mb.Vec3(.((.) x1, (.) y2, (.) z2)).Color(c).Next(),
-				mb.Vec3(.((.) x2, (.) y2, (.) z2)).Color(c).Next(),
-				mb.Vec3(.((.) x2, (.) y1, (.) z2)).Color(c).Next()
+				Vertex!(mb, x1, y1, z1, normal, color),
+				Vertex!(mb, x1, y2, z1, normal, color),
+				Vertex!(mb, x1, y2, z2, normal, color),
+				Vertex!(mb, x1, y1, z2, normal, color)
 			);
+
+			normal = .(0, 0, -127);
+			mb.Quad(
+				Vertex!(mb, x1, y1, z1, normal, color),
+				Vertex!(mb, x2, y1, z1, normal, color),
+				Vertex!(mb, x2, y2, z1, normal, color),
+				Vertex!(mb, x1, y2, z1, normal, color)
+			);
+
+			normal = .(0, 0, 127);
+			mb.Quad(
+				Vertex!(mb, x1, y1, z2, normal, color),
+				Vertex!(mb, x1, y2, z2, normal, color),
+				Vertex!(mb, x2, y2, z2, normal, color),
+				Vertex!(mb, x2, y1, z2, normal, color)
+			);
+		}
+
+		private static mixin Vertex(MeshBuilder mb, double x, double y, double z, Vec3f normal, Color color) {
+			mb.Vec3(.((.) x, (.) y, (.) z)).Byte4((.) normal.x, (.) normal.y, (.) normal.z, 0).UShort2(0, 0).Color(color).Next()
 		}
 	}
 }

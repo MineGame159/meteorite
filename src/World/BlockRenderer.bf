@@ -20,10 +20,11 @@ namespace Meteorite {
 			Property p = blockState.GetProperty("level");
 			float yOffset = (p.value == 0 ? 15 : 15 - p.value) / 16f;
 
-			uint32 i1 = Vertex!(mb, x, y, z, Vertex(.(0, yOffset, 0), quad.vertices[0].uv), quad.texture, c);
-			uint32 i2 = Vertex!(mb, x, y, z, Vertex(.(1, yOffset, 0), quad.vertices[1].uv), quad.texture, c);
-			uint32 i3 = Vertex!(mb, x, y, z, Vertex(.(1, yOffset, 1), quad.vertices[2].uv), quad.texture, c);
-			uint32 i4 = Vertex!(mb, x, y, z, Vertex(.(0, yOffset, 1), quad.vertices[3].uv), quad.texture, c);
+			Vec3f normal = .(0, 127, 0);
+			uint32 i1 = Vertex!(mb, x, y, z, Vertex(.(0, yOffset, 0), quad.vertices[0].uv), quad.texture, c, normal);
+			uint32 i2 = Vertex!(mb, x, y, z, Vertex(.(1, yOffset, 0), quad.vertices[1].uv), quad.texture, c, normal);
+			uint32 i3 = Vertex!(mb, x, y, z, Vertex(.(1, yOffset, 1), quad.vertices[2].uv), quad.texture, c, normal);
+			uint32 i4 = Vertex!(mb, x, y, z, Vertex(.(0, yOffset, 1), quad.vertices[3].uv), quad.texture, c, normal);
 
 			mb.Quad(i1, i2, i3, i4); // Top
 			mb.Quad(i1, i4, i3, i2); // Bottom
@@ -98,23 +99,32 @@ namespace Meteorite {
 				// Tint
 				Color c = .(255, 255, 255);
 				if (quad.tint && biome != null) Tint(chunk, blockState, x, y, z, ref c);
+
+				// Normal
+				Vec3f d0 = quad.vertices[2].pos - quad.vertices[0].pos;
+				Vec3f d1 = quad.vertices[3].pos - quad.vertices[1].pos;
+				Vec3f normal = .(d1.y * d0.z - d1.z * d0.y, d1.z * d0.x - d1.x * d0.z, d1.x * d0.y - d1.y * d0.x);
+				float l = Math.Sqrt(normal.x * normal.x + normal.y * normal.y + normal.z * normal.z);
+				if (l != 0) normal /= l;
+				normal *= 127;
 				
 				// Emit quad
 				mb.Quad(
-					Vertex!(mb, x, y, z, quad.vertices[0], quad.texture, c.MulWithoutA(quad.light * ao1)),
-					Vertex!(mb, x, y, z, quad.vertices[1], quad.texture, c.MulWithoutA(quad.light * ao2)),
-					Vertex!(mb, x, y, z, quad.vertices[2], quad.texture, c.MulWithoutA(quad.light * ao3)),
-					Vertex!(mb, x, y, z, quad.vertices[3], quad.texture, c.MulWithoutA(quad.light * ao4))
+					Vertex!(mb, x, y, z, quad.vertices[0], quad.texture, c.MulWithoutA(quad.light * ao1), normal),
+					Vertex!(mb, x, y, z, quad.vertices[1], quad.texture, c.MulWithoutA(quad.light * ao2), normal),
+					Vertex!(mb, x, y, z, quad.vertices[2], quad.texture, c.MulWithoutA(quad.light * ao3), normal),
+					Vertex!(mb, x, y, z, quad.vertices[3], quad.texture, c.MulWithoutA(quad.light * ao4), normal)
 				);
 			}
 		}
 
-		private static mixin Vertex(MeshBuilder mb, int x, int y, int z, Vertex v, uint16 texture, Color color) {
+		private static mixin Vertex(MeshBuilder mb, int x, int y, int z, Vertex v, uint16 texture, Color color, Vec3f normal) {
 			mb
 				.Vec3(.(x + v.pos.x, y + v.pos.y, z + v.pos.z))
 				.UShort2(v.uv.x, v.uv.y)
 				.Color(color)
 				.UShort2(texture, 0)
+				.Byte4((.) normal.x, (.) normal.y, (.) normal.z, 0)
 				.Next()
 		}
 

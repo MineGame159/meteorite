@@ -31,7 +31,6 @@ namespace Meteorite {
 		public static Pipeline ENTITY_PIPELINE ~ delete _;
 		public static Pipeline POST_PIPELINE ~ delete _;
 		public static Pipeline LINES_PIPELINE ~ delete _;
-		public static Pipeline QUADS_PIPELINE ~ delete _;
 		public static Pipeline TEX_QUADS_PIPELINE ~ delete _;
 
 		// Samplers
@@ -56,26 +55,29 @@ namespace Meteorite {
 			// Pipelines
 			CHUNK_PIPELINE = Gfx.NewPipeline()
 				.BindGroupLayouts(TEXTURE_SAMPLER_LAYOUT, BUFFER_SAMPLER_LAYOUT)
-				.Attributes(.Float3, .UShort2Float, .UByte4, .UShort2)
+				.Attributes(.Float3, .UShort2Float, .UByte4, .UShort2, .SByte4)
 				.Shader("chunk")
 				.PushConstants(.Vertex, 0, sizeof(ChunkPushConstants))
 				.Primitive(.TriangleList, .Clockwise)
+				.Targets(.BGRA8Unorm, .BGRA8Unorm)
 				.Depth(true)
 				.Create();
 			CHUNK_TRANSPARENT_PIPELINE = Gfx.NewPipeline()
 				.BindGroupLayouts(TEXTURE_SAMPLER_LAYOUT, BUFFER_SAMPLER_LAYOUT)
-				.Attributes(.Float3, .UShort2Float, .UByte4, .UShort2)
+				.Attributes(.Float3, .UShort2Float, .UByte4, .UShort2, .SByte4)
 				.Shader("chunkTransparent")
 				.PushConstants(.Vertex, 0, sizeof(ChunkPushConstants))
 				.Primitive(.TriangleList, .Clockwise)
+				.Targets(.BGRA8Unorm, .BGRA8Unorm)
 				.Depth(true, true, false)
 				.Create();
 			ENTITY_PIPELINE = Gfx.NewPipeline()
 				.BindGroupLayouts(TEXTURE_SAMPLER_LAYOUT, BUFFER_SAMPLER_LAYOUT)
-				.Attributes(.Float3, .Float3, .UShort2Float)
+				.Attributes(.Float3, .SByte4, .UShort2Float, .UByte4)
 				.Shader("entity")
 				.PushConstants(.Vertex, 0, sizeof(Mat4))
-				.Primitive(.TriangleList, .CounterClockwise)
+				.Primitive(.TriangleList, .Clockwise)
+				.Targets(.BGRA8Unorm, .BGRA8Unorm)
 				.Depth(true)
 				.Create();
 			POST_PIPELINE = Gfx.NewPipeline()
@@ -91,13 +93,6 @@ namespace Meteorite {
 				.PushConstants(.Vertex, 0, sizeof(Mat4))
 				.Primitive(.LineList, .Clockwise)
 				.Depth(true, false, false)
-				.Create();
-			QUADS_PIPELINE = Gfx.NewPipeline()
-				.Attributes(.Float3, .UByte4)
-				.Shader(POS_COLOR_SHADER)
-				.PushConstants(.Vertex, 0, sizeof(Mat4))
-				.Primitive(.TriangleList, .Clockwise)
-				.Depth(true)
 				.Create();
 			TEX_QUADS_PIPELINE = Gfx.NewPipeline()
 				.BindGroupLayouts(TEXTURE_SAMPLER_LAYOUT)

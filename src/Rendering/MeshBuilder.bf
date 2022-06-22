@@ -28,6 +28,15 @@ namespace Meteorite {
 			return this;
 		}
 
+		public Self Byte4(int8 x, int8 y, int8 z, int8 w) {
+			vertices.Byte(x);
+			vertices.Byte(y);
+			vertices.Byte(z);
+			vertices.Byte(w);
+
+			return this;
+		}
+
 		public Self UShort2(uint16 x, uint16 y) {
 			vertices.UShort(x);
 			vertices.UShort(y);

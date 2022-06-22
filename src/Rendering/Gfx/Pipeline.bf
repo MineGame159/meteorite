@@ -7,6 +7,7 @@ namespace Meteorite {
 	enum VertexAttribute {
 		case UByte2Float;
 		case UByte4;
+		case SByte4;
 
 		case UShort2;
 		case UShort2Float;
@@ -17,7 +18,8 @@ namespace Meteorite {
 		public uint64 GetSize() {
 			switch (this) {
 			case .UByte2Float: return sizeof(uint8) * 2;
-			case .UByte4: return sizeof(uint8) * 4;
+			case .UByte4:      return sizeof(uint8) * 4;
+			case .SByte4:      return sizeof(uint8) * 4;
 
 			case .UShort2, .UShort2Float: return sizeof(uint16) * 2;
 
@@ -29,9 +31,10 @@ namespace Meteorite {
 		public Wgpu.VertexFormat GetFormat() {
 			switch (this) {
 			case .UByte2Float: return .Unorm8x2;
-			case .UByte4: return .Unorm8x4;
+			case .UByte4:      return .Unorm8x4;
+			case .SByte4:      return .Snorm8x4;
 
-			case .UShort2: return .Uint16x2;
+			case .UShort2:      return .Uint16x2;
 			case .UShort2Float: return .Unorm16x2;
 
 			case .Float2: return .Float32x2;
@@ -76,6 +79,8 @@ namespace Meteorite {
 		private Wgpu.PrimitiveTopology topology;
 		private Cull cull = .None;
 
+		private Wgpu.TextureFormat[] targets ~ delete _;
+
 		private bool blend = true;
 		private Wgpu.BlendState? blendState;
 
@@ -119,6 +124,13 @@ namespace Meteorite {
 			return this;
 		}
 
+		public Self Targets(params Wgpu.TextureFormat[] formats) {
+			targets = new .[formats.Count];
+			formats.CopyTo(targets);
+
+			return this;
+		}
+
 		public Self Blend(bool blend) {
 			this.blend = blend;
 			return this;
@@ -140,6 +152,8 @@ namespace Meteorite {
 		public Pipeline Create() => new [Friend].(this);
 
 		private Wgpu.RenderPipeline Build() {
+			if (targets == null) Targets(.BGRA8Unorm);
+
 			Wgpu.PipelineLayoutDescriptor layoutDesc = .();
 
 			if (bindGroupLayouts != null) {
@@ -192,16 +206,21 @@ namespace Meteorite {
 				alpha = .(.Add, .One, .OneMinusSrcAlpha)
 			};
 			if (blendState != null) blend = blendState.Value;
-			Wgpu.ColorTargetState colorTarget = .() {
-				format = .BGRA8Unorm,
-				blend = this.blend ? &blend : null,
-				writeMask = .All
-			};
+
+			Wgpu.ColorTargetState[] targetDescs = scope .[targets.Count];
+			for (int i < targets.Count) {
+				targetDescs[i] = .() {
+					format = targets[i],
+					blend = i == 0 ? (this.blend ? &blend : null) : null,
+					writeMask = .All
+				};
+			}
+
 			Wgpu.FragmentState fragmentDesc = .() {
 				module = GetShader!(false),
 				entryPoint = "main",
-				targetCount = 1,
-				targets = &colorTarget
+				targetCount = (.) targetDescs.Count,
+				targets = &targetDescs[0]
 			};
 
 			Wgpu.DepthStencilState depthStencil = .() {

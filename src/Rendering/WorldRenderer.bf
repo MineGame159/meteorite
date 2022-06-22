@@ -34,18 +34,24 @@ namespace Meteorite {
 			chunkUpdatesThisTick = 0;
 		}
 
-		public void Render(RenderPass pass, float tickDelta, float delta) {
+		public void RenderPre(RenderPass pass, float tickDelta, float delta) {
 			SetupChunks();
-			
-			pass.PushDebugGroup("World");
 
 			SkyRenderer.Render(pass, me.world, me.camera, tickDelta);
+		}
+
+		public void Render(RenderPass pass, float tickDelta, float delta) {
+			pass.PushDebugGroup("World");
 
 			RenderChunks(pass, true, Gfxa.CHUNK_PIPELINE, delta);
 			RenderBlockEntities(pass, tickDelta);
 			RenderEntities(pass, tickDelta);
 			RenderChunks(pass, false, Gfxa.CHUNK_TRANSPARENT_PIPELINE, delta);
 
+			pass.PopDebugGroup();
+		}
+
+		public void RenderPost(RenderPass pass, float tickDelta, float delta) {
 			if (me.player != null && me.player.selection != null && !me.player.selection.missed) RenderBlockSelection(pass);
 			if (me.options.chunkBoundaries) RenderChunkBoundaries(pass);
 
@@ -83,8 +89,6 @@ namespace Meteorite {
 
 				mb.Finish();
 			}
-
-			pass.PopDebugGroup();
 		}
 
 		private void SetupChunks() {
@@ -181,7 +185,8 @@ namespace Meteorite {
 
 		private void RenderEntities(RenderPass pass, float tickDelta) {
 			pass.PushDebugGroup("Entities");
-			Gfxa.QUADS_PIPELINE.Bind(pass);
+			Gfxa.ENTITY_PIPELINE.Bind(pass);
+			Gfxa.PIXEL_BIND_GRUP.Bind(pass);
 
 			ChunkPushConstants pc = .();
 			pc.projectionView = me.camera.proj * me.camera.view;
