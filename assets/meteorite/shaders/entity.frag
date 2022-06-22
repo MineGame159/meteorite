@@ -6,12 +6,8 @@ layout(location = 3) in vec4 v_Color;
 layout(location = 0) out vec4 color;
 layout(location = 1) out vec4 normal;
 
-layout(set = 0, binding = 0) uniform texture2D u_Texture;
-layout(set = 0, binding = 1) uniform sampler u_Sampler;
-
-#ifdef TONEMAP
-    #include lib/tonemap
-#endif
+layout(set = 1, binding = 0) uniform texture2D u_Texture;
+layout(set = 1, binding = 1) uniform sampler u_Sampler;
 
 void main() {
     vec4 c = texture(sampler2D(u_Texture, u_Sampler), v_TexCoord);
@@ -20,6 +16,5 @@ void main() {
     c *= vec4(v_Diffuse, v_Diffuse, v_Diffuse, 1.0);
 
     color = c * v_Color;
-
     normal.xyz = v_Normal;
 }

@@ -33,9 +33,7 @@ namespace Meteorite {
 
 		public void End(RenderPass pass, Camera camera) {
 			Gfxa.ENTITY_PIPELINE.Bind(pass);
-
-			Mat4 mat = camera.proj * camera.view;
-			pass.SetPushConstants(.Vertex, 0, sizeof(Mat4), &mat);
+			FrameUniforms.Bind(pass);
 
 			for (let pair in provider.Meshes) {
 				Meteorite.INSTANCE.textures.Bind(pass, pair.key);

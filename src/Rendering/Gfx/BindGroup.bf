@@ -72,7 +72,7 @@ namespace Meteorite {
 		public Self Buffer(Wgpu.BufferBindingType type) {
 			entries[count++] = .() {
 				binding = (.) count - 1,
-				visibility = .Vertex,
+				visibility = .Vertex | .Fragment,
 				buffer = .() {
 					type = type
 				}

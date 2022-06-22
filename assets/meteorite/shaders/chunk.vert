@@ -10,8 +10,9 @@ layout(location = 2) out float v_Blend;
 layout(location = 3) out vec4 v_Color;
 layout(location = 4) out vec3 v_Normal;
 
+#include lib/api
+
 layout(push_constant, std430) uniform pushConstants {
-    mat4 projectionView;
     vec3 chunkPos;
 } pc;
 
@@ -22,7 +23,7 @@ struct Texture {
     float blend;
 };
 
-layout(set = 1, binding = 0, std430) buffer TextureBuffer {
+layout(set = 2, binding = 0, std430) buffer TextureBuffer {
     Texture textures[];
 };
 
@@ -30,7 +31,7 @@ void main() {
     Texture tex = textures[texture.x];
     vec2 texCoord = texCoords * tex.size;
 
-    gl_Position = pc.projectionView * vec4(position + pc.chunkPos, 1.0);
+    gl_Position = api_ProjectionView * vec4(position + pc.chunkPos, 1.0);
     v_Uv1 = texCoord + tex.uv1;
     v_Uv2 = texCoord + tex.uv2;
     v_Blend = tex.blend;

@@ -39,7 +39,7 @@
 
 float edgeStepSizes[EXTRA_EDGE_STEPS] = { EDGE_STEP_SIZES };
 
-#define RESOLUTION_TEXEL (1.0 / RESOLUTION)
+#define RESOLUTION_TEXEL (1.0 / api_Resolution)
 
 vec4 GetSource(vec2 uv) {
     return texture(SAMPLER, uv);

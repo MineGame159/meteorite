@@ -62,6 +62,7 @@ namespace Meteorite {
 			SkyRenderer.Init();
 			BlockColors.Init();
 			Screenshots.Init();
+			FrameUniforms.Init();
 		}
 
 		public ~this() {

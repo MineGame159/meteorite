@@ -14,7 +14,7 @@ namespace Meteorite {
 			this.texture = texture;
 			this.glyphs = glyphs;
 			this.height = height;
-			this.bindGroup = Gfxa.TEXTURE_SAMPLER_LAYOUT.Create(texture, Gfxa.NEAREST_SAMPLER);
+			this.bindGroup = Gfxa.TEXTURE_BIND_GROUP_LAYOUT.Create(texture, Gfxa.NEAREST_SAMPLER);
 		}
 
 		public Glyph GetGlyph(char32 c) => glyphs.GetValueOrDefault((.) c);

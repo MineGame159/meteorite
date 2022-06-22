@@ -95,7 +95,7 @@ namespace Meteorite {
 		}
 
 		public BindGroup BindGroup { get {
-			if (bindGroup == null) bindGroup = Gfxa.TEXTURE_SAMPLER_LAYOUT.Create(this, sampler);
+			if (bindGroup == null) bindGroup = Gfxa.TEXTURE_BIND_GROUP_LAYOUT.Create(this, sampler);
 			return bindGroup;
 		} }
 

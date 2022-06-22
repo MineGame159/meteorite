@@ -162,16 +162,16 @@ namespace Meteorite {
 			DeleteAndNullify!(textures);
 
 			// Bind groups
-			textureBindGroup = Gfxa.TEXTURE_SAMPLER_LAYOUT.Create(texture, Gfxa.NEAREST_SAMPLER);
-			textureMipmapBindGroup = Gfxa.TEXTURE_SAMPLER_LAYOUT.Create(texture, Gfxa.NEAREST_MIPMAP_SAMPLER);
-			bufferBindGroup = Gfxa.BUFFER_SAMPLER_LAYOUT.Create(buffer);
+			textureBindGroup = Gfxa.TEXTURE_BIND_GROUP_LAYOUT.Create(texture, Gfxa.NEAREST_SAMPLER);
+			textureMipmapBindGroup = Gfxa.TEXTURE_BIND_GROUP_LAYOUT.Create(texture, Gfxa.NEAREST_MIPMAP_SAMPLER);
+			bufferBindGroup = Gfxa.BUFFER_BIND_GROUP_LAYOUT.Create(buffer);
 		}
 
 		public void Bind(RenderPass pass, bool mipmaps) {
-			if (mipmaps) textureMipmapBindGroup.Bind(pass);
-			else textureBindGroup.Bind(pass);
+			if (mipmaps) textureMipmapBindGroup.Bind(pass, 1);
+			else textureBindGroup.Bind(pass, 1);
 
-			bufferBindGroup.Bind(pass, 1);
+			bufferBindGroup.Bind(pass, 2);
 		}
 
 		struct TempTexture : this(String path, UV[] uvs, int size, TextureAnimationMetadata animation) {
@@ -240,11 +240,11 @@ namespace Meteorite {
 			private Texture texture ~ delete _;
 
 			public this(Texture texture) {
-				this.bindGroup = Gfxa.TEXTURE_SAMPLER_LAYOUT.Create(texture, Gfxa.NEAREST_SAMPLER);
+				this.bindGroup = Gfxa.TEXTURE_BIND_GROUP_LAYOUT.Create(texture, Gfxa.NEAREST_SAMPLER);
 				this.texture = texture;
 			}
 
-			public void Bind(RenderPass pass) => bindGroup.Bind(pass);
+			public void Bind(RenderPass pass) => bindGroup.Bind(pass, 1);
 		}
 	}
 }

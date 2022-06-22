@@ -8,9 +8,7 @@ layout(location = 1) out float v_Diffuse;
 layout(location = 2) out vec3 v_Normal;
 layout(location = 3) out vec4 v_Color;
 
-layout(push_constant, std430) uniform pushConstants {
-    mat4 projectionView;
-} pc;
+#include lib/api
 
 const vec3 LIGHT1      = vec3( 0.104196384,  0.947239857, -0.303116754);
 const vec3 LIGHT2      = vec3(-0.104196384,  0.947239857,  0.303116754);
@@ -24,7 +22,7 @@ float diffuse(vec3 normal) {
 }
 
 void main() {
-    gl_Position = pc.projectionView * vec4(position, 1.0);
+    gl_Position = api_ProjectionView * vec4(position, 1.0);
     v_TexCoord = texCoord;
     v_Diffuse = diffuse(normal);
     v_Normal = normal;

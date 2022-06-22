@@ -45,6 +45,8 @@ namespace Meteorite {
 			this.delta = delta;
 
 			Screenshots.Update();
+			FrameUniforms.Update();
+
 			Begin();
 
 			Color clearColor = me.world != null ? me.world.GetClearColor(me.camera, me.tickCounter.tickDelta) : .(200, 200, 200, 255);
@@ -141,11 +143,8 @@ namespace Meteorite {
 			pass.PushDebugGroup("Post");
 
 			Gfxa.POST_PIPELINE.Bind(pass);
-			mainColor.Bind(pass);
-
-			PostPushConstants pc = .();
-			pc.size = .(me.window.width, me.window.height);
-			pass.SetPushConstants(.Fragment, 0, sizeof(PostPushConstants), &pc);
+			FrameUniforms.Bind(pass);
+			mainColor.Bind(pass, 1);
 
 			MeshBuilder mb = me.frameBuffers.AllocateImmediate(pass);
 			mb.Quad(

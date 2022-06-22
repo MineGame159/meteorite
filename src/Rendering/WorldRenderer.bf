@@ -136,7 +136,7 @@ namespace Meteorite {
 		}
 
 		[Inline]
-		private void UpdateChunkPushConstants(RenderPass pass, Chunk chunk, ref ChunkPushConstants pc, float delta) {
+		private void UpdateChunkPushConstants(RenderPass pass, Chunk chunk, float delta) {
 			if (chunk.goingDown) {
 				chunk.yOffset -= delta * 20;
 			}
@@ -145,22 +145,20 @@ namespace Meteorite {
 				if (chunk.yOffset > 0) chunk.yOffset = 0;
 			}
 
-			pc.chunkPos = .(chunk.pos.x * Section.SIZE, (.) chunk.yOffset, chunk.pos.z * Section.SIZE);
-			pass.SetPushConstants(.Vertex, 0, sizeof(ChunkPushConstants), &pc);
+			Vec3f chunkPos = .(chunk.pos.x * Section.SIZE, (.) chunk.yOffset, chunk.pos.z * Section.SIZE);
+			pass.SetPushConstants(.Vertex, 0, sizeof(Vec3f), &chunkPos);
 		}
 
 		private void RenderChunks(RenderPass pass, bool solid, Pipeline pipeline, float delta) {
 			pass.PushDebugGroup(scope $"Chunks - {solid ? ("Solid") : ("Transparent")}");
 			pipeline.Bind(pass);
+			FrameUniforms.Bind(pass);
 			Meteorite.INSTANCE.textures.Bind(pass, me.options.mipmaps);
-
-			ChunkPushConstants pc = .();
-			pc.projectionView = me.camera.proj * me.camera.view;
 
 			for (Chunk chunk in visibleChunks) {
 				if (chunk.mesh == null) continue;
 
-				UpdateChunkPushConstants(pass, chunk, ref pc, delta);
+				UpdateChunkPushConstants(pass, chunk, delta);
 
 				if (solid) chunk.mesh.Render(pass);
 				else chunk.meshTransparent.Render(pass);
@@ -186,11 +184,8 @@ namespace Meteorite {
 		private void RenderEntities(RenderPass pass, float tickDelta) {
 			pass.PushDebugGroup("Entities");
 			Gfxa.ENTITY_PIPELINE.Bind(pass);
-			Gfxa.PIXEL_BIND_GRUP.Bind(pass);
-
-			ChunkPushConstants pc = .();
-			pc.projectionView = me.camera.proj * me.camera.view;
-			pass.SetPushConstants(.Vertex, 0, sizeof(Mat4), &pc.projectionView);
+			FrameUniforms.Bind(pass);
+			Gfxa.PIXEL_BIND_GRUP.Bind(pass, 1);
 
 			MeshBuilder mb = me.frameBuffers.AllocateImmediate(pass, Buffers.QUAD_INDICES);
 

@@ -48,7 +48,7 @@ namespace Meteorite {
 				.Depth(true, false, false)
 				.Create();
 			PIPELINE3 = Gfx.NewPipeline()
-				.BindGroupLayouts(Gfxa.TEXTURE_SAMPLER_LAYOUT)
+				.BindGroupLayouts(Gfxa.TEXTURE_BIND_GROUP_LAYOUT)
 				.Attributes(.Float3, .Float2)
 				.Shader(Gfxa.POS_TEX_SHADER)
 				.PushConstants(.Vertex | .Fragment, 0, sizeof(PushConstaints1))
@@ -78,8 +78,8 @@ namespace Meteorite {
 			SUN = Gfx.CreateTexture("environment/sun.png");
 			MOON = Gfx.CreateTexture("environment/moon_phases.png");
 
-			SUN_BIND_GROUP = Gfxa.TEXTURE_SAMPLER_LAYOUT.Create(SUN, Gfxa.NEAREST_SAMPLER);
-			MOON_BIND_GROUP = Gfxa.TEXTURE_SAMPLER_LAYOUT.Create(MOON, Gfxa.NEAREST_SAMPLER);
+			SUN_BIND_GROUP = Gfxa.TEXTURE_BIND_GROUP_LAYOUT.Create(SUN, Gfxa.NEAREST_SAMPLER);
+			MOON_BIND_GROUP = Gfxa.TEXTURE_BIND_GROUP_LAYOUT.Create(MOON, Gfxa.NEAREST_SAMPLER);
 		}
 
 		private static void CreateSkyDic(ref Mesh mesh, float y) {
