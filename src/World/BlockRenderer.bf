@@ -41,7 +41,7 @@ namespace Meteorite {
 
 			Foo foo = .(world, chunk, x, y, z);
 			MeshBuilder mb = (blockState.block == Blocks.NETHER_PORTAL ? chunk.meshTransparent : chunk.mesh).Build(); // TODO: Fix this
-			bool ao = Meteorite.INSTANCE.options.ao;
+			bool ao = Meteorite.INSTANCE.options.ao.HasVanilla;
 
 			for (Quad quad in blockState.model.quads) {
 				// Cull

@@ -2,13 +2,13 @@ layout(location = 0) in vec3 position;
 layout(location = 1) in vec2 texCoords;
 layout(location = 2) in vec4 color;
 layout(location = 3) in uvec2 texture;
-layout(location = 4) in vec3 normal;
+layout(location = 4) in vec4 normal;
 
 layout(location = 0) out vec2 v_Uv1;
 layout(location = 1) out vec2 v_Uv2;
 layout(location = 2) out float v_Blend;
 layout(location = 3) out vec4 v_Color;
-layout(location = 4) out vec3 v_Normal;
+layout(location = 4) out vec4 v_Normal;
 
 #include lib/api
 
@@ -36,5 +36,5 @@ void main() {
     v_Uv2 = texCoord + tex.uv2;
     v_Blend = tex.blend;
     v_Color = color;
-    v_Normal = normal;
+    v_Normal = api_InverseView * normal;
 }

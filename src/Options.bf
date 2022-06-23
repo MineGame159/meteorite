@@ -3,13 +3,23 @@ using System.IO;
 using System.Collections;
 
 namespace Meteorite {
+	enum AO {
+		case None;
+		case Vanilla;
+		case SSAO;
+		case Both;
+
+		public bool HasVanilla => this == .Vanilla || this == .Both;
+		public bool HasSSAO => this == .SSAO || this == .Both;
+	}
+
 	class Options {
 		public bool mipmaps = true;
 		public bool sortChunks = true;
 		public bool chunkBoundaries;
 		public float fov = 75;
 
-		public bool ao = true;
+		public AO ao = .Vanilla;
 		public bool fxaa = false;
 
 		public List<String> resourcePacks = new .() ~ DeleteContainerAndItems!(_);

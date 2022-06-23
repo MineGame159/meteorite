@@ -29,6 +29,7 @@ namespace Meteorite {
 		public Vec3f pos;
 		public float yaw, pitch;
 
+		public float nearClip = 0.05f, farClip;
 		private Plane[6] planes;
 
 		public this() {
@@ -52,6 +53,8 @@ namespace Meteorite {
 		}
 
 		public void Update(float far) {
+			farClip = far;
+
 			Window window = Meteorite.INSTANCE.window;
 
 			int width = window.width;
@@ -64,7 +67,7 @@ namespace Meteorite {
 
 			// Update matrices
 			proj2d = .Ortho(0, width / 2, 0, height / 2);
-			proj = .Perspective(Meteorite.INSTANCE.options.fov, (float) width / height, 0.05f, far);
+			proj = .Perspective(Meteorite.INSTANCE.options.fov, (float) width / height, nearClip, farClip);
 			view = .LookAt(pos, pos + GetDirection(true), .(0, 1, 0));
 			viewRotationOnly = .LookAt(.(), GetDirection(true), .(0, 1, 0));
 

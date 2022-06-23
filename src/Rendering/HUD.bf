@@ -9,6 +9,8 @@ namespace Meteorite {
 
 		public ChatRenderer chat = new .() ~ delete _;
 
+		private char8*[?] aos = .("None", "Vanilla", "SSAO", "Both");
+
 		public void Render(RenderPass pass, float delta) {
 			if (me.world != null && me.worldRenderer != null) {
 				Gfxa.TEX_QUADS_PIPELINE.Bind(pass);
@@ -41,7 +43,16 @@ namespace Meteorite {
 			ImGui.SliderFloat("FOV", &me.options.fov, 10, 170, "%.0f");
 			ImGui.Separator();
 
-			if (ImGui.Checkbox("AO", &me.options.ao)) me.world.ReloadChunks();
+			int32 ao = me.options.ao.Underlying;
+			if (ImGui.Combo("AO", &ao, &aos, aos.Count)) {
+				bool prevVanilla = me.options.ao.HasVanilla;
+				bool prevSsao = me.options.ao.HasSSAO;
+
+				me.options.ao = (.) ao;
+
+				if (prevVanilla != me.options.ao.HasVanilla) me.world.ReloadChunks();
+				if (prevSsao != me.options.ao.HasSSAO) Gfxa.POST_PIPELINE.Reload();
+			}
 			if (ImGui.Checkbox("FXAA", &me.options.fxaa)) Gfxa.POST_PIPELINE.Reload();
 			ImGui.PopItemWidth();
 

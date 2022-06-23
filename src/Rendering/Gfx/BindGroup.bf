@@ -44,12 +44,12 @@ namespace Meteorite {
 
 		private this() {}
 
-		public Self Texture() {
+		public Self Texture(Wgpu.TextureSampleType type = .Float) {
 			entries[count++] = .() {
 				binding = (.) count - 1,
 				visibility = .Fragment,
 				texture = .() {
-					sampleType = .Float,
+					sampleType = type,
 					viewDimension = ._2D
 				}
 			};

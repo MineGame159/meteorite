@@ -26,7 +26,7 @@ namespace Meteorite {
 
 			for (Cube cube in cubes) {
 				for (let face in cube.faces) {
-					Vec4 normal = (matrices.BackNormal * Vec4(face.normal, 1)).Normalize() * 127;
+					Vec4 normal = matrices.BackNormal * Vec4(face.normal, 1) * 127;
 
 					mb.Quad(
 						Vertex!(mb, matrices, face, normal, 0),

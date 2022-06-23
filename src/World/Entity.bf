@@ -73,6 +73,7 @@ namespace Meteorite {
 				Vertex!(mb, x2, y2, z1, normal, color)
 			);
 
+			normal = .(-127, 0, 0);
 			mb.Quad(
 				Vertex!(mb, x1, y1, z1, normal, color),
 				Vertex!(mb, x1, y2, z1, normal, color),

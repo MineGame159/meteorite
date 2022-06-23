@@ -12,15 +12,17 @@ namespace Meteorite {
 		private Wgpu.TextureView output;
 		private Wgpu.CommandEncoder encoder;
 
-		private Texture mainColor, mainNormal;
-		private Texture mainDepth;
+		public Texture mainColor, mainNormal;
+		public Texture mainDepth;
+
+		private SSAO ssao ~ delete _;
 
 		private float delta;
 		private bool afterScreenshot;
 
 		public this() {
 			mainColor = ColorTexture();
-			mainNormal= ColorTexture();
+			mainNormal = ColorTexture(.RGBA16Float);
 			mainDepth = DepthTexture();
 
 			Input.keyEvent.Add(new => OnKey, -10);
@@ -47,6 +49,8 @@ namespace Meteorite {
 			Screenshots.Update();
 			FrameUniforms.Update();
 
+			if (me.options.ao.HasSSAO && ssao == null) ssao = new .(ColorTexture(.R8Unorm));
+
 			Begin();
 
 			Color clearColor = me.world != null ? me.world.GetClearColor(me.camera, me.tickCounter.tickDelta) : .(200, 200, 200, 255);
@@ -70,7 +74,7 @@ namespace Meteorite {
 					RenderPass pass = RenderPass.Begin(encoder)
 						.Color(mainColor)
 						.Color(mainNormal, .ZERO)
-						.Depth(mainDepth, 1)
+						.Depth(mainDepth)
 						.Finish();
 					
 					RenderMain(pass);
@@ -80,16 +84,20 @@ namespace Meteorite {
 					// Main Post
 					RenderPass pass = RenderPass.Begin(encoder)
 						.Color(mainColor)
-						.Depth(mainDepth, 1)
+						.Depth(mainDepth)
 						.Finish();
 					
 					RenderMainPost(pass);
 					pass.End();
 				}
+				if (me.options.ao.HasSSAO) {
+					// SSAO
+					ssao.Render(encoder);
+				}
 				{
 					// Post
 					RenderPass pass = RenderPass.Begin(encoder)
-						.Color(output, clearColor)
+						.Color(output, .(0, 0, 0, 0))
 						.Finish();
 
 					RenderPost(pass);
@@ -146,6 +154,9 @@ namespace Meteorite {
 			FrameUniforms.Bind(pass);
 			mainColor.Bind(pass, 1);
 
+			if (me.options.ao.HasSSAO) ssao.Bind(pass, 2);
+			else Gfxa.PIXEL_BIND_GRUP.Bind(pass, 2);
+
 			MeshBuilder mb = me.frameBuffers.AllocateImmediate(pass);
 			mb.Quad(
 				mb.Vec2(.(-1, -1)).Vec2(.(0, 1)).Next(),
@@ -175,8 +186,8 @@ namespace Meteorite {
 			pass.PopDebugGroup();
 		}
 
-		private Texture ColorTexture() {
-			Texture texture = Gfx.CreateTexture(.RenderAttachment | .TextureBinding, 0, 0, 1, null, .BGRA8Unorm, false, Gfxa.LINEAR_SAMPLER);
+		private Texture ColorTexture(Wgpu.TextureFormat format = .BGRA8Unorm) {
+			Texture texture = Gfx.CreateTexture(.RenderAttachment | .TextureBinding, 0, 0, 1, null, format, false, format == .BGRA8Unorm ? Gfxa.LINEAR_SAMPLER : Gfxa.NEAREST_SAMPLER);
 			textures.Add(texture);
 			return texture;
 		}

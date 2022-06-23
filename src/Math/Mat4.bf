@@ -44,21 +44,26 @@ namespace Meteorite {
 
 		public Vec4 this[int index] {
 			get => vecs[index];
+			set mut => vecs[index] = value;
+		}
+
+		public ref Vec4 this[int index] {
+			get mut => ref vecs[index];
 		}
 
 		public static Mat4 Perspective(float fovy, float aspect, float near, float far) {
 			float tanHalfFovy = Math.Tan((fovy * Math.DEG2RADf) / 2);
 
 			Mat4 m = .();
-			m.vecs[0].x = 1 / (aspect * tanHalfFovy);
-			m.vecs[1].y = 1 / (tanHalfFovy);
-			m.vecs[2].z = far / (far - near);
-			m.vecs[2].w = 1;
-			m.vecs[3].z = -(far * near) / (far - near);
+			m[0].x = 1 / (aspect * tanHalfFovy);
+			m[1].y = 1 / (tanHalfFovy);
+			m[2].z = far / (far - near);
+			m[2].w = 1;
+			m[3].z = -(far * near) / (far - near);
 
 			// TODO: Uhhh
-			m.vecs[2].z = -m.vecs[2].z;
-			m.vecs[2].w = -m.vecs[2].w;
+			m[2].z = -m[2].z;
+			m[2].w = -m[2].w;
 
 			return m;
 		}
@@ -69,24 +74,24 @@ namespace Meteorite {
 			Vec3f u = f.Cross(s);
 
 			Mat4 m = .Identity();
-			m.vecs[0].x = s.x;
-			m.vecs[1].x = s.y;
-			m.vecs[2].x = s.z;
-			m.vecs[0].y = u.x;
-			m.vecs[1].y = u.y;
-			m.vecs[2].y = u.z;
-			m.vecs[0].z = f.x;
-			m.vecs[1].z = f.y;
-			m.vecs[2].z = f.z;
-			m.vecs[3].x = -s.Dot(eye);
-			m.vecs[3].y = -u.Dot(eye);
-			m.vecs[3].z = -f.Dot(eye);
+			m[0].x = s.x;
+			m[1].x = s.y;
+			m[2].x = s.z;
+			m[0].y = u.x;
+			m[1].y = u.y;
+			m[2].y = u.z;
+			m[0].z = f.x;
+			m[1].z = f.y;
+			m[2].z = f.z;
+			m[3].x = -s.Dot(eye);
+			m[3].y = -u.Dot(eye);
+			m[3].z = -f.Dot(eye);
 			return m;
 		}
 
 		public Mat4 Translate(Vec3f v) {
 			Mat4 m = this;
-			m.vecs[3] = m.vecs[0] * v.x + m.vecs[1] * v.y + m.vecs[2] * v.z + m.vecs[3];
+			m[3] = m[0] * v.x + m[1] * v.y + m[2] * v.z + m[3];
 			return m;
 		}
 
@@ -99,22 +104,22 @@ namespace Meteorite {
 			Vec3f temp = (1 - c) * axis;
 
 			Mat4 rotate = .();
-			rotate.vecs[0].x = c + temp.x * axis.x;
-			rotate.vecs[0].y = temp.x * axis.y + s * axis.z;
-			rotate.vecs[0].z = temp.x * axis.z - s * axis.y;
+			rotate[0].x = c + temp.x * axis.x;
+			rotate[0].y = temp.x * axis.y + s * axis.z;
+			rotate[0].z = temp.x * axis.z - s * axis.y;
 
-			rotate.vecs[1].x = temp.y * axis.x - s * axis.z;
-			rotate.vecs[1].y = c + temp.y * axis.y;
-			rotate.vecs[1].z = temp.y * axis.z + s * axis.x;
+			rotate[1].x = temp.y * axis.x - s * axis.z;
+			rotate[1].y = c + temp.y * axis.y;
+			rotate[1].z = temp.y * axis.z + s * axis.x;
 
-			rotate.vecs[2].x = temp.z * axis.x + s * axis.y;
-			rotate.vecs[2].y = temp.z * axis.y - s * axis.x;
-			rotate.vecs[2].z = c + temp.z * axis.z;
+			rotate[2].x = temp.z * axis.x + s * axis.y;
+			rotate[2].y = temp.z * axis.y - s * axis.x;
+			rotate[2].z = c + temp.z * axis.z;
 
 			return .(
-				vecs[0] * rotate.vecs[0].x + vecs[1] * rotate.vecs[0].y + vecs[2] * rotate.vecs[0].z,
-				vecs[0] * rotate.vecs[1].x + vecs[1] * rotate.vecs[1].y + vecs[2] * rotate.vecs[1].z,
-				vecs[0] * rotate.vecs[2].x + vecs[1] * rotate.vecs[2].y + vecs[2] * rotate.vecs[2].z,
+				vecs[0] * rotate[0].x + vecs[1] * rotate[0].y + vecs[2] * rotate[0].z,
+				vecs[0] * rotate[1].x + vecs[1] * rotate[1].y + vecs[2] * rotate[1].z,
+				vecs[0] * rotate[2].x + vecs[1] * rotate[2].y + vecs[2] * rotate[2].z,
 				vecs[3]
 			);
 		}
@@ -128,8 +133,55 @@ namespace Meteorite {
 			);
 		}
 
+		public Mat4 InverseTranspose() {
+			float SubFactor00 = this[2][2] * this[3][3] - this[3][2] * this[2][3];
+			float SubFactor01 = this[2][1] * this[3][3] - this[3][1] * this[2][3];
+			float SubFactor02 = this[2][1] * this[3][2] - this[3][1] * this[2][2];
+			float SubFactor03 = this[2][0] * this[3][3] - this[3][0] * this[2][3];
+			float SubFactor04 = this[2][0] * this[3][2] - this[3][0] * this[2][2];
+			float SubFactor05 = this[2][0] * this[3][1] - this[3][0] * this[2][1];
+			float SubFactor06 = this[1][2] * this[3][3] - this[3][2] * this[1][3];
+			float SubFactor07 = this[1][1] * this[3][3] - this[3][1] * this[1][3];
+			float SubFactor08 = this[1][1] * this[3][2] - this[3][1] * this[1][2];
+			float SubFactor09 = this[1][0] * this[3][3] - this[3][0] * this[1][3];
+			float SubFactor10 = this[1][0] * this[3][2] - this[3][0] * this[1][2];
+			float SubFactor11 = this[1][0] * this[3][1] - this[3][0] * this[1][1];
+			float SubFactor12 = this[1][2] * this[2][3] - this[2][2] * this[1][3];
+			float SubFactor13 = this[1][1] * this[2][3] - this[2][1] * this[1][3];
+			float SubFactor14 = this[1][1] * this[2][2] - this[2][1] * this[1][2];
+			float SubFactor15 = this[1][0] * this[2][3] - this[2][0] * this[1][3];
+			float SubFactor16 = this[1][0] * this[2][2] - this[2][0] * this[1][2];
+			float SubFactor17 = this[1][0] * this[2][1] - this[2][0] * this[1][1];
+
+			Mat4 inverse = ?;
+			inverse[0][0] = + (this[1][1] * SubFactor00 - this[1][2] * SubFactor01 + this[1][3] * SubFactor02);
+			inverse[0][1] = - (this[1][0] * SubFactor00 - this[1][2] * SubFactor03 + this[1][3] * SubFactor04);
+			inverse[0][2] = + (this[1][0] * SubFactor01 - this[1][1] * SubFactor03 + this[1][3] * SubFactor05);
+			inverse[0][3] = - (this[1][0] * SubFactor02 - this[1][1] * SubFactor04 + this[1][2] * SubFactor05);
+
+			inverse[1][0] = - (this[0][1] * SubFactor00 - this[0][2] * SubFactor01 + this[0][3] * SubFactor02);
+			inverse[1][1] = + (this[0][0] * SubFactor00 - this[0][2] * SubFactor03 + this[0][3] * SubFactor04);
+			inverse[1][2] = - (this[0][0] * SubFactor01 - this[0][1] * SubFactor03 + this[0][3] * SubFactor05);
+			inverse[1][3] = + (this[0][0] * SubFactor02 - this[0][1] * SubFactor04 + this[0][2] * SubFactor05);
+
+			inverse[2][0] = + (this[0][1] * SubFactor06 - this[0][2] * SubFactor07 + this[0][3] * SubFactor08);
+			inverse[2][1] = - (this[0][0] * SubFactor06 - this[0][2] * SubFactor09 + this[0][3] * SubFactor10);
+			inverse[2][2] = + (this[0][0] * SubFactor07 - this[0][1] * SubFactor09 + this[0][3] * SubFactor11);
+			inverse[2][3] = - (this[0][0] * SubFactor08 - this[0][1] * SubFactor10 + this[0][2] * SubFactor11);
+
+			inverse[3][0] = - (this[0][1] * SubFactor12 - this[0][2] * SubFactor13 + this[0][3] * SubFactor14);
+			inverse[3][1] = + (this[0][0] * SubFactor12 - this[0][2] * SubFactor15 + this[0][3] * SubFactor16);
+			inverse[3][2] = - (this[0][0] * SubFactor13 - this[0][1] * SubFactor15 + this[0][3] * SubFactor17);
+			inverse[3][3] = + (this[0][0] * SubFactor14 - this[0][1] * SubFactor16 + this[0][2] * SubFactor17);
+
+			float determinant = + this[0][0] * inverse[0][0] + this[0][1] * inverse[0][1] + this[0][2] * inverse[0][2] + this[0][3] * inverse[0][3];
+			inverse /= determinant;
+
+			return inverse;
+		}
+
 		public bool Equals(Object o) => (o is Mat4) ? Equals((Mat4) o) : false;
-		public bool Equals(Mat4 m) => vecs[0] == m.vecs[0] && vecs[1] == m.vecs[1] && vecs[2] == m.vecs[2] && vecs[3] == m.vecs[3];
+		public bool Equals(Mat4 m) => vecs[0] == m[0] && vecs[1] == m[1] && vecs[2] == m[2] && vecs[3] == m[3];
 
 		public int GetHashCode() => vecs[0].GetHashCode() + vecs[1].GetHashCode() + vecs[2].GetHashCode() + vecs[3].GetHashCode();
 
@@ -145,10 +197,10 @@ namespace Meteorite {
 		public static Self operator*(Self lhs, float rhs) {
 			Self mat = lhs;
 
-			mat.vecs[0] *= rhs;
-			mat.vecs[1] *= rhs;
-			mat.vecs[2] *= rhs;
-			mat.vecs[3] *= rhs;
+			mat[0] *= rhs;
+			mat[1] *= rhs;
+			mat[2] *= rhs;
+			mat[3] *= rhs;
 
 			return mat;
 		}
@@ -166,6 +218,17 @@ namespace Meteorite {
 			let add1 = mul2 + mul3;
 			let add2 = add0 + add1;
 			return add2;
+		}
+
+		public static Mat4 operator/(Self lhs, float rhs) {
+			Self mat = lhs;
+
+			mat[0] /= rhs;
+			mat[1] /= rhs;
+			mat[2] /= rhs;
+			mat[3] /= rhs;
+
+			return mat;
 		}
 	}
 }

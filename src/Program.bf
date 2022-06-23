@@ -7,7 +7,14 @@ namespace Meteorite {
 	class Program {
 		public static double FRAME_START;
 
-		public static void Main() {
+		private static bool RENDERDOC = false;
+
+		public static void Main(String[] args) {
+			if (Array.BinarySearch(args, "--renderdoc") != -1 || RENDERDOC) {
+				Log.Info("Loading RenderDoc");
+				Internal.LoadSharedLibrary("renderdoc");
+			}
+
 			Meteorite me = new .();
 
 			double lastTime = Glfw.GetTime();

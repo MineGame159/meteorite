@@ -7,6 +7,7 @@ namespace Meteorite {
 		// Bind group layouts
 		public static BindGroupLayout UNIFORM_BIND_GROUP_LAYOUT ~ delete _;
 		public static BindGroupLayout TEXTURE_BIND_GROUP_LAYOUT ~ delete _;
+		public static BindGroupLayout TEXTURE_BIND_GROUP_LAYOUT2 ~ delete _;
 		public static BindGroupLayout BUFFER_BIND_GROUP_LAYOUT ~ delete _;
 
 		// Shaders
@@ -25,6 +26,7 @@ namespace Meteorite {
 
 		// Samplers
 		public static Sampler NEAREST_SAMPLER ~ delete _;
+		public static Sampler NEAREST_REPEAT_SAMPLER ~ delete _;
 		public static Sampler LINEAR_SAMPLER ~ delete _;
 		public static Sampler NEAREST_MIPMAP_SAMPLER ~ delete _;
 
@@ -41,6 +43,10 @@ namespace Meteorite {
 				.Texture()
 				.Sampler(.Filtering)
 				.Create();
+			TEXTURE_BIND_GROUP_LAYOUT2 = Gfx.NewBindGroupLayout()
+				.Texture(.UnfilterableFloat)
+				.Sampler(.NonFiltering)
+				.Create();
 			BUFFER_BIND_GROUP_LAYOUT = Gfx.NewBindGroupLayout()
 				.Buffer(.Storage)
 				.Create();
@@ -52,7 +58,7 @@ namespace Meteorite {
 				.Shader("chunk", new (preProcessor) => preProcessor.Define("SOLID"))
 				.PushConstants(.Vertex, 0, sizeof(Vec3f))
 				.Primitive(.TriangleList, .Clockwise)
-				.Targets(.BGRA8Unorm, .BGRA8Unorm)
+				.Targets(.BGRA8Unorm, .RGBA16Float)
 				.Depth(true)
 				.Create();
 			CHUNK_TRANSPARENT_PIPELINE = Gfx.NewPipeline()
@@ -61,7 +67,7 @@ namespace Meteorite {
 				.Shader("chunk")
 				.PushConstants(.Vertex, 0, sizeof(Vec3f))
 				.Primitive(.TriangleList, .Clockwise)
-				.Targets(.BGRA8Unorm, .BGRA8Unorm)
+				.Targets(.BGRA8Unorm, .RGBA16Float)
 				.Depth(true, true, false)
 				.Create();
 			ENTITY_PIPELINE = Gfx.NewPipeline()
@@ -69,11 +75,11 @@ namespace Meteorite {
 				.Attributes(.Float3, .SByte4, .UShort2Float, .UByte4)
 				.Shader("entity")
 				.Primitive(.TriangleList, .Clockwise)
-				.Targets(.BGRA8Unorm, .BGRA8Unorm)
+				.Targets(.BGRA8Unorm, .RGBA16Float)
 				.Depth(true)
 				.Create();
 			POST_PIPELINE = Gfx.NewPipeline()
-				.BindGroupLayouts(UNIFORM_BIND_GROUP_LAYOUT, TEXTURE_BIND_GROUP_LAYOUT)
+				.BindGroupLayouts(UNIFORM_BIND_GROUP_LAYOUT, TEXTURE_BIND_GROUP_LAYOUT, TEXTURE_BIND_GROUP_LAYOUT)
 				.Attributes(.Float2, .Float2)
 				.Shader("post", new => PostPreProcessor)
 				.Primitive(.TriangleList, .Clockwise)
@@ -95,6 +101,7 @@ namespace Meteorite {
 
 			// Samplers
 			NEAREST_SAMPLER = Gfx.CreateSampler(.ClampToEdge, .Nearest, .Nearest);
+			NEAREST_REPEAT_SAMPLER = Gfx.CreateSampler(.Repeat, .Nearest, .Nearest);
 			LINEAR_SAMPLER = Gfx.CreateSampler(.ClampToEdge, .Linear, .Linear);
 			NEAREST_MIPMAP_SAMPLER = Gfx.CreateSampler(.ClampToEdge, .Nearest, .Nearest, .Linear, 4);
 
@@ -107,6 +114,7 @@ namespace Meteorite {
 
 		private static void PostPreProcessor(ShaderPreProcessor preProcessor) {
 			if (Meteorite.INSTANCE.options.fxaa) preProcessor.Define("FXAA");
+			if (Meteorite.INSTANCE.options.ao.HasSSAO) preProcessor.Define("SSAO");
 		}
 	}
 }

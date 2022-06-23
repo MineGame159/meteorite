@@ -24,6 +24,14 @@ namespace Meteorite {
 				default: return x;
 				}
 			}
+			set mut {
+				switch (index) {
+				case 1: y = value;
+				case 2: z = value;
+				case 3: w = value;
+				default: x = value;
+				}
+			}
 		}
 
 		public float Length => Math.Sqrt(x * x + y * y + z * z + w * w);
