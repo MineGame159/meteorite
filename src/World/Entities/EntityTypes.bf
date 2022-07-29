@@ -6,6 +6,7 @@ namespace Meteorite{
 		public static Dictionary<int, EntityType> ENTITY_TYPES = new .() ~ delete _;
 
 		public static EntityType PLAYER;
+		public static EntityType SALMON;
 
 		public static void Register() {
 			Json json = Meteorite.INSTANCE.resources.ReadJson("data/entities.json");
@@ -22,6 +23,7 @@ namespace Meteorite{
 				ENTITY_TYPES[(.) e["raw_id"].AsNumber] = type;
 
 				if (type.id == "player") PLAYER = type;
+				else if (type.id == "salmon") SALMON = type;
 			}
 
 			json.Dispose();

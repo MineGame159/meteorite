@@ -12,6 +12,9 @@ namespace Meteorite {
 		public Vec3d lastPos;
 		public int bodyTrackingIncrements;
 
+		public Pose pose = .Standing;
+		public int tickCount;
+
 		public bool noPhysics;
 
 		public this(EntityType type, int id, Vec3d pos) {
@@ -101,5 +104,7 @@ namespace Meteorite {
 		private static mixin Vertex(MeshBuilder mb, double x, double y, double z, Vec3f normal, Color color) {
 			mb.Vec3(.((.) x, (.) y, (.) z)).Byte4((.) normal.x, (.) normal.y, (.) normal.z, 0).UShort2(0, 0).Color(color).Next()
 		}
+
+		public bool IsInWater() => false;
 	}
 }

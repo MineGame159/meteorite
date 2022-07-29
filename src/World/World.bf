@@ -106,7 +106,10 @@ namespace Meteorite {
 		}
 
 		public void Tick() {
-			for (Entity entity in entities.Values) entity.Tick();
+			for (Entity entity in entities.Values) {
+				entity.tickCount++;
+				entity.Tick();
+			}
 
 			if (Meteorite.INSTANCE.player != null) {
 				int x = ((.) Meteorite.INSTANCE.player.pos.x >> 4);

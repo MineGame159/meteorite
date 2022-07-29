@@ -18,6 +18,7 @@ namespace Meteorite {
 		public GameRenderer gameRenderer;
 		public WorldRenderer worldRenderer;
 		public BlockEntityRenderDispatcher blockEntityRenderDispatcher;
+		public EntityRenderDispatcher entityRenderDispatcher;
 		public TextRenderer textRenderer;
 		public HudRenderer hud;
 
@@ -42,9 +43,12 @@ namespace Meteorite {
 			camera = new .();
 			tickCounter = new .(20, 0);
 
+			EntityTypes.Register();
+
 			frameBuffers = new .();
 			gameRenderer = new .();
 			blockEntityRenderDispatcher = new .();
+			entityRenderDispatcher = new .();
 			textRenderer = new .();
 			hud = new .();
 
@@ -57,7 +61,6 @@ namespace Meteorite {
 			BlockModelLoader.LoadModels();
 			Biomes.Register();
 			Biome.LoadColormaps();
-			EntityTypes.Register();
 			Buffers.CreateGlobalIndices();
 			SkyRenderer.Init();
 			BlockColors.Init();
@@ -69,6 +72,7 @@ namespace Meteorite {
 			// Rendering needs to be deleted before Gfx is shut down
 			delete hud;
 			delete textRenderer;
+			delete entityRenderDispatcher;
 			delete blockEntityRenderDispatcher;
 			delete worldRenderer;
 			delete gameRenderer;
