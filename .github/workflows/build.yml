@@ -30,6 +30,9 @@ jobs:
       - name: Download Bulkan
         run: git clone https://github.com/jayrulez/Bulkan.git Beef/BeefLibs/Bulkan
       
+      - name: Download Shaderc
+        run: git clone https://github.com/MineGame159/shaderc-beef.git Beef/BeefLibs/shaderc-beef
+      
       - name: Download Stb
         run: git clone https://github.com/EinScott/stb_beef.git Beef/BeefLibs/stb_beef
       
