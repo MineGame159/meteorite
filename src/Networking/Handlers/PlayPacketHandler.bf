@@ -1,5 +1,7 @@
 using System;
 
+using Cacti;
+
 namespace Meteorite {
 	class PlayPacketHandler : PacketHandler {
 		private ClientConnection connection;

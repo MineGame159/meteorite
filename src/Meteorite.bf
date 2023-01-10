@@ -2,19 +2,19 @@ using System;
 using System.IO;
 using System.Collections;
 
+using Cacti;
+
 namespace Meteorite {
-	class Meteorite {
+	class Meteorite : Application {
 		public static Meteorite INSTANCE;
 
 		public Options options ~ delete _;
-		public Window window ~ delete _;
 		public ResourceLoader resources ~ delete _;
 		public TextureManager textures ~ delete _;
 
 		public Camera camera ~ delete _;
 		public RenderTickCounter tickCounter ~ delete _;
 
-		public BufferBumpAllocator frameBuffers;
 		public GameRenderer gameRenderer;
 		public WorldRenderer worldRenderer;
 		public BlockEntityRenderDispatcher blockEntityRenderDispatcher;
@@ -28,12 +28,11 @@ namespace Meteorite {
 
 		private List<delegate void()> tasks = new .() ~ DeleteContainerAndItems!(_);
 
-		public this() {
+		public this() : base("Meteorite") {
 			INSTANCE = this;
 			Directory.CreateDirectory("run");
 
 			options = new .();
-			window = new .();
 
 			resources = new .();
 			Gfxa.Init();
@@ -45,7 +44,6 @@ namespace Meteorite {
 
 			EntityTypes.Register();
 
-			frameBuffers = new .();
 			gameRenderer = new .();
 			blockEntityRenderDispatcher = new .();
 			entityRenderDispatcher = new .();
@@ -64,8 +62,14 @@ namespace Meteorite {
 			Buffers.CreateGlobalIndices();
 			SkyRenderer.Init();
 			BlockColors.Init();
-			Screenshots.Init();
+			// TODO: Screenshots
+			//Screenshots.Init();
 			FrameUniforms.Init();
+
+			Input.mousePosEvent.Add(new () => {
+				ClientPlayerEntity player = Meteorite.INSTANCE.player;
+				if (player != null && window.MouseHidden) player.Turn(Input.mouseDelta);
+			});
 		}
 
 		public ~this() {
@@ -76,13 +80,15 @@ namespace Meteorite {
 			delete blockEntityRenderDispatcher;
 			delete worldRenderer;
 			delete gameRenderer;
-			delete frameBuffers;
+
+			FrameUniforms.Destroy();
+			SkyRenderer.Destroy();
+			Buffers.Destroy();
+			Gfxa.Destroy();
 
 			// Connection needs to be deleted before world
 			delete connection;
 			delete world;
-
-			Gfx.Shutdown();
 		}
 
 		public void Join(StringView address, int32 port, int32 viewDistance) {
@@ -128,13 +134,18 @@ namespace Meteorite {
 			if (!window.minimized) gameRenderer.Tick();
 		}
 
-		public void Render(float delta) {
+		protected override void Update(double delta) {
 			int tickCount = tickCounter.BeginRenderTick();
 			for (int i < Math.Min(10, tickCount)) Tick(tickCounter.tickDelta);
-			
-			if (!window.minimized) gameRenderer.Render(delta);
+		}
 
-			frameBuffers.Reset();
+		protected override void Render(List<CommandBuffer> commandBuffers, GpuImage target, double delta) {
+			if (!window.minimized) {
+				CommandBuffer cmds = Gfx.CommandBuffers.GetBuffer();
+				commandBuffers.Add(cmds);
+
+				gameRenderer.Render(cmds, target, (.) delta);
+			}
 		}
 	}
 }

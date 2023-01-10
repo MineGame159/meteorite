@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using System.Diagnostics;
 
+using Cacti;
+
 namespace Meteorite {
 	class World {
 		public int viewDistance;
@@ -257,7 +259,7 @@ namespace Meteorite {
 		public Vec3f GetSkyColor(Vec3f cameraPos, double tickDelta) {
 			float f = GetSkyAngle();
 			Vec3f vec3 = (cameraPos - Vec3f(2, 2, 2)) * Vec3f(0.25f, 0.25f, 0.25f);
-			Vec3f vec32 = CubicSampler.SampleColor(vec3, scope (x, y, z) => GetBiome(x, y, z).skyColor.ToVec3f());
+			Vec3f vec32 = CubicSampler.SampleColor(vec3, scope (x, y, z) => GetBiome(x, y, z).skyColor.ToVec3f);
 			float g = Math.Cos(f * (float) (Math.PI_d * 2)) * 2.0F + 0.5F;
 			g = Math.Clamp(g, 0.0F, 1.0F);
 			float h = (float)vec32.x * g;
@@ -297,7 +299,7 @@ namespace Meteorite {
 			return .(h, i, j);
 		}
 
-		public Vec4? GetSunriseColor(float timeOfDay) {
+		public Vec4f? GetSunriseColor(float timeOfDay) {
 			float f = 0.4F;
 			float g = Math.Cos(timeOfDay * (Math.PI_f * 2)) - 0.0F;
 			float h = -0.0F;
@@ -361,7 +363,7 @@ namespace Meteorite {
 				float u = (float)vec3.z;
 				float v = Math.Clamp(Math.Cos(GetSkyAngle() * (float) (Math.PI_f * 2)) * 2.0F + 0.5F, 0.0F, 1.0F);
 				Vec3f vec32 = (camera.pos - Vec3f(2, 2, 2)) * Vec3f(0.25f, 0.25f, 0.25f);
-				Vec3f vec33 = CubicSampler.SampleColor(vec32, scope (x, y, z) => GetBrightnessDependentFogColor(GetBiome(x, y, z).fogColor.ToVec3f(), v));
+				Vec3f vec33 = CubicSampler.SampleColor(vec32, scope (x, y, z) => GetBrightnessDependentFogColor(GetBiome(x, y, z).fogColor.ToVec3f, v));
 				fogRed = (float)vec33.x;
 				fogGreen = (float)vec33.y;
 				fogBlue = (float)vec33.z;
@@ -374,7 +376,7 @@ namespace Meteorite {
 					}
 	
 					if (h > 0.0F) {
-						Vec4? sunriseColor = GetSunriseColor(GetSkyAngle());
+						Vec4f? sunriseColor = GetSunriseColor(GetSkyAngle());
 						if (sunriseColor != null) {
 							h *= sunriseColor.Value.w;
 							fogRed = fogRed * (1.0F - h) + sunriseColor.Value.x * h;

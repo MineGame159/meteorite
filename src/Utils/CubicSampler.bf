@@ -1,5 +1,7 @@
 using System;
 
+using Cacti;
+
 namespace Meteorite {
 	static class CubicSampler {
 		private const double[?] DENSITY_CURVE = .(0.0, 1.0, 4.0, 6.0, 4.0, 1.0, 0.0);

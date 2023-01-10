@@ -1,6 +1,18 @@
 using System;
 
+using Cacti;
+
 namespace Meteorite {
+	[CRepr]
+	struct EntityVertex : this(Vec3f pos, Vec4<int8> normal, Vec2<uint16> uv, Color color) {
+		public static VertexFormat FORMAT = new VertexFormat()
+			.Attribute(.Float, 3)
+			.Attribute(.I8, 4, true)
+			.Attribute(.U16, 2, true)
+			.Attribute(.U8, 4, true)
+			~ delete _;
+	}
+
 	class Entity {
 		public EntityType type;
 		public int id;
@@ -102,7 +114,12 @@ namespace Meteorite {
 		}
 
 		private static mixin Vertex(MeshBuilder mb, double x, double y, double z, Vec3f normal, Color color) {
-			mb.Vec3(.((.) x, (.) y, (.) z)).Byte4((.) normal.x, (.) normal.y, (.) normal.z, 0).UShort2(0, 0).Color(color).Next()
+			mb.Vertex<EntityVertex>(.(
+				.((.) x, (.) y, (.) z),
+				.((.) normal.x, (.) normal.y, (.) normal.z, 0),
+				.(0, 0),
+				color
+			))
 		}
 
 		public bool IsInWater() => false;

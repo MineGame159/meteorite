@@ -1,6 +1,19 @@
 using System;
 
+using Cacti;
+
 namespace Meteorite {
+	[CRepr]
+	struct BlockVertex : this(Vec3f pos, Vec2<uint16> uv, Color color, Vec2<uint16> texture, Vec4<int8> normal) {
+		public static VertexFormat FORMAT = new VertexFormat()
+			.Attribute(.Float, 3)
+			.Attribute(.U16, 2, true)
+			.Attribute(.U8, 4, true)
+			.Attribute(.U16, 2)
+			.Attribute(.I8, 4, true)
+			 ~ delete _;
+	}
+
 	static class BlockRenderer {
 		private static bool IsFilledWithWater(Block block) {
 			return block == Blocks.SEAGRASS || block == Blocks.TALL_SEAGRASS || block == Blocks.KELP || block == Blocks.KELP_PLANT;
@@ -11,7 +24,7 @@ namespace Meteorite {
 			if (b == Blocks.WATER || b == Blocks.LAVA || IsFilledWithWater(b)) return;
 
 			Quad quad = blockState.model.quads[0];
-			MeshBuilder mb = (blockState.block == Blocks.WATER ? chunk.meshTransparent : chunk.mesh).Build();
+			MeshBuilder mb = (blockState.block == Blocks.WATER ? chunk.transparentMb : chunk.solidMb);
 
 			Color c = .(255, 255, 255);
 			if (blockState.block == Blocks.WATER) Tint(chunk, blockState, x, y, z, ref c);
@@ -40,7 +53,7 @@ namespace Meteorite {
 			else if (IsFilledWithWater(blockState.block)) RenderFluid(world, chunk, x, y, z, Blocks.WATER.defaultBlockState, biome);
 
 			Foo foo = .(world, chunk, x, y, z);
-			MeshBuilder mb = (blockState.block == Blocks.NETHER_PORTAL ? chunk.meshTransparent : chunk.mesh).Build(); // TODO: Fix this
+			MeshBuilder mb = (blockState.block == Blocks.NETHER_PORTAL ? chunk.transparentMb : chunk.solidMb); // TODO: Fix this
 			bool ao = Meteorite.INSTANCE.options.ao.HasVanilla;
 
 			for (Quad quad in blockState.model.quads) {
@@ -119,13 +132,13 @@ namespace Meteorite {
 		}
 
 		private static mixin Vertex(MeshBuilder mb, int x, int y, int z, Vertex v, uint16 texture, Color color, Vec3f normal) {
-			mb
-				.Vec3(.(x + v.pos.x, y + v.pos.y, z + v.pos.z))
-				.UShort2(v.uv.x, v.uv.y)
-				.Color(color)
-				.UShort2(texture, 0)
-				.Byte4((.) normal.x, (.) normal.y, (.) normal.z, 0)
-				.Next()
+			mb.Vertex<BlockVertex>(.(
+				.(x + v.pos.x, y + v.pos.y, z + v.pos.z),
+				v.uv,
+				color,
+				.(texture, 0),
+				.((.) normal.x, (.) normal.y, (.) normal.z, 0)
+			))
 		}
 
 		private static void Tint(Chunk chunk, BlockState blockState, int x, int y, int z, ref Color color) {

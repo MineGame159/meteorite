@@ -1,5 +1,7 @@
 using System;
 
+using Cacti;
+
 namespace Meteorite{
 	class LivingEntity : Entity {
 		protected Vec3d deltaMovement;

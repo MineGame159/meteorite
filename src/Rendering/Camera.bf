@@ -1,5 +1,7 @@
 using System;
 
+using Cacti;
+
 namespace Meteorite {
 	enum Planes {
 		Left,
@@ -57,13 +59,14 @@ namespace Meteorite {
 
 			Window window = Meteorite.INSTANCE.window;
 
-			int width = window.width;
-			int height = window.height;
+			int width = window.Width;
+			int height = window.Height;
 
-			if (Screenshots.rendering) {
+			// TODO: Screenshots
+			/*if (Screenshots.rendering) {
 				width = Screenshots.width;
 				height = Screenshots.height;
-			}
+			}*/
 
 			// Update matrices
 			proj2d = .Ortho(0, width / 2, 0, height / 2);
@@ -114,8 +117,8 @@ namespace Meteorite {
 		public void FlightMovement(float delta) {
 			// Rotation
 			if (Meteorite.INSTANCE.window.MouseHidden) {
-				yaw += Input.mouseDelta.x / 7;
-				pitch -= Input.mouseDelta.y / 7;
+				yaw -= Input.mouseDelta.x / 7;
+				pitch += Input.mouseDelta.y / 7;
 
 				pitch = Math.Clamp(pitch, -89.5f, 89.5f);
 			}
@@ -125,15 +128,15 @@ namespace Meteorite {
 			if (Input.IsKeyDown(.LeftControl)) speed *= 10;
 
 			Vec3f forward = GetDirection(false);
-			Vec3f right = forward.Cross(.(0, 1, 0)).Normalize();
+			Vec3f right = forward.Cross(.(0, -1, 0)).Normalize();
 
 			forward *= speed;
 			right *= speed;
 
-			if (Input.IsKeyDown(.W)) pos -= forward;
-			if (Input.IsKeyDown(.S)) pos += forward;
-			if (Input.IsKeyDown(.D)) pos -= right;
-			if (Input.IsKeyDown(.A)) pos += right;
+			if (Input.IsKeyDown(.W)) pos += forward;
+			if (Input.IsKeyDown(.S)) pos -= forward;
+			if (Input.IsKeyDown(.D)) pos += right;
+			if (Input.IsKeyDown(.A)) pos -= right;
 			if (Input.IsKeyDown(.Space)) pos.y += speed;
 			if (Input.IsKeyDown(.LeftShift)) pos.y -= speed;
 		}

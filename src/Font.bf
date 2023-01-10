@@ -1,29 +1,33 @@
 using System;
 using System.Collections;
 
+using Cacti;
+
 namespace Meteorite {
 	class Font {
-		private Texture texture ~ delete _;
+		private GpuImage texture ~ delete _;
 		private Dictionary<int32, Glyph> glyphs ~ DeleteDictionaryAndValues!(_);
 
 		public int height;
 
-		private BindGroup bindGroup ~ delete _;
+		private DescriptorSet bindGroup ~ delete _;
 
-		public this(Texture texture, Dictionary<int32, Glyph> glyphs, int height) {
+		public this(GpuImage texture, Dictionary<int32, Glyph> glyphs, int height) {
 			this.texture = texture;
 			this.glyphs = glyphs;
 			this.height = height;
-			this.bindGroup = Gfxa.TEXTURE_BIND_GROUP_LAYOUT.Create(texture, Gfxa.NEAREST_SAMPLER);
+			this.bindGroup = Gfx.DescriptorSets.Create(Gfxa.IMAGE_SET_LAYOUT, .SampledImage(texture, .VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, Gfxa.NEAREST_SAMPLER));
 		}
 
 		public Glyph GetGlyph(char32 c) => glyphs.GetValueOrDefault((.) c);
-
-		public void BindTexture(RenderPass pass) => bindGroup.Bind(pass);
+		
+		public void BindTexture(CommandBuffer cmds) => cmds.Bind(bindGroup, 0);
 
 		public static Font Parse(Json json) {
 			Image image = Meteorite.INSTANCE.resources.ReadImage(json["file"].AsString[10...]);
-			Texture texture = Gfx.CreateTexture(image);
+
+			GpuImage texture = Gfx.Images.Create(.RGBA, .Normal, image.size, "Font");
+			texture.Upload(image.pixels);
 
 			int height = json.GetInt("height", 8);
 			int ascent = json.GetInt("ascent", 0);
@@ -41,8 +45,8 @@ namespace Meteorite {
 				chars.Add(jChars);
 			}
 
-			int glyphWidth = image.width / chars[0].Count;
-			int glyphHeight = image.height / chars.Count;
+			int glyphWidth = image.Width / chars[0].Count;
+			int glyphHeight = image.Height / chars.Count;
 			float scale = (float) height / glyphHeight;
 			Dictionary<int32, Glyph> glyphs = new .();
 
@@ -51,7 +55,7 @@ namespace Meteorite {
 					if (char == 0) continue;
 
 					float q = FindCharacterStartX(image, glyphWidth, glyphHeight, @char.Index, @chars2.Index);
-					glyphs[char] = new .(image.width, image.height, scale, @char.Index * glyphWidth, @chars2.Index * glyphHeight, glyphWidth, glyphHeight, (.) (0.5 + q * scale) + 1, ascent);
+					glyphs[char] = new .(image.Width, image.Height, scale, @char.Index * glyphWidth, @chars2.Index * glyphHeight, glyphWidth, glyphHeight, (.) (0.5 + q * scale) + 1, ascent);
 				}
 			}
 

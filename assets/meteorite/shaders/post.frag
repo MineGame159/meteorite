@@ -1,23 +1,24 @@
+#version 460
+#extension GL_EXT_samplerless_texture_functions : enable
+
 layout(location = 0) in vec2 v_TexCoord;
 
 layout(location = 0) out vec4 color;
 
-#include lib/api
+#include <lib/api.glsl>
 
-layout(set = 1, binding = 0) uniform texture2D u_Texture;
-layout(set = 1, binding = 1) uniform sampler u_Sampler;
-#define SAMPLER sampler2D(u_Texture, u_Sampler)
+layout(set = 1, binding = 0) uniform sampler2D u_Texture;
+#define SAMPLER u_Texture
 
-layout(set = 2, binding = 0) uniform texture2D u_SsaoTexture;
-layout(set = 2, binding = 1) uniform sampler u_SsaoSampler;
-#define SSAO_SAMPLER sampler2D(u_SsaoTexture, u_SsaoSampler)
+layout(set = 2, binding = 0) uniform sampler2D u_SsaoTexture;
+#define SSAO_SAMPLER u_SsaoTexture
 
 #ifdef FXAA
-    #include lib/fxaa
+    #include <lib/fxaa.glsl>
 #endif
 
 #ifdef SSAO
-    #include lib/ssao
+    #include <lib/ssao.glsl>
 #endif
 
 void main() {

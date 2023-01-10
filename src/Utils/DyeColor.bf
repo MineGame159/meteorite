@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 
+using Cacti;
+
 namespace Meteorite {
 	static class DyeColor {
 		private static Dictionary<String, Color> COLORS = new .() ~ DeleteDictionaryAndKeys!(_);

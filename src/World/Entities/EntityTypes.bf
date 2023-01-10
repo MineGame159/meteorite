@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 
+using Cacti;
+
 namespace Meteorite{
 	static class EntityTypes {
 		public static Dictionary<int, EntityType> ENTITY_TYPES = new .() ~ delete _;

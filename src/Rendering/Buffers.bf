@@ -1,33 +1,13 @@
 using System;
-using System.Collections;
-using System.Threading;
 
-namespace Meteorite{
-	static class Buffers {
-		public static WBuffer QUAD_INDICES ~ delete _;
+using Cacti;
 
-		private static List<Buffer> BUFFERS = new .() ~ DeleteContainerAndItems!(_);
-		private static Monitor MONITOR = new .() ~ delete _;
+namespace Cacti {
+	extension Buffers {
+		public static GpuBuffer QUAD_INDICES;
 
-		public static Buffer Get() {
-			MONITOR.Enter();
-			defer MONITOR.Exit();
-
-			if (BUFFERS.IsEmpty) return new .(1024);
-
-			Buffer buffer = BUFFERS[BUFFERS.Count - 1];
-			BUFFERS.RemoveAtFast(BUFFERS.Count - 1);
-			return buffer;
-		}
-
-		public static void Return(Buffer buffer) {
-			if (buffer == null) return;
-
-			MONITOR.Enter();
-
-			BUFFERS.Add(buffer);
-
-			MONITOR.Exit();
+		public static void Destroy() {
+			delete QUAD_INDICES;
 		}
 
 		public static void CreateGlobalIndices() {
@@ -50,7 +30,9 @@ namespace Meteorite{
 				buffer[i * 6 + 5] = i1;
 			}
 
-			QUAD_INDICES = Gfx.CreateBuffer(.Index, 6 * count * 4, buffer);
+			QUAD_INDICES = Gfx.Buffers.Create(.Index, .Mappable, 6 * count * 4, "Quads");
+			QUAD_INDICES.Upload(buffer, QUAD_INDICES.size);
+
 			delete buffer;
 		}
 	}

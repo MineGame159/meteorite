@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 
+using Cacti;
+
 namespace Meteorite {
 	static class VoxelShapes {
 		public static VoxelShape BLOCK = new VoxelShape().Add(.(), .(1, 1, 1));
@@ -8,13 +10,15 @@ namespace Meteorite {
 		private static Dictionary<String, Shapes> SHAPES;
 
 		static ~this() {
+			delete BLOCK;
+			if (SHAPES == null) return;
+
 			for (let pair in SHAPES) {
 				delete pair.key;
 				pair.value.Dispose();
 			}
 			
 			delete SHAPES;
-			delete BLOCK;
 		}
 
 		public static void Init() {

@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 
+using Cacti;
+
 namespace Meteorite {
 	class VoxelShape {
 		public static VoxelShape EMPTY = new .() ~ delete _;

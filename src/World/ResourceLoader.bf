@@ -2,12 +2,11 @@ using System;
 using System.IO;
 using System.Collections;
 
-using stb_image;
+using Cacti;
 
 namespace Meteorite {
 	class ResourceLoader {
 		private List<String> locations = new .() ~ DeleteContainerAndItems!(_);
-		private stbi.stbi_io_callbacks stbiCallbacks;
 
 		public this() {
 			locations.Add(new .("assets/minecraft"));
@@ -19,19 +18,26 @@ namespace Meteorite {
 				if (Directory.Exists(path)) locations.Add(path);
 				else delete path;
 			}
-
-			stbiCallbacks.read = => StbiRead;
-			stbiCallbacks.skip = => StbiSkip;
-			stbiCallbacks.eof = => StbiEof;
 		}
 
-		private bool GetStream(StringView path, FileStream s) {
+		private bool GetStream(StringView path, FileStream fs) {
 			for (int i = locations.Count - 1; i >= 0; i--) {
 				String fullPath = scope $"{locations[i]}/{path}";
-				if (s.Open(fullPath, .Read) == .Ok) return true;
+				if (fs.Open(fullPath, .Read) == .Ok) return true;
 			}
 
 			return false;
+		}
+
+		private void GetPath(StringView path, String buffer) {
+			for (int i = locations.Count - 1; i >= 0; i--) {
+				String fullPath = scope $"{locations[i]}/{path}";
+
+				if (File.Exists(fullPath)) {
+					buffer.Append(fullPath);
+					break;
+				}
+			}
 		}
 
 		public bool ReadBytes(StringView path, List<uint8> buffer) {
@@ -71,26 +77,18 @@ namespace Meteorite {
 			return true;
 		}
 
-		public Image ReadImageInfo(StringView path) {
-			String path2 = scope $"textures/{path}";
-			FileStream fs = scope .();
-			if (!GetStream(path2, fs)) return null;
+		public Result<ImageInfo> ReadImageInfo(StringView path) {
+			String path2 = GetPath(scope $"textures/{path}", .. scope .());
+			if (path2 == "") return .Err;
 
-			int32 width = 0, height = 0, comp = 0;
-			stbi.stbi_info_from_callbacks(&stbiCallbacks, Internal.UnsafeCastToPtr(fs), &width, &height, &comp);
-
-			return new .(width, height, comp, null, false);
+			return ImageInfo.Read(path2);
 		}
 
-		public Image ReadImage(StringView path) {
-			String path2 = scope $"textures/{path}";
-			FileStream fs = scope .();
-			if (!GetStream(path2, fs)) return null;
+		public Result<Image> ReadImage(StringView path) {
+			String path2 = GetPath(scope $"textures/{path}", .. scope .());
+			if (path2 == "") return .Err;
 
-			int32 width = 0, height = 0, comp = 0;
-			uint8* data = stbi.stbi_load_from_callbacks(&stbiCallbacks, Internal.UnsafeCastToPtr(fs), &width, &height, &comp, 4);
-
-			return new .(width, height, comp, data, true);
+			return Image.Read(path2);
 		}
 
 		public Result<Json> ReadJson(StringView path) {
@@ -107,21 +105,6 @@ namespace Meteorite {
 				FileStream fs = scope .();
 				if (fs.Open(fullPath, .Read) == .Ok) callback(JsonParser.Parse(fs));
 			}
-		}
-
-		private static int32 StbiRead(void* user, uint8* data, int32 size) {
-			FileStream fs = (.) Internal.UnsafeCastToObject(user);
-			return (.) fs.TryRead(.(data, size)).Value;
-		}
-
-		private static void StbiSkip(void* user, int32 n) {
-			FileStream fs = (.) Internal.UnsafeCastToObject(user);
-			fs.Skip(n);
-		}
-
-		private static bool StbiEof(void* user) {
-			FileStream fs = (.) Internal.UnsafeCastToObject(user);
-			return fs.IsEmpty;
 		}
 	}
 }

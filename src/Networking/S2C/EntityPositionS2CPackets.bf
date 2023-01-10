@@ -1,5 +1,7 @@
 using System;
 
+using Cacti;
+
 namespace Meteorite {
 	abstract class BaseEntityPositionS2CPacket : S2CPacket {
 		public int entityId;

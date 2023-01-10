@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 
+using Cacti;
+
 namespace Meteorite {
 	class WorldRenderer {
 		private Meteorite me = .INSTANCE;
@@ -23,8 +25,11 @@ namespace Meteorite {
 
 			for (Chunk chunk in me.world.Chunks) {
 				if (chunk.status == .Upload) {
-					chunk.mesh.Build().Cancel();
-					chunk.meshTransparent.Build().Cancel();
+					chunk.solidMb.Cancel();
+					DeleteAndNullify!(chunk.solidMb);
+
+					chunk.transparentMb.Cancel();
+					DeleteAndNullify!(chunk.solidMb);
 				}
 			}
 		}
@@ -34,34 +39,34 @@ namespace Meteorite {
 			chunkUpdatesThisTick = 0;
 		}
 
-		public void RenderPre(RenderPass pass, float tickDelta, float delta) {
+		public void RenderPre(CommandBuffer cmds, float tickDelta, float delta) {
 			SetupChunks();
 
-			SkyRenderer.Render(pass, me.world, me.camera, tickDelta);
+			SkyRenderer.Render(cmds, me.world, me.camera, tickDelta);
 		}
 
-		public void Render(RenderPass pass, float tickDelta, float delta) {
-			pass.PushDebugGroup("World");
+		public void Render(CommandBuffer cmds, float tickDelta, float delta) {
+			cmds.PushDebugGroup("World");
 
-			RenderChunks(pass, true, Gfxa.CHUNK_PIPELINE, delta);
-			RenderBlockEntities(pass, tickDelta);
-			RenderEntities(pass, tickDelta);
-			RenderChunks(pass, false, Gfxa.CHUNK_TRANSPARENT_PIPELINE, delta);
-
-			pass.PopDebugGroup();
+			RenderChunks(cmds, true, Gfxa.CHUNK_PIPELINE, delta);
+			RenderBlockEntities(cmds, tickDelta);
+			RenderEntities(cmds, tickDelta);
+			RenderChunks(cmds, false, Gfxa.CHUNK_TRANSPARENT_PIPELINE, delta);
+			
+			cmds.PopDebugGroup();
 		}
 
-		public void RenderPost(RenderPass pass, float tickDelta, float delta) {
-			if (me.player != null && me.player.selection != null && !me.player.selection.missed) RenderBlockSelection(pass);
-			if (me.options.chunkBoundaries) RenderChunkBoundaries(pass);
+		public void RenderPost(CommandBuffer cmds, float tickDelta, float delta) {
+			if (me.player != null && me.player.selection != null && !me.player.selection.missed) RenderBlockSelection(cmds);
+			if (me.options.chunkBoundaries) RenderChunkBoundaries(cmds);
 
 			if (me.player != null) {
-				Gfxa.LINES_PIPELINE.Bind(pass);
+				cmds.Bind(Gfxa.LINES_PIPELINE);
 
 				Mat4 projectionView = me.camera.proj * me.camera.view;
-				pass.SetPushConstants(.Vertex, 0, sizeof(Mat4), &projectionView);
+				cmds.SetPushConstants(projectionView);
 
-				MeshBuilder mb = me.frameBuffers.AllocateImmediate(pass);
+				MeshBuilder mb = scope .();
 
 				me.world.GetPossibleCollisions(me.player.GetAABB(), scope (pos, shape) => {
 					Color c = .(255, 255, 255);
@@ -72,22 +77,22 @@ namespace Meteorite {
 					float s = 0.05f;
 
 					mb.Line(
-						mb.Vec3(.((.) x - s, (.) y, (.) z)).Color(c).Next(),
-						mb.Vec3(.((.) x + s, (.) y, (.) z)).Color(c).Next()
+						mb.Vertex<PosColorVertex>(.(.((.) x - s, (.) y, (.) z), c)),
+						mb.Vertex<PosColorVertex>(.(.((.) x + s, (.) y, (.) z), c))
 					);
 
 					mb.Line(
-						mb.Vec3(.((.) x, (.) y - s, (.) z)).Color(c).Next(),
-						mb.Vec3(.((.) x, (.) y + s, (.) z)).Color(c).Next()
+						mb.Vertex<PosColorVertex>(.(.((.) x, (.) y - s, (.) z), c)),
+						mb.Vertex<PosColorVertex>(.(.((.) x, (.) y + s, (.) z), c))
 					);
 
 					mb.Line(
-						mb.Vec3(.((.) x, (.) y, (.) z - s)).Color(c).Next(),
-						mb.Vec3(.((.) x, (.) y, (.) z + s)).Color(c).Next()
+						mb.Vertex<PosColorVertex>(.(.((.) x, (.) y, (.) z - s), c)),
+						mb.Vertex<PosColorVertex>(.(.((.) x, (.) y, (.) z + s), c))
 					);
 				});
 
-				mb.Finish();
+				cmds.Draw(mb.End());
 			}
 		}
 
@@ -97,20 +102,23 @@ namespace Meteorite {
 
 			// Frustrum cull and schedule rebuilds
 			for (Chunk chunk in me.world.Chunks) {
-				if (chunk.dirty && chunk.status == .Ready && me.world.IsChunkLoaded(chunk.pos.x + 1, chunk.pos.z) && me.world.IsChunkLoaded(chunk.pos.x - 1, chunk.pos.z) && me.world.IsChunkLoaded(chunk.pos.x, chunk.pos.z + 1) && me.world.IsChunkLoaded(chunk.pos.x, chunk.pos.z - 1)) {
+				if (chunk.dirty && (chunk.status == .NotReady || chunk.status == .Ready) && me.world.IsChunkLoaded(chunk.pos.x + 1, chunk.pos.z) && me.world.IsChunkLoaded(chunk.pos.x - 1, chunk.pos.z) && me.world.IsChunkLoaded(chunk.pos.x, chunk.pos.z + 1) && me.world.IsChunkLoaded(chunk.pos.x, chunk.pos.z - 1)) {
 					chunk.status = .Building;
-					if (chunk.mesh == null) {
-						chunk.mesh = new Mesh(Buffers.QUAD_INDICES);
-						chunk.meshTransparent = new Mesh();
-					}
+
+					chunk.solidMb = new .(false);
+					chunk.transparentMb = new .(false);
 
 					threadPool.Add(new () => GenerateChunkMesh(chunk));
 					chunkUpdatesThisTick++;
 				}
 				if (chunk.status == .Upload) {
-					chunk.meshTransparent.Build().Finish();
-					chunk.mesh.Build().Finish();
-					chunk.status = .Ready;
+					chunk.status = .Uploading;
+
+					chunk.solidMesh = chunk.solidMb.End(.ProvidedResize(chunk.SolidVbo), Buffers.QUAD_INDICES, new () => chunk.status = .Ready);
+					DeleteAndNullify!(chunk.solidMb);
+
+					chunk.transparentMesh = chunk.transparentMb.End(.ProvidedResize(chunk.TransparentVbo), Buffers.QUAD_INDICES, new () => chunk.status = .Ready);
+					DeleteAndNullify!(chunk.transparentMb);
 				}
 
 				if (me.camera.IsBoxVisible(chunk.min, chunk.max)) {
@@ -136,7 +144,7 @@ namespace Meteorite {
 		}
 
 		[Inline]
-		private void UpdateChunkPushConstants(RenderPass pass, Chunk chunk, float delta) {
+		private void UpdateChunkPushConstants(CommandBuffer cmds, Chunk chunk, float delta) {
 			if (chunk.goingDown) {
 				chunk.yOffset -= delta * 20;
 			}
@@ -146,29 +154,29 @@ namespace Meteorite {
 			}
 
 			Vec3f chunkPos = .(chunk.pos.x * Section.SIZE, (.) chunk.yOffset, chunk.pos.z * Section.SIZE);
-			pass.SetPushConstants(.Vertex, 0, sizeof(Vec3f), &chunkPos);
+			cmds.SetPushConstants(chunkPos);
 		}
 
-		private void RenderChunks(RenderPass pass, bool solid, Pipeline pipeline, float delta) {
-			pass.PushDebugGroup(scope $"Chunks - {solid ? ("Solid") : ("Transparent")}");
-			pipeline.Bind(pass);
-			FrameUniforms.Bind(pass);
-			Meteorite.INSTANCE.textures.Bind(pass, me.options.mipmaps);
+		private void RenderChunks(CommandBuffer cmds, bool solid, Pipeline pipeline, float delta) {
+			cmds.PushDebugGroup(scope $"Chunks - {solid ? ("Solid") : ("Transparent")}");
+			cmds.Bind(pipeline);
+			FrameUniforms.Bind(cmds);
+			Meteorite.INSTANCE.textures.Bind(cmds, me.options.mipmaps);
 
 			for (Chunk chunk in visibleChunks) {
-				if (chunk.mesh == null) continue;
+				if (chunk.status == .NotReady) continue;
 
-				UpdateChunkPushConstants(pass, chunk, delta);
+				UpdateChunkPushConstants(cmds, chunk, delta);
 
-				if (solid) chunk.mesh.Render(pass);
-				else chunk.meshTransparent.Render(pass);
+				if (solid) cmds.Draw(chunk.solidMesh);
+				else cmds.Draw(chunk.transparentMesh);
 			}
 
-			pass.PopDebugGroup();
+			cmds.PopDebugGroup();
 		}
 
-		private void RenderBlockEntities(RenderPass pass, float tickDelta) {
-			pass.PushDebugGroup("Block Entities");
+		private void RenderBlockEntities(CommandBuffer cmds, float tickDelta) {
+			cmds.PushDebugGroup("Block Entities");
 			me.blockEntityRenderDispatcher.Begin();
 
 			for (Chunk chunk in visibleChunks) {
@@ -177,52 +185,53 @@ namespace Meteorite {
 				}
 			}
 
-			me.blockEntityRenderDispatcher.End(pass, me.camera);
-			pass.PopDebugGroup();
+			me.blockEntityRenderDispatcher.End(cmds, me.camera);
+			cmds.PopDebugGroup();
 		}
 
-		private void RenderEntities(RenderPass pass, float tickDelta) {
-			pass.PushDebugGroup("Entities");
-			Gfxa.ENTITY_PIPELINE.Bind(pass);
-			FrameUniforms.Bind(pass);
-			Gfxa.PIXEL_BIND_GRUP.Bind(pass, 1);
+		private void RenderEntities(CommandBuffer cmds, float tickDelta) {
+			cmds.PushDebugGroup("Entities");
+			cmds.Bind(Gfxa.ENTITY_PIPELINE);
+			FrameUniforms.Bind(cmds);
+			cmds.Bind(Gfxa.PIXEL_SET, 1);
 
-			MeshBuilder mb = me.frameBuffers.AllocateImmediate(pass, Buffers.QUAD_INDICES);
+			MeshBuilder mb = scope .(false);
+			Meteorite me = Meteorite.INSTANCE;
 
 			for (Entity entity in me.world.Entities) {
-				if (entity == Meteorite.INSTANCE.player && Meteorite.INSTANCE.player.gamemode == .Spectator) continue;
+				if (entity == me.player && me.player.gamemode != .Spectator) continue;
 
 				entity.Render(mb, tickDelta);
 			}
 
-			mb.Finish();
+			cmds.Draw(mb.End(.Frame, Buffers.QUAD_INDICES));
 
-			pass.PopDebugGroup();
+			cmds.PopDebugGroup();
 		}
 
-		private void RenderBlockSelection(RenderPass pass) {
-			Gfxa.LINES_PIPELINE.Bind(pass);
+		private void RenderBlockSelection(CommandBuffer cmds) {
+			cmds.Bind(Gfxa.LINES_PIPELINE);
 
 			Mat4 projectionView = me.camera.proj * me.camera.view;
-			pass.SetPushConstants(.Vertex, 0, sizeof(Mat4), &projectionView);
+			cmds.SetPushConstants(projectionView);
 
 			Color color = .(255, 255, 255, 100);
-			MeshBuilder mb = me.frameBuffers.AllocateImmediate(pass);
+			MeshBuilder mb = scope .();
 
 			Vec3i pos = me.player.selection.blockPos;
 			AABB aabb = me.world.GetBlock(pos).Shape.GetBoundingBox();
 			Vec3d min = .(pos.x, pos.y, pos.z) + aabb.min;
 			Vec3d max = .(pos.x, pos.y, pos.z) + aabb.max;
 
-			uint32 ib1 = mb.Vec3(.((.) min.x, (.) min.y, (.) min.z)).Color(color).Next();
-			uint32 ib2 = mb.Vec3(.((.) min.x, (.) min.y, (.) max.z)).Color(color).Next();
-			uint32 ib3 = mb.Vec3(.((.) max.x, (.) min.y, (.) max.z)).Color(color).Next();
-			uint32 ib4 = mb.Vec3(.((.) max.x, (.) min.y, (.) min.z)).Color(color).Next();
+			uint32 ib1 = mb.Vertex<PosColorVertex>(.(.((.) min.x, (.) min.y, (.) min.z), color));
+			uint32 ib2 = mb.Vertex<PosColorVertex>(.(.((.) min.x, (.) min.y, (.) max.z), color));
+			uint32 ib3 = mb.Vertex<PosColorVertex>(.(.((.) max.x, (.) min.y, (.) max.z), color));
+			uint32 ib4 = mb.Vertex<PosColorVertex>(.(.((.) max.x, (.) min.y, (.) min.z), color));
 
-			uint32 it1 = mb.Vec3(.((.) min.x, (.) max.y, (.) min.z)).Color(color).Next();
-			uint32 it2 = mb.Vec3(.((.) min.x, (.) max.y, (.) max.z)).Color(color).Next();
-			uint32 it3 = mb.Vec3(.((.) max.x, (.) max.y, (.) max.z)).Color(color).Next();
-			uint32 it4 = mb.Vec3(.((.) max.x, (.) max.y, (.) min.z)).Color(color).Next();
+			uint32 it1 = mb.Vertex<PosColorVertex>(.(.((.) min.x, (.) max.y, (.) min.z), color));
+			uint32 it2 = mb.Vertex<PosColorVertex>(.(.((.) min.x, (.) max.y, (.) max.z), color));
+			uint32 it3 = mb.Vertex<PosColorVertex>(.(.((.) max.x, (.) max.y, (.) max.z), color));
+			uint32 it4 = mb.Vertex<PosColorVertex>(.(.((.) max.x, (.) max.y, (.) min.z), color));
 
 			mb.Line(ib1, ib2);
 			mb.Line(ib2, ib3);
@@ -239,17 +248,17 @@ namespace Meteorite {
 			mb.Line(ib3, it3);
 			mb.Line(ib4, it4);
 
-			mb.Finish();
+			cmds.Draw(mb.End());
 		}
 
-		private void RenderChunkBoundaries(RenderPass pass) {
-			pass.PushDebugGroup("Chunk Boundaries");
-			Gfxa.LINES_PIPELINE.Bind(pass);
+		private void RenderChunkBoundaries(CommandBuffer cmds) {
+			cmds.PushDebugGroup("Chunk Boundaries");
+			cmds.Bind(Gfxa.LINES_PIPELINE);
 
 			Mat4 projectionView = me.camera.proj * me.camera.view;
-			pass.SetPushConstants(.Vertex, 0, sizeof(Mat4), &projectionView);
+			cmds.SetPushConstants(projectionView);
 
-			MeshBuilder mb = me.frameBuffers.AllocateImmediate(pass);
+			MeshBuilder mb = scope .();
 
 			int x = ((.) me.camera.pos.x >> 4) * 16;
 			int z = ((.) me.camera.pos.z >> 4) * 16;
@@ -286,15 +295,15 @@ namespace Meteorite {
 			Line(mb, x + 16, z + 48, color2);
 			Line(mb, x + 32, z + 48, color2);
 
-			mb.Finish();
+			cmds.Draw(mb.End());
 
-			pass.PopDebugGroup();
+			cmds.PopDebugGroup();
 		}
 
 		private void Line(MeshBuilder mb, int x, int z, Color color) {
 			mb.Line(
-				mb.Vec3(.(x, 0, z)).Color(color).Next(),
-				mb.Vec3(.(x, me.world.height, z)).Color(color).Next()
+				mb.Vertex<PosColorVertex>(.(.(x, 0, z), color)),
+				mb.Vertex<PosColorVertex>(.(.(x, me.world.height, z), color))
 			);
 		}
 
@@ -322,8 +331,11 @@ namespace Meteorite {
 			}
 
 			if (shuttingDown) {
-				chunk.mesh.Build().Cancel();
-				chunk.meshTransparent.Build().Cancel();
+				chunk.solidMb.Cancel();
+				DeleteAndNullify!(chunk.solidMb);
+
+				chunk.transparentMb.Cancel();
+				DeleteAndNullify!(chunk.solidMb);
 
 				chunk.status = .Ready;
 			}

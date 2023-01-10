@@ -1,0 +1,7 @@
+FileVersion = 1
+Dependencies = {corlib = "*", Bulkan = "*", "Bulkan.Utilities" = "*", GLFW = "*", Shaderc = "*", stb_beef = "*", ImGui = "*", ImGuiImplGlfw = "*", MiniZ = "*"}
+
+[Project]
+Name = "Cacti"
+TargetType = "BeefLib"
+StartupObject = "Cacti.Program"

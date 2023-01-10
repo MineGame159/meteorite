@@ -1,5 +1,6 @@
 using System;
 
+using Cacti;
 using ImGui;
 using GLFW;
 
@@ -11,22 +12,22 @@ namespace Meteorite {
 
 		private char8*[?] aos = .("None", "Vanilla", "SSAO", "Both");
 
-		public void Render(RenderPass pass, float delta) {
+		public void Render(CommandBuffer cmds, float delta) {
 			if (me.world != null && me.worldRenderer != null) {
-				Gfxa.TEX_QUADS_PIPELINE.Bind(pass);
-				Gfxa.PIXEL_BIND_GRUP.Bind(pass);
+				cmds.Bind(Gfxa.TEX_QUADS_PIPELINE);
+				cmds.Bind(Gfxa.PIXEL_SET, 0);
 	
 				Mat4 pc = me.camera.proj2d;
-				pass.SetPushConstants(.Vertex, 0, sizeof(Mat4), &pc);
+				cmds.SetPushConstants(pc);
 
-				RenderCrosshair(pass);
-				chat.Render(pass, delta);
+				RenderCrosshair(cmds);
+				chat.Render(cmds, delta);
 			}
 
 			ImGui.Begin("Meteorite", null, .AlwaysAutoResize);
-			ImGui.Text("Frame: {:0.000} ms", (Glfw.GetTime() - Program.FRAME_START) * 1000);
+			ImGui.Text("Frame: {:0.000} ms", Meteorite.INSTANCE.lastFrameTime.TotalMilliseconds);
 			ImGui.Text("Memory: {} MB", Utils.GetUsedMemory());
-			ImGui.Text("GPU Memory: {} MB", Gfx.ALLOCATED / 1024 / 1024);
+			//ImGui.Text("GPU Memory: {} MB", Gfx.ALLOCATED / 1024 / 1024);
 			ImGui.Separator();
 
 			if (me.world != null && me.worldRenderer != null) {
@@ -59,31 +60,31 @@ namespace Meteorite {
 			ImGui.End();
 		}
 
-		private void RenderCrosshair(RenderPass pass) {
+		private void RenderCrosshair(CommandBuffer cmds) {
 			Color color = .(200, 200, 200);
-			MeshBuilder mb = me.frameBuffers.AllocateImmediate(pass);
+			MeshBuilder mb = scope .();
 
-			float x = me.window.width / 4f;
-			float y = me.window.height / 4f;
+			float x = me.window.Width / 4f;
+			float y = me.window.Height / 4f;
 
 			float s1 = 6;
 			float s2 = 1;
 
 			mb.Quad(
-				mb.Vec2(.(x - s1, y - s2)).Vec2(.()).Color(color).Next(),
-				mb.Vec2(.(x - s1, y + s2)).Vec2(.()).Color(color).Next(),
-				mb.Vec2(.(x + s1, y + s2)).Vec2(.()).Color(color).Next(),
-				mb.Vec2(.(x + s1, y - s2)).Vec2(.()).Color(color).Next()
+				mb.Vertex<Pos2DUVColorVertex>(.(.(x - s1, y - s2), .(), color)),
+				mb.Vertex<Pos2DUVColorVertex>(.(.(x - s1, y + s2), .(), color)),
+				mb.Vertex<Pos2DUVColorVertex>(.(.(x + s1, y + s2), .(), color)),
+				mb.Vertex<Pos2DUVColorVertex>(.(.(x + s1, y - s2), .(), color))
 			);
 
 			mb.Quad(
-				mb.Vec2(.(x - s2, y - s1)).Vec2(.()).Color(color).Next(),
-				mb.Vec2(.(x - s2, y + s1)).Vec2(.()).Color(color).Next(),
-				mb.Vec2(.(x + s2, y + s1)).Vec2(.()).Color(color).Next(),
-				mb.Vec2(.(x + s2, y - s1)).Vec2(.()).Color(color).Next()
+				mb.Vertex<Pos2DUVColorVertex>(.(.(x - s2, y - s1), .(), color)),
+				mb.Vertex<Pos2DUVColorVertex>(.(.(x - s2, y + s1), .(), color)),
+				mb.Vertex<Pos2DUVColorVertex>(.(.(x + s2, y + s1), .(), color)),
+				mb.Vertex<Pos2DUVColorVertex>(.(.(x + s2, y - s1), .(), color))
 			);
 
-			mb.Finish();
+			cmds.Draw(mb.End());
 		}
 	}
 }

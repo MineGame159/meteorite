@@ -1,3 +1,5 @@
+#version 460
+
 layout(location = 0) in vec3 position;
 layout(location = 1) in vec2 texCoords;
 layout(location = 2) in vec4 color;
@@ -10,7 +12,7 @@ layout(location = 2) out float v_Blend;
 layout(location = 3) out vec4 v_Color;
 layout(location = 4) out vec4 v_Normal;
 
-#include lib/api
+#include <lib/api.glsl>
 
 layout(push_constant, std430) uniform pushConstants {
     vec3 chunkPos;

@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 
+using Cacti;
+
 namespace Meteorite {
 	extension Blocks {
 		public static BlockState[] BLOCKSTATES = new .[MAX_ID + 1] ~ delete _;

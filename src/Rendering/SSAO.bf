@@ -1,43 +1,38 @@
 using System;
 
-using Wgpu;
+using Cacti;
 
 namespace Meteorite {
 	class SSAO {
-		private Texture ssao;
+		private GpuImage ssao;
 		private Pipeline pipeline ~ delete _;
 
-		private WBuffer samplesBuffer ~ delete _;
-		private Texture noiseTexture ~ delete _;
+		private GpuBuffer samplesBuffer ~ delete _;
+		private GpuImage noiseTexture ~ delete _;
 
-		private BindGroupLayout bindGroupLayout ~ delete _;
-		private BindGroup bindGroup ~ delete _;
+		private DescriptorSet set ~ delete _;
+		private DescriptorSet ssaoSet ~ delete _;
 
-		public this(Texture ssao) {
+		public this(GpuImage ssao) {
 			this.ssao = ssao;
+			this.ssaoSet = Gfx.DescriptorSets.Create(Gfxa.IMAGE_SET_LAYOUT, .SampledImage(ssao, .VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, Gfxa.NEAREST_SAMPLER));
 
-			// Bind group layout
-			bindGroupLayout = Gfx.NewBindGroupLayout()
-				.Buffer(.Uniform)
-				.Texture(.UnfilterableFloat)
-				.Sampler(.NonFiltering)
-				.Create();
+			DescriptorSetLayout setLayout = Gfx.DescriptorSetLayouts.Get(.StorageBuffer, .SampledImage);
 
 			// Pipeline
-			pipeline = Gfx.NewPipeline()
-				.BindGroupLayouts(Gfxa.UNIFORM_BIND_GROUP_LAYOUT, Gfxa.TEXTURE_BIND_GROUP_LAYOUT, Gfxa.TEXTURE_BIND_GROUP_LAYOUT, bindGroupLayout)
-				.Attributes(.Float2, .Float2)
-				.Shader("ssao")
-				.Primitive(.TriangleList, .Clockwise)
-				.Targets(.R8Unorm)
+			pipeline = Gfx.Pipelines.New("SSAO")
+				.VertexFormat(PostVertex.FORMAT)
+				.Sets(Gfxa.STORAGE_SET_LAYOUT, Gfxa.IMAGE_SET_LAYOUT, Gfxa.IMAGE_SET_LAYOUT, setLayout)
+				.Shader("ssao", "ssao")
+				.Targets(.R8)
 				.Create();
 
 			// Samples
-			Vec4[64] samples = .();
+			Vec4f[64] samples = .();
 			Random random = scope .();
 
 			for (int i < 64) {
-				Vec4 sample = Vec4((.) random.NextDouble() * 2f - 1f, (.) random.NextDouble() * 2f - 1f, (.) random.NextDouble(), 0).Normalize() * (float) random.NextDouble();
+				Vec4f sample = Vec4f((.) random.NextDouble() * 2f - 1f, (.) random.NextDouble() * 2f - 1f, (.) random.NextDouble(), 0).Normalize() * (float) random.NextDouble();
 
 				float scale = (float) i / 64f; 
 				scale = Math.Lerp(0.1f, 1.0f, scale * scale);
@@ -46,48 +41,55 @@ namespace Meteorite {
 				samples[i] = sample;
 			}
 
-			samplesBuffer = Gfx.CreateBuffer(.Uniform, sizeof(Vec4[64]), &samples, "SSAO Samples");
+			samplesBuffer = Gfx.Buffers.Create(.Storage, .Mappable, sizeof(Vec4f[64]), "SSAO Samples");
+			samplesBuffer.Upload(&samples, samplesBuffer.size);
 
 			// Noise
-			Vec4[16] noise = .();
+			Vec4f[16] noise = .();
 
 			for (int i < 16) {
 				noise[i] = .((.) random.NextDouble() * 2f - 1f, (.) random.NextDouble() * 2f - 1f, 0, 0);
 			}
 
-			noiseTexture = Gfx.CreateTexture(.TextureBinding, 4, 4, 1, &noise, .RGBA32Float, true, Gfxa.NEAREST_REPEAT_SAMPLER);
+			noiseTexture = Gfx.Images.Create(.RGBA32, .ColorAttachment, .(4, 4), "SSAO Noise");
+			noiseTexture.Upload(&noise);
 
 			// Bind group
-			bindGroup = bindGroupLayout.Create(samplesBuffer, noiseTexture, Gfxa.NEAREST_REPEAT_SAMPLER);
+			set = Gfx.DescriptorSets.Create(setLayout, .Storage(samplesBuffer), .SampledImage(noiseTexture, .VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, Gfxa.NEAREST_REPEAT_SAMPLER));
 		}
 
-		public void Render(Wgpu.CommandEncoder encoder) {
+		public void Render(CommandBuffer cmds) {
 			Meteorite me = .INSTANCE;
 
-			RenderPass pass = RenderPass.Begin(encoder)
-				.Color(ssao, .(255, 255, 255))
-				.Finish();
-			pass.PushDebugGroup("SSAO");
+			cmds.TransitionImage(ssao, .ColorAttachment);
+			cmds.TransitionImage(me.gameRenderer.mainNormal, .Sample);
+			cmds.TransitionImage(me.gameRenderer.mainDepth, .Sample);
 
-			pipeline.Bind(pass);
-			FrameUniforms.Bind(pass);
-			me.gameRenderer.mainNormal.Bind(pass, 1);
-			me.gameRenderer.mainDepth.Bind(pass, 2);
-			bindGroup.Bind(pass, 3);
+			cmds.BeginPass(null, .(ssao, .WHITE));
+			cmds.PushDebugGroup("SSAO");
 
-			MeshBuilder mb = me.frameBuffers.AllocateImmediate(pass);
+			cmds.Bind(pipeline);
+			FrameUniforms.Bind(cmds);
+			cmds.Bind(me.gameRenderer.mainNormalSet, 1);
+			cmds.Bind(me.gameRenderer.mainDepthSet, 2);
+			cmds.Bind(set, 3);
+
+			MeshBuilder mb = scope .();
+
 			mb.Quad(
-				mb.Vec2(.(-1, -1)).Vec2(.(0, 1)).Next(),
-				mb.Vec2(.(-1, 1)).Vec2(.(0, 0)).Next(),
-				mb.Vec2(.(1, 1)).Vec2(.(1, 0)).Next(),
-				mb.Vec2(.(1, -1)).Vec2(.(1, 1)).Next()
+				mb.Vertex<PostVertex>(.(.(-1, -1), .(0, 1))),
+				mb.Vertex<PostVertex>(.(.(-1, 1), .(0, 0))),
+				mb.Vertex<PostVertex>(.(.(1, 1), .(1, 0))),
+				mb.Vertex<PostVertex>(.(.(1, -1), .(1, 1)))
 			);
-			mb.Finish();
 
-			pass.PopDebugGroup();
-			pass.End();
+			cmds.Draw(mb.End());
+
+			cmds.PopDebugGroup();
+			cmds.EndPass();
 		}
 
-		public void Bind(RenderPass pass, int index) => ssao.Bind(pass, index);
+		public void Transition(CommandBuffer cmds) => cmds.TransitionImage(ssao, .Sample);
+		public void Bind(CommandBuffer cmds, uint32 index) => cmds.Bind(ssaoSet, index);
 	}
 }

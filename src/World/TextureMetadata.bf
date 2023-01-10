@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 
+using Cacti;
+
 namespace Meteorite {
 	class TextureMetadata {
 		public TextureAnimationMetadata animation ~ delete _;

@@ -1,3 +1,5 @@
+#version 460
+
 layout(location = 0) in float v_VertexDistance;
 
 layout(location = 0) out vec4 colora;
