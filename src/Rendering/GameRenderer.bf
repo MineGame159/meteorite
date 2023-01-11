@@ -70,21 +70,33 @@ namespace Meteorite {
 
 				{
 					// Main Pre
+					cmds.PushDebugGroup("Main - Pre");
 					cmds.BeginPass(.(mainDepth, 1), .(mainColor, clearColor));
+
 					RenderMainPre(cmds);
+
 					cmds.EndPass();
+					cmds.PopDebugGroup();
 				}
 				{
 					// Main
+					cmds.PushDebugGroup("Main");
 					cmds.BeginPass(.(mainDepth, null), .(mainColor, null), .(mainNormal, .ZERO));
+
 					RenderMain(cmds);
+
 					cmds.EndPass();
+					cmds.PopDebugGroup();
 				}
 				{
 					// Main Post
+					cmds.PushDebugGroup("Main - Post");
 					cmds.BeginPass(.(mainDepth, null), .(mainColor, null));
+
 					RenderMainPost(cmds);
+
 					cmds.EndPass();
+					cmds.PopDebugGroup();
 				}
 
 				if (me.options.ao.HasSSAO) {
@@ -97,9 +109,13 @@ namespace Meteorite {
 					cmds.TransitionImage(mainColor, .Sample);
 					if (ssao != null) ssao.Transition(cmds);
 
+					cmds.PushDebugGroup("Post");
 					cmds.BeginPass(null, .(target, .ZERO));
+
 					RenderPost(cmds);
+
 					cmds.EndPass();
+					cmds.PopDebugGroup();
 				}
 			}
 
@@ -107,10 +123,14 @@ namespace Meteorite {
 			//if (!Screenshots.rendering || Screenshots.includeGui) {
 				Color? clear = null;
 				if (!world) clear = clearColor;
-
+			
+				cmds.PushDebugGroup("2D");
 				cmds.BeginPass(null, .(target, clear));
+
 				Render2D(cmds);
+
 				cmds.EndPass();
+				cmds.PopDebugGroup();
 			//}
 
 			cmds.End();
@@ -144,8 +164,6 @@ namespace Meteorite {
 		}
 
 		private void RenderPost(CommandBuffer cmds) {
-			cmds.PushDebugGroup("Post");
-
 			cmds.Bind(Gfxa.POST_PIPELINE);
 			FrameUniforms.Bind(cmds);
 			cmds.Bind(mainColorSet, 1);
@@ -163,18 +181,12 @@ namespace Meteorite {
 			);
 
 			cmds.Draw(mb.End());
-
-			cmds.PopDebugGroup();
 		}
 
 		private void Render2D(CommandBuffer cmds) {
 			if (ImGuiCacti.NewFrame()) {
-				cmds.PushDebugGroup("2D");
-
 				if (me.connection == null) MainMenu.Render();
 				else me.hud.Render(cmds, delta);
-
-				cmds.PopDebugGroup();
 			}
 		}
 

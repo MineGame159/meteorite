@@ -250,18 +250,18 @@ class CommandBuffer {
 	public void PushDebugGroup(StringView name, Color color = .BLACK) {
 		if (!Gfx.DebugUtilsExt) return;
 
-		VkDebugMarkerMarkerInfoEXT info = .() {
-			pMarkerName = name.ToScopeCStr!(),
+		VkDebugUtilsLabelEXT info = .() {
+			pLabelName = name.ToScopeCStr!(),
 			color = .(color.R, color.G, color.B, color.A)
 		};
 
-		//vkCmdDebugMarkerBeginEXT(handle, &info);
+		vkCmdBeginDebugUtilsLabelEXT(handle, &info);
 	}
 
 	public void PopDebugGroup() {
 		if (!Gfx.DebugUtilsExt) return;
 
-		//vkCmdDebugMarkerEndEXT(handle);
+		vkCmdEndDebugUtilsLabelEXT(handle);
 	}
 }
 

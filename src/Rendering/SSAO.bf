@@ -63,12 +63,12 @@ namespace Meteorite {
 		public void Render(CommandBuffer cmds) {
 			Meteorite me = .INSTANCE;
 
+			cmds.PushDebugGroup("SSAO");
 			cmds.TransitionImage(ssao, .ColorAttachment);
 			cmds.TransitionImage(me.gameRenderer.mainNormal, .Sample);
 			cmds.TransitionImage(me.gameRenderer.mainDepth, .Sample);
 
 			cmds.BeginPass(null, .(ssao, .WHITE));
-			cmds.PushDebugGroup("SSAO");
 
 			cmds.Bind(pipeline);
 			FrameUniforms.Bind(cmds);
@@ -87,8 +87,8 @@ namespace Meteorite {
 
 			cmds.Draw(mb.End());
 
-			cmds.PopDebugGroup();
 			cmds.EndPass();
+			cmds.PopDebugGroup();
 		}
 
 		public void Transition(CommandBuffer cmds) => cmds.TransitionImage(ssao, .Sample);

@@ -47,6 +47,7 @@ namespace Cacti {
 			// Begin command buffer
 			CommandBuffer cmds = Gfx.CommandBuffers.GetBuffer();
 			cmds.Begin();
+			cmds.PushDebugGroup("ImGui");
 			cmds.SetViewport(target.size, false, true);
 
 			if (firstFrame) {
@@ -158,6 +159,7 @@ namespace Cacti {
 			cmds.TransitionImage(target, .Present);
 
 			// End command buffer
+			cmds.PopDebugGroup();
 			cmds.End();
 
 			return cmds;
