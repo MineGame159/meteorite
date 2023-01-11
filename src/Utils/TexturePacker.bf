@@ -94,7 +94,7 @@ namespace Meteorite {
 			GpuImage image = Gfx.Images.Create(.RGBA, .Normal, .(size, size), "Block Atlas", 4);
 
 			for (int i < 4) {
-				image.Upload(datas[i], i);
+				Gfx.Uploads.UploadImage(image, datas[i], i);
 			}
 
 			return image;

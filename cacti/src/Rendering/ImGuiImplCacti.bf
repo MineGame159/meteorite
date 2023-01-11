@@ -174,7 +174,7 @@ namespace Cacti {
 			io.Fonts.GetTexDataAsRGBA32(out pixels, out width, out height);
 
 			data.fontImage = Gfx.Images.Create(.RGBA, .Normal, .(width, height), "ImGui - Font");
-			data.fontImage.Upload(pixels);
+			Gfx.Uploads.UploadImage(data.fontImage, pixels);
 			
 			data.set = Gfx.DescriptorSets.Create(Gfx.DescriptorSetLayouts.Get(.SampledImage), .SampledImage(data.fontImage, .VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, Gfx.Samplers.Get(.Linear, .Linear)));
 

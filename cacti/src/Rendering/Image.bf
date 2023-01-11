@@ -173,25 +173,6 @@ class GpuImage {
 
 		for (let pointer in invalidatePointers) *pointer = true;
 	}
-
-	public void Upload(void* pixels, int mipLevel = 0) {
-		GpuBufferView buffer = Gfx.FrameAllocator.Allocate(.None, GetBytes(mipLevel));
-		buffer.Upload(pixels, buffer.size);
-
-		CommandBuffer cmds = Gfx.CommandBuffers.GetBuffer();
-
-		cmds.Begin();
-		cmds.CopyBufferToImage(buffer, this, mipLevel);
-		cmds.End();
-
-		VkSubmitInfo submitInfo = .() {
-			commandBufferCount = 1,
-			pCommandBuffers = &cmds.[Friend]handle
-		};
-
-		vkQueueSubmit(Gfx.GraphicsQueue, 1, &submitInfo, .Null);
-		vkDeviceWaitIdle(Gfx.Device);
-	}
 }
 
 class ImageManager {

@@ -188,7 +188,7 @@ namespace Meteorite {
 			defer delete image;
 
 			GpuImage gpuImage = Gfx.Images.Create(.RGBA, .Normal, image.size, path);
-			gpuImage.Upload(image.pixels);
+			Gfx.Uploads.UploadImage(gpuImage, image.pixels);
 
 			return gpuImage;
 		}

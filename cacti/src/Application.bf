@@ -70,8 +70,8 @@ namespace Cacti {
 					List<CommandBuffer> commandBuffers = Render(.. scope .(), target, delta);
 
 					// Uploads
-					/*GCommandBuffer uploadCmds = GGfx.Uploads.BuildCommandBuffer();
-					if (uploadCmds != null) commandBuffers.Add(uploadCmds);*/
+					CommandBuffer uploadCmds = Gfx.Uploads.BuildCommandBuffer();
+					if (uploadCmds != null) commandBuffers.Add(uploadCmds);
 
 					// ImGui
 					CommandBuffer imguiCmds = ImGuiCacti.Render(target);

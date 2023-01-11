@@ -141,24 +141,18 @@ class MeshBuilder {
 		case .Create(let name):				this.ibo = Gfx.Buffers.Create(.Index, .Mappable, indices.Size, name);
 		}
 
-		/*if (uploadCallback != null) {
-			// TODO: Callback
-			if (vertices.Size > 0) GGfx.Uploads.UploadBuffer(this.vbo, vertices.Data, vertices.Size, uploadCallback);
-			else {
-				uploadCallback();
-				delete uploadCallback;
-			}
+		if (uploadCallback != null) {
+			UploadCallback callback = new .(uploadCallback);
 
-			if (indices != null && indices.Size > 0) Gfx.Uploads.UploadBuffer(this.ibo, indices.Data, indices.Size, null);
+			if (vertices.Size > 0) Gfx.Uploads.UploadBuffer(this.vbo, vertices.Data, vertices.Size, callback, false);
+			else callback.UploadFinished();
+
+			if (indices != null && indices.Size > 0) Gfx.Uploads.UploadBuffer(this.ibo, indices.Data, indices.Size, callback, false);
+			else callback.UploadFinished();
 		}
-		else {*/
+		else {
 			if (vertices.Size > 0) this.vbo.Upload(vertices.Data, vertices.Size);
 			if (indices != null && indices.Size > 0) this.ibo.Upload(indices.Data, indices.Size);
-		//}
-
-		if (uploadCallback != null) {
-			uploadCallback();
-			delete uploadCallback;
 		}
 
 		BuiltMesh mesh = .(
@@ -178,5 +172,29 @@ class MeshBuilder {
 	public void Cancel() {
 		Buffers.Return(vertices);
 		Buffers.Return(indices);
+	}
+
+	class UploadCallback {
+		private delegate void() callback ~ delete _;
+		private delegate void() selfCallback ~ delete _;
+
+		private bool called;
+
+		public this(delegate void() callback) {
+			this.callback = callback;
+			this.selfCallback = new => UploadFinished;
+		}
+
+		public void UploadFinished() {
+			if (called) {
+				callback();
+				delete this;
+			}
+			else {
+				called = true;
+			}
+		}
+
+		public static operator delegate void()(Self callback) => callback.selfCallback;
 	}
 }

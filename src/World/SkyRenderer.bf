@@ -102,6 +102,9 @@ namespace Meteorite {
 			DARK_MESH.Dispose();
 			STARS_MESH.Dispose();
 
+			DeleteAndNullify!(SUN);
+			DeleteAndNullify!(MOON);
+
 			DeleteAndNullify!(SUN_SET);
 			DeleteAndNullify!(MOON_SET);
 		}

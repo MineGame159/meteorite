@@ -54,7 +54,7 @@ namespace Meteorite {
 			}
 
 			noiseTexture = Gfx.Images.Create(.RGBA32, .ColorAttachment, .(4, 4), "SSAO Noise");
-			noiseTexture.Upload(&noise);
+			Gfx.Uploads.UploadImage(noiseTexture, &noise);
 
 			// Bind group
 			set = Gfx.DescriptorSets.Create(setLayout, .Storage(samplesBuffer), .SampledImage(noiseTexture, .VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, Gfxa.NEAREST_REPEAT_SAMPLER));

@@ -104,12 +104,12 @@ namespace Meteorite {
 		}
 
 		public GpuBuffer SolidVbo { get {
-			if (solidVbo == null) solidVbo = Gfx.Buffers.Create(.Vertex, .Mappable, 0, scope $"Chunk {pos.x}, {pos.z} - Solid");
+			if (solidVbo == null) solidVbo = Gfx.Buffers.Create(.Vertex, .TransferDst, 0, scope $"Chunk {pos.x}, {pos.z} - Solid");
 			return solidVbo;
 		} }
 
 		public GpuBuffer TransparentVbo { get {
-			if (transparentVbo == null) transparentVbo = Gfx.Buffers.Create(.Vertex, .Mappable, 0, scope $"Chunk {pos.x}, {pos.z} - Transparent");
+			if (transparentVbo == null) transparentVbo = Gfx.Buffers.Create(.Vertex, .TransferDst, 0, scope $"Chunk {pos.x}, {pos.z} - Transparent");
 			return transparentVbo;
 		} }
 		

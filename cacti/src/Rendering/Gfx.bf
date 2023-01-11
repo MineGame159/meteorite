@@ -33,6 +33,7 @@ static class Gfx {
 	public static SamplerManager Samplers;
 	public static Swapchain Swapchain;
 	public static CommandBufferManager CommandBuffers;
+	public static UploadManager Uploads;
 
 	private static Window Window;
 	private static bool firstFrame = true;
@@ -71,6 +72,7 @@ static class Gfx {
 		Samplers = new .();
 		Swapchain = new .();
 		CommandBuffers = new .();
+		Uploads = new .();
 
 		Swapchain.Recreate(window.size);
 
@@ -81,6 +83,7 @@ static class Gfx {
 	public static void Destroy() {
 		vkDeviceWaitIdle(Device);
 
+		DeleteAndNullify!(Uploads);
 		DeleteAndNullify!(CommandBuffers);
 		DeleteAndNullify!(Swapchain);
 		DeleteAndNullify!(Samplers);
@@ -109,6 +112,7 @@ static class Gfx {
 		FrameAllocator.FreeAll();
 		CommandBuffers.NewFrame();
 		Pipelines.NewFrame();
+		Uploads.NewFrame();
 
 		// Callbacks
 		for (let callback in newFrameCallbacks) {

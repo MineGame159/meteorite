@@ -27,7 +27,7 @@ namespace Meteorite {
 			Image image = Meteorite.INSTANCE.resources.ReadImage(json["file"].AsString[10...]);
 
 			GpuImage texture = Gfx.Images.Create(.RGBA, .Normal, image.size, "Font");
-			texture.Upload(image.pixels);
+			Gfx.Uploads.UploadImage(texture, image.pixels);
 
 			int height = json.GetInt("height", 8);
 			int ascent = json.GetInt("ascent", 0);
