@@ -31,7 +31,7 @@ class CactiTest : Application {
 		}
 		""";
 
-	private Pipeline pipeline ~ delete _;
+	private Pipeline pipeline;
 
 	private GpuBuffer ubo ~ delete _;
 	private DescriptorSet set ~ delete _;
@@ -39,13 +39,16 @@ class CactiTest : Application {
 	public this() : base("Cacti Test") {
 		DescriptorSetLayout setLayout = Gfx.DescriptorSetLayouts.Get(.UniformBuffer);
 
-		pipeline = Gfx.Pipelines.New("Yoo")
+		pipeline = Gfx.Pipelines.Get(scope PipelineInfo("Yoo")
 			.VertexFormat(scope VertexFormat().Attribute(.Float, 2))
 			.Primitive(.Traingles)
 			.Shader(VERTEX_SHADER, FRAGMENT_SHADER, path: false)
 			.Sets(setLayout)
 			.Cull(.None, .CounterClockwise)
-			.Create();
+			.Targets(
+				.(.BGRA, .Default())
+			)
+		);
 
 		ubo = Gfx.Buffers.Create(.Uniform, .Mappable, sizeof(Mat4), "UBO");
 		set = Gfx.DescriptorSets.Create(setLayout, .Uniform(ubo));

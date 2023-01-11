@@ -39,38 +39,47 @@ namespace Meteorite {
 		private static DescriptorSet MOON_SET;
 
 		public static void Init() {
-			PIPELINE1 = Gfx.Pipelines.New("Sky 1")
+			PIPELINE1 = Gfx.Pipelines.Get(scope PipelineInfo("Sky 1")
 				.VertexFormat(PosVertex.FORMAT)
 				.PushConstants<PushConstaints2>()
 				.Shader(Gfxa.POS_FOG, Gfxa.POS_FOG)
 				.Cull(.None, .CounterClockwise)
 				.Depth(true, false, false)
-				.Blend(false)
-				.Create();
-			PIPELINE2 = Gfx.Pipelines.New("Sky 2")
+				.Targets(
+					.(.BGRA, .Disabled())
+				)
+			);
+			PIPELINE2 = Gfx.Pipelines.Get(scope PipelineInfo("Sky 2")
 				.VertexFormat(PosColorVertex.FORMAT)
 				.PushConstants<PushConstaints1>()
 				.Shader(Gfxa.POS_COLOR_SHADER, Gfxa.POS_COLOR_SHADER)
 				.Cull(.None, .CounterClockwise)
 				.Depth(true, false, false)
-				.Create();
-			PIPELINE3 = Gfx.Pipelines.New("Sky 3")
+				.Targets(
+					.(.BGRA, .Default())
+				)
+			);
+			PIPELINE3 = Gfx.Pipelines.Get(scope PipelineInfo("Sky 3")
 				.VertexFormat(PosUVVertex.FORMAT)
 				.Sets(Gfxa.IMAGE_SET_LAYOUT)
 				.PushConstants<PushConstaints1>()
 				.Shader(Gfxa.POS_TEX_SHADER, Gfxa.POS_TEX_SHADER)
 				.Cull(.None, .CounterClockwise)
 				.Depth(true, false, false)
-				.Blend(.(.Add, .SrcAlpha, .One), .(.Add, .One, .Zero))
-				.Create();
-			PIPELINE4 = Gfx.Pipelines.New("Sky 4")
+				.Targets(
+					.(.BGRA, .Enabled(.(.Add, .SrcAlpha, .One), .(.Add, .One, .Zero)))
+				)
+			);
+			PIPELINE4 = Gfx.Pipelines.Get(scope PipelineInfo("Sky 4")
 				.VertexFormat(PosVertex.FORMAT)
 				.PushConstants<PushConstaints2>()
 				.Shader(Gfxa.POS_FOG, Gfxa.POS_FOG)
 				.Cull(.None, .CounterClockwise)
 				.Depth(true, false, false)
-				.Blend(.(.Add, .SrcAlpha, .One), .(.Add, .One, .Zero))
-				.Create();
+				.Targets(
+					.(.BGRA, .Enabled(.(.Add, .SrcAlpha, .One), .(.Add, .One, .Zero)))
+				)
+			);
 
 			CreateSkyDisc(ref LIGHT_MESH, 16);
 			CreateSkyDisc(ref DARK_MESH, -16);
@@ -84,20 +93,17 @@ namespace Meteorite {
 		}
 
 		public static void Destroy() {
-			delete PIPELINE1;
-			delete PIPELINE2;
-			delete PIPELINE3;
-			delete PIPELINE4;
+			ReleaseAndNullify!(PIPELINE1);
+			ReleaseAndNullify!(PIPELINE2);
+			ReleaseAndNullify!(PIPELINE3);
+			ReleaseAndNullify!(PIPELINE4);
 
 			LIGHT_MESH.Dispose();
 			DARK_MESH.Dispose();
 			STARS_MESH.Dispose();
 
-			delete SUN;
-			delete MOON;
-
-			delete SUN_SET;
-			delete MOON_SET;
+			DeleteAndNullify!(SUN_SET);
+			DeleteAndNullify!(MOON_SET);
 		}
 
 		private static void CreateSkyDisc(ref BuiltMesh mesh, float y) {

@@ -98,4 +98,9 @@ class VertexFormat {
 
 		return this;
 	}
+
+	public void CopyTo(VertexFormat format) {
+		attributes.CopyTo(format.attributes);
+		format.size = size;
+	}
 }

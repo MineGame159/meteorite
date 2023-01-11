@@ -37,6 +37,8 @@ static class Gfx {
 	private static Window Window;
 	private static bool firstFrame = true;
 
+	private static List<delegate void()> newFrameCallbacks = new .() ~ delete _;
+
 	public static Result<void> Init(Window window) {
 		VulkanNative.Initialize();
 		VulkanNative.LoadPreInstanceFunctions();
@@ -97,13 +99,27 @@ static class Gfx {
 	}
 
 	public static void NewFrame() {
+		// Skip first frame
 		if (firstFrame) {
 			firstFrame = false;
 			return;
 		}
 
+		// Call managers
 		FrameAllocator.FreeAll();
 		CommandBuffers.NewFrame();
+		Pipelines.NewFrame();
+
+		// Callbacks
+		for (let callback in newFrameCallbacks) {
+			callback();
+		}
+
+		newFrameCallbacks.ClearAndDeleteItems();
+	}
+
+	public static void RunOnNewFrame(delegate void() callback) {
+		newFrameCallbacks.Add(callback);
 	}
 
 	// Initialization

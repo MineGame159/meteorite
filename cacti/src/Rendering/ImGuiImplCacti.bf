@@ -6,7 +6,7 @@ using Bulkan;
 namespace Cacti {
 	static class ImGuiImplCacti {
 		class Data {
-			public Pipeline pipeline ~ delete _;
+			public Pipeline pipeline;
 			public DescriptorSet set ~ delete _;
 			public GpuImage fontImage ~ delete _;
 		}
@@ -139,7 +139,7 @@ namespace Cacti {
 							    System.Diagnostics.Debug.Assert(cmd.TextureId == (ImGui.TextureID) &data.set);
 							    descSet[0] = data.set.[Friend]handle;
 							}
-							VulkanNative.vkCmdBindDescriptorSets(cmds.[Friend]handle, .VK_PIPELINE_BIND_POINT_GRAPHICS, data.pipeline.[Friend]layout, 0, 1, &descSet, 0, null);
+							VulkanNative.vkCmdBindDescriptorSets(cmds.[Friend]handle, .VK_PIPELINE_BIND_POINT_GRAPHICS, data.pipeline.Layout, 0, 1, &descSet, 0, null);
 
 							// Draw
 							cmds.DrawIndexed(cmd.ElemCount, (.) (cmd.IdxOffset + globalIdxOffset), (.) (cmd.VtxOffset + globalVtxOffset));
@@ -187,13 +187,16 @@ namespace Cacti {
 			Data data = GetData();
 
 			// Pipeline
-			data.pipeline = Gfx.Pipelines.New("ImGui")
+			data.pipeline = Gfx.Pipelines.Get(scope PipelineInfo("ImGui")
 				.VertexFormat(scope VertexFormat().Attribute(.Float, 2).Attribute(.Float, 2).Attribute(.U8, 4, true))
 				.Shader(VERTEX_SHADER, FRAGMENT_SHADER, null, false)
 				.Sets(Gfx.DescriptorSetLayouts.Get(.SampledImage))
 				.PushConstants<float[4]>()
 				.Cull(.None, .Clockwise)
-				.Create();
+				.Targets(
+					.(.BGRA, .Default())
+				)
+			);
 		}
 
 		private const StringView VERTEX_SHADER = """

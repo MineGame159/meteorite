@@ -5,7 +5,7 @@ using Cacti;
 namespace Meteorite {
 	class SSAO {
 		private GpuImage ssao;
-		private Pipeline pipeline ~ delete _;
+		private Pipeline pipeline;
 
 		private GpuBuffer samplesBuffer ~ delete _;
 		private GpuImage noiseTexture ~ delete _;
@@ -20,12 +20,14 @@ namespace Meteorite {
 			DescriptorSetLayout setLayout = Gfx.DescriptorSetLayouts.Get(.StorageBuffer, .SampledImage);
 
 			// Pipeline
-			pipeline = Gfx.Pipelines.New("SSAO")
+			pipeline = Gfx.Pipelines.Get(scope PipelineInfo("SSAO")
 				.VertexFormat(PostVertex.FORMAT)
 				.Sets(Gfxa.STORAGE_SET_LAYOUT, Gfxa.IMAGE_SET_LAYOUT, Gfxa.IMAGE_SET_LAYOUT, setLayout)
 				.Shader("ssao", "ssao")
-				.Targets(.R8)
-				.Create();
+				.Targets(
+					.(.R8, .Disabled())
+				)
+			);
 
 			// Samples
 			Vec4f[64] samples = .();

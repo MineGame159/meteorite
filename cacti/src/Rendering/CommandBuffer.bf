@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Diagnostics;
 
 using Bulkan;
 using Bulkan.Utilities;
@@ -48,6 +49,8 @@ class CommandBuffer {
 	}
 
 	public void BeginPass(DepthAttachment? depthAttachment, params ColorAttachment[] colorAttachments) {
+		Debug.Assert(colorAttachments.Count <= PipelineInfo.MAX_TARGETS);
+
 		VkRenderingAttachmentInfo[] rawColorAttachments = scope .[colorAttachments.Count];
 		VkRenderingAttachmentInfo rawDepthAttachment;
 		
@@ -165,13 +168,13 @@ class CommandBuffer {
 	public void Bind(Pipeline pipeline) {
 		if (boundPipeline == pipeline) return;
 
-		vkCmdBindPipeline(handle, .VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.[Friend]handle);
+		vkCmdBindPipeline(handle, .VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.Vk);
 		boundPipeline = pipeline;
 	}
 
 	public void Bind(DescriptorSet set, uint32 index) {
 		set.Validate();
-		vkCmdBindDescriptorSets(handle, .VK_PIPELINE_BIND_POINT_GRAPHICS, boundPipeline.layout, index, 1, &set.[Friend]handle, 0, null);
+		vkCmdBindDescriptorSets(handle, .VK_PIPELINE_BIND_POINT_GRAPHICS, boundPipeline.Layout, index, 1, &set.[Friend]handle, 0, null);
 	}
 
 	public void Bind(GpuBufferView view, IndexType indexType = .Uint32) {
@@ -194,7 +197,7 @@ class CommandBuffer {
 	}
 
 	public void SetPushConstants(void* value, uint32 size) {
-		vkCmdPushConstants(handle, boundPipeline.layout, .VK_SHADER_STAGE_VERTEX_BIT | .VK_SHADER_STAGE_FRAGMENT_BIT, 0, size, value);
+		vkCmdPushConstants(handle, boundPipeline.Layout, .VK_SHADER_STAGE_VERTEX_BIT | .VK_SHADER_STAGE_FRAGMENT_BIT, 0, size, value);
 	}
 
 	public void SetPushConstants<T>(T value) {

@@ -55,6 +55,18 @@ namespace Cacti {
 	}
 }
 
+static {
+	public static mixin DisposeAndNullify(var val) {
+		val.Dispose();
+		val = null;
+	}
+
+	public static mixin ReleaseAndNullify(var val) {
+		val.Release();
+		val = null;
+	}
+}
+
 namespace System {
 	extension Math {
 		public const float DEG2RADf = PI_f / 180;

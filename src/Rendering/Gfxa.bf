@@ -93,51 +93,69 @@ namespace Meteorite {
 			IMAGE_SET_LAYOUT = Gfx.DescriptorSetLayouts.Get(.SampledImage);
 
 			// Pipelines
-			CHUNK_PIPELINE = Gfx.Pipelines.New("Chunks")
+			CHUNK_PIPELINE = Gfx.Pipelines.Get(scope PipelineInfo("Chunks")
 				.VertexFormat(BlockVertex.FORMAT)
 				.Sets(STORAGE_SET_LAYOUT, IMAGE_SET_LAYOUT, STORAGE_SET_LAYOUT)
 				.PushConstants<Vec3f>()
 				.Shader("chunk", "chunk", new (preProcessor) => preProcessor.Define("SOLID"))
-				.Targets(.BGRA, .RGBA16)
-				.Depth(true)
-				.Create();
-			CHUNK_TRANSPARENT_PIPELINE = Gfx.Pipelines.New("Transparent chunks")
+				.Depth(true, true, true)
+				.Targets(
+					.(.BGRA, .Disabled()),
+					.(.RGBA16, .Disabled())
+				)
+			);
+			CHUNK_TRANSPARENT_PIPELINE = Gfx.Pipelines.Get(scope PipelineInfo("Transparent chunks")
 				.VertexFormat(BlockVertex.FORMAT)
 				.Sets(STORAGE_SET_LAYOUT, IMAGE_SET_LAYOUT, STORAGE_SET_LAYOUT)
 				.PushConstants<Vec3f>()
 				.Shader("chunk", "chunk")
-				.Targets(.BGRA, .RGBA16)
 				.Depth(true, true, false)
-				.Create();
-			ENTITY_PIPELINE = Gfx.Pipelines.New("Entities")
+				.Targets(
+					.(.BGRA, .Default()),
+					.(.RGBA16, .Disabled())
+				)
+			);
+			ENTITY_PIPELINE = Gfx.Pipelines.Get(scope PipelineInfo("Entities")
 				.VertexFormat(EntityVertex.FORMAT)
 				.Sets(STORAGE_SET_LAYOUT, IMAGE_SET_LAYOUT, STORAGE_SET_LAYOUT)
 				.Shader("entity", "entity")
-				.Targets(.BGRA, .RGBA16)
 				.Cull(.Back, .CounterClockwise)
-				.Depth(true)
-				.Create();
-			POST_PIPELINE = Gfx.Pipelines.New("Post")
+				.Depth(true, true, true)
+				.Targets(
+					.(.BGRA, .Disabled()),
+					.(.RGBA16, .Disabled())
+				)
+			);
+			POST_PIPELINE = Gfx.Pipelines.Get(scope PipelineInfo("Post")
 				.VertexFormat(PostVertex.FORMAT)
 				.Sets(STORAGE_SET_LAYOUT, IMAGE_SET_LAYOUT, IMAGE_SET_LAYOUT)
 				.Shader("post", "post", new => PostPreProcessor)
 				.Cull(.Back, .Clockwise)
-				.Create();
-			LINES_PIPELINE = Gfx.Pipelines.New("Lines")
+				.Targets(
+					.(.BGRA, .Default())
+				)
+			);
+			LINES_PIPELINE = Gfx.Pipelines.Get(scope PipelineInfo("Lines")
 				.VertexFormat(PosColorVertex.FORMAT)
 				.PushConstants<Mat4>()
 				.Shader(POS_COLOR_SHADER, POS_COLOR_SHADER)
 				.Primitive(.Lines)
 				.Cull(.Back, .Clockwise)
 				.Depth(true, false, false)
-				.Create();
-			TEX_QUADS_PIPELINE = Gfx.Pipelines.New("Textured quads")
+				.Targets(
+					.(.BGRA, .Default())
+				)
+			);
+			TEX_QUADS_PIPELINE = Gfx.Pipelines.Get(scope PipelineInfo("Textured quads")
 				.VertexFormat(Pos2DUVColorVertex.FORMAT)
 				.Sets(IMAGE_SET_LAYOUT)
 				.PushConstants<Mat4>()
 				.Shader(POS_TEX_COLOR_SHADER, POS_TEX_COLOR_SHADER)
 				.Cull(.Back, .Clockwise)
-				.Create();
+				.Targets(
+					.(.BGRA, .Default())
+				)
+			);
 
 			// Samplers
 			NEAREST_SAMPLER = Gfx.Samplers.Get(.Nearest, .Nearest);
@@ -153,16 +171,16 @@ namespace Meteorite {
 		}
 
 		public static void Destroy() {
-			delete PIXEL_TEXTURE;
+			DeleteAndNullify!(PIXEL_TEXTURE);
 
-			delete CHUNK_PIPELINE;
-			delete CHUNK_TRANSPARENT_PIPELINE;
-			delete ENTITY_PIPELINE;
-			delete POST_PIPELINE;
-			delete LINES_PIPELINE;
-			delete TEX_QUADS_PIPELINE;
+			ReleaseAndNullify!(CHUNK_PIPELINE);
+			ReleaseAndNullify!(CHUNK_TRANSPARENT_PIPELINE);
+			ReleaseAndNullify!(ENTITY_PIPELINE);
+			ReleaseAndNullify!(POST_PIPELINE);
+			ReleaseAndNullify!(LINES_PIPELINE);
+			ReleaseAndNullify!(TEX_QUADS_PIPELINE);
 
-			delete PIXEL_SET;
+			DeleteAndNullify!(PIXEL_SET);
 		}
 
 		public static GpuImage CreateImage(StringView path) {
