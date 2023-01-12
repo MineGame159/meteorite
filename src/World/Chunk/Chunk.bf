@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 
+using Cacti;
+
 namespace Meteorite {
 	struct ChunkPos : IHashable {
 		public int32 x;
@@ -47,9 +49,11 @@ namespace Meteorite {
 
 	class Chunk {
 		public enum Status {
+			NotReady,
 			Ready,
 			Building,
-			Upload
+			Upload,
+			Uploading
 		}
 
 		private static Dictionary<Vec3i, BlockEntity> EMPTY = new .(0) ~ delete _;
@@ -60,10 +64,16 @@ namespace Meteorite {
 		private Section[] sections;
 		private Dictionary<Vec3i, BlockEntity> blockEntities ~ DeleteDictionaryAndValues!(_);
 
-		public Status status = .Ready;
+		public Status status = .NotReady;
 		public bool dirty, firstBuild = true;
-		public Mesh mesh ~ delete _;
-		public Mesh meshTransparent ~ delete _;
+
+		public MeshBuilder solidMb;
+		public BuiltMesh solidMesh;
+		private GpuBuffer solidVbo ~ delete _;
+
+		public MeshBuilder transparentMb;
+		public BuiltMesh transparentMesh;
+		private GpuBuffer transparentVbo ~ delete _;
 
 		public double yOffset;
 		public bool goingDown;
@@ -92,6 +102,16 @@ namespace Meteorite {
 
 			delete sections;
 		}
+
+		public GpuBuffer SolidVbo { get {
+			if (solidVbo == null) solidVbo = Gfx.Buffers.Create(.Vertex, .TransferDst, 0, scope $"Chunk {pos.x}, {pos.z} - Solid");
+			return solidVbo;
+		} }
+
+		public GpuBuffer TransparentVbo { get {
+			if (transparentVbo == null) transparentVbo = Gfx.Buffers.Create(.Vertex, .TransferDst, 0, scope $"Chunk {pos.x}, {pos.z} - Transparent");
+			return transparentVbo;
+		} }
 		
 		[Inline]
 		public BlockState Get(int x, int y, int z) {

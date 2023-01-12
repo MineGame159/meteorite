@@ -1,5 +1,7 @@
 using System;
 
+using Cacti;
+
 namespace Meteorite {
 	class ChestBlockEntityRenderer : BlockEntityRenderer {
 		private ModelPart single ~ delete _, bottom, lid, lock;

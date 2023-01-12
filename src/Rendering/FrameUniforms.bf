@@ -1,5 +1,7 @@
 using System;
 
+using Cacti;
+
 namespace Meteorite {
 	static class FrameUniforms {
 		[CRepr]
@@ -10,15 +12,20 @@ namespace Meteorite {
 
 			public float projectionA, projectionB;
 
-			public Vec4 resolution; // GLSL: vec2
+			public Vec4f resolution; // GLSL: vec2
 		}
 
-		private static WBuffer buffer ~ delete _;
-		private static BindGroup bindGroup ~ delete _;
+		private static GpuBuffer buffer;
+		private static DescriptorSet set;
 
 		public static void Init() {
-			buffer = Gfx.CreateBuffer(.Uniform | .CopyDst, sizeof(Data), null, "Frame Uniforms");
-			bindGroup = Gfxa.UNIFORM_BIND_GROUP_LAYOUT.Create(buffer);
+			buffer = Gfx.Buffers.Create(.Storage, .Mappable, sizeof(Data), "Frame Uniforms");
+			set = Gfx.DescriptorSets.Create(Gfx.DescriptorSetLayouts.Get(.StorageBuffer), .Storage(buffer));
+		}
+
+		public static void Destroy() {
+			delete buffer;
+			delete set;
 		}
 
 		public static void Update() {
@@ -37,11 +44,11 @@ namespace Meteorite {
 			data.projectionB = (-farClipDistance * nearClipDistance) / (farClipDistance - nearClipDistance);
 
 			Window window = Meteorite.INSTANCE.window;
-			data.resolution = .(window.width, window.height, 0, 0);
+			data.resolution = .(window.Width, window.Height, 0, 0);
 
-			buffer.Write(&data, sizeof(Data));
+			buffer.Upload(&data, sizeof(Data));
 		}
 
-		public static void Bind(RenderPass pass) => bindGroup.Bind(pass);
+		public static void Bind(CommandBuffer cmds) => cmds.Bind(set, 0);
 	}
 }

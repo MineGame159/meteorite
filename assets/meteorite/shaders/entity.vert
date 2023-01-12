@@ -1,3 +1,5 @@
+#version 460
+
 layout(location = 0) in vec3 position;
 layout(location = 1) in vec4 normal;
 layout(location = 2) in vec2 texCoord;
@@ -8,7 +10,7 @@ layout(location = 1) out float v_Diffuse;
 layout(location = 2) out vec4 v_Normal;
 layout(location = 3) out vec4 v_Color;
 
-#include lib/api
+#include <lib/api.glsl>
 
 const vec3 LIGHT1      = vec3( 0.104196384,  0.947239857, -0.303116754);
 const vec3 LIGHT2      = vec3(-0.104196384,  0.947239857,  0.303116754);

@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 
+using Cacti;
+
 namespace Meteorite {
 	class EntityRenderDispatcher {
 		private Dictionary<EntityType, EntityRenderer> renderers = new .() ~ DeleteDictionaryAndValues!(_);
@@ -20,15 +22,14 @@ namespace Meteorite {
 
 		}
 
-		public void End(RenderPass pass, Camera camera) {
-			Gfxa.ENTITY_PIPELINE.Bind(pass);
-			FrameUniforms.Bind(pass);
+		public void End(CommandBuffer cmds, Camera camera) {
+			cmds.Bind(Gfxa.ENTITY_PIPELINE);
+			FrameUniforms.Bind(cmds);
 
 			for (let pair in provider.Meshes) {
-				Meteorite.INSTANCE.textures.Bind(pass, pair.key);
+				Meteorite.INSTANCE.textures.Bind(cmds, pair.key);
 
-				((ImmediateMeshBuilder) pair.value).[Friend]pass = pass; // cope about it
-				pair.value.Finish();
+				cmds.Draw(pair.value.End(.Frame, Buffers.QUAD_INDICES));
 			}
 
 			provider.End();

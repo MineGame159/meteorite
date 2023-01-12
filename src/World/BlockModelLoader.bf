@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using System.Diagnostics;
 
+using Cacti;
+
 namespace Meteorite{
 	static class BlockModelLoader {
 		private static float MIN_SCALE = 1f / Math.Cos(0.3926991f) - 1f;
@@ -300,7 +302,7 @@ namespace Meteorite{
 					matrix = matrix.Rotate(axis, angle).Translate(-origin);
 
 					for (int i < 4) {
-						positions[i] = .(matrix * Vec4(positions[i], 1));
+						positions[i] = .(matrix * Vec4f(positions[i], 1));
 					}
 				}
 
@@ -337,7 +339,7 @@ namespace Meteorite{
 					Mat4 matrix = Mat4.Identity().Translate(origin).Rotate(.(0, 0, 1), (.) -pair.value["rotation"].AsNumber).Translate(-origin);
 
 					for (int i < 4) {
-						let a = matrix * Vec4(uvs[i].x, uvs[i].y, 0, 1);
+						let a = matrix * Vec4f(uvs[i].x, uvs[i].y, 0, 1);
 						uvs[i] = .(a.x, a.y);
 					}
 				}
@@ -348,7 +350,7 @@ namespace Meteorite{
 					Mat4 matrix = Mat4.Identity().Translate(origin).Rotate(.(0, 1, 0), -blockStateRotation.y).Translate(-origin);
 
 					for (int i < 4) {
-						let a = matrix * Vec4(uvs[i].x, 0, uvs[i].y, 1);
+						let a = matrix * Vec4f(uvs[i].x, 0, uvs[i].y, 1);
 						uvs[i] = .(a.x, a.z);
 					}
 				}
@@ -358,7 +360,7 @@ namespace Meteorite{
 					Mat4 matrix = Mat4.Identity().Translate(origin).Rotate(.(1, 0, 0), -blockStateRotation.x).Translate(-origin);
 
 					for (int i < 4) {
-						let a = matrix * Vec4(0, uvs[i].x, uvs[i].y, 1);
+						let a = matrix * Vec4f(0, uvs[i].x, uvs[i].y, 1);
 						uvs[i] = .(a.y, a.z);
 					}
 				}

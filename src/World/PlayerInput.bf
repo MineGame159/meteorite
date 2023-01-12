@@ -1,5 +1,7 @@
 using System;
 
+using Cacti;
+
 namespace Meteorite {
 	interface PlayerInput {
 		bool IsForward();

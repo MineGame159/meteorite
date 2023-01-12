@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 
+using Cacti;
+
 namespace Meteorite {
 	class TextureManager {
 		private TexturePacker packer;
@@ -8,14 +10,14 @@ namespace Meteorite {
 
 		private List<AnimatedTexture> animatedTextures ~ DeleteContainerAndItems!(_);
 
-		private Texture texture ~ delete _;
+		private GpuImage texture ~ delete _;
 
 		private BufferTexture[] bufferData ~ delete _;
-		private WBuffer buffer ~ delete _;
+		private GpuBuffer buffer ~ delete _;
 
-		private BindGroup textureBindGroup ~ delete _;
-		private BindGroup textureMipmapBindGroup ~ delete _;
-		private BindGroup bufferBindGroup ~ delete _;
+		private DescriptorSet textureSet ~ delete _;
+		private DescriptorSet textureMipmapSet ~ delete _;
+		private DescriptorSet bufferSet ~ delete _;
 
 		private Dictionary<String, BindableTexture> bindableTextures = new .() ~ DeleteDictionaryAndKeysAndValues!(_);
 
@@ -24,16 +26,16 @@ namespace Meteorite {
 			textures = new .();
 		}
 
-		public void Bind(RenderPass pass, String name) {
+		public void Bind(CommandBuffer cmds, String name) {
 			String outKey;
 			BindableTexture outTexture;
 			if (bindableTextures.TryGet(name, out outKey, out outTexture)) {
-				outTexture.Bind(pass);
+				outTexture.Bind(cmds);
 				return;
 			}
 
-			BindableTexture texture = new .(Gfx.CreateTexture(name));
-			texture.Bind(pass);
+			BindableTexture texture = new .(Gfxa.CreateImage(name));
+			texture.Bind(cmds);
 
 			bindableTextures[new .(name)] = texture;
 		}
@@ -48,27 +50,27 @@ namespace Meteorite {
 
 			// Upload buffer
 			if (upload) {
-				buffer.Write(&bufferData[0], sizeof(BufferTexture) * bufferData.Count);
+				buffer.Upload(&bufferData[0], (.) (sizeof(BufferTexture) * bufferData.Count));
 			}
 		}
 
 		public uint16 Add(StringView path) {
-			Image image = Meteorite.INSTANCE.resources.ReadImageInfo(path);
+			ImageInfo image = Meteorite.INSTANCE.resources.ReadImageInfo(path);
 			TextureMetadata metadata = .Parse(path);
 
 			if (metadata?.animation == null) {
 				UV[] uvs = new .[1];
 				packer.Add(image, &uvs[0].x, &uvs[0].y);
-				textures.Add(.(new .(path), uvs, image.width, null));
+				textures.Add(.(new .(path), uvs, image.Width, null));
 			}
 			else {
 				TextureAnimationMetadata animation = metadata.animation;
 				metadata.animation = null;
 
-				let (frameWidth, frameHeight) = animation.GetFrameSize(image.width, image.height);
+				let (frameWidth, frameHeight) = animation.GetFrameSize(image.Width, image.Height);
 
-				int framesX = image.width / animation.GetFrameWidth(frameWidth);
-				int framesY = image.height / animation.GetFrameHeight(frameHeight);
+				int framesX = image.Width / animation.GetFrameWidth(frameWidth);
+				int framesY = image.Height / animation.GetFrameHeight(frameHeight);
 
 				if (framesX != 1) Log.Warning("Animated texture {} has multiple frame columns, using only the first one", path);
 
@@ -82,14 +84,13 @@ namespace Meteorite {
 
 				for (let frame in animation.frames) {
 					uvs[frame.index].index = frame.index;
-					packer.Add(scope .(frameWidth, frameHeight, 4, null, false), &uvs[frame.index].x, &uvs[frame.index].y);
+					packer.Add(.(.(frameWidth, frameHeight), 4), &uvs[frame.index].x, &uvs[frame.index].y);
 				}
 
 				textures.Add(.(new .(path), uvs, frameWidth, animation));
 			}
 
 			delete metadata;
-			delete image;
 			
 			return (.) textures.Count - 1;
 		}
@@ -117,9 +118,9 @@ namespace Meteorite {
 					for (let uv in texture.uvs) {
 						int y = uv.index * texture.size;
 						for (int i < texture.size) {
-							Internal.MemCpy(&data[(i * texture.size) * 4], &image.data[(y + i) * image.width * 4], texture.size * 4);
+							Internal.MemCpy(&data[(i * texture.size) * 4], &image.pixels[(y + i) * image.Width * 4], texture.size * 4);
 						}
-						atlas.Put(scope .(texture.size, texture.size, 4, &data[0], false), uv.x, uv.y);
+						atlas.Put(scope .(.(texture.size, texture.size), 4, &data[0], false), uv.x, uv.y);
 					}
 
 					delete data;
@@ -157,21 +158,22 @@ namespace Meteorite {
 				tex.Dispose();
 			}
 
-			buffer = Gfx.CreateBuffer(.Storage | .CopyDst, sizeof(BufferTexture) * bufferData.Count, &bufferData[0], "Textures buffer");
+			buffer = Gfx.Buffers.Create(.Storage, .Mappable, (.) (sizeof(BufferTexture) * bufferData.Count), "Textures");
+			buffer.Upload(&bufferData[0], buffer.size);
 			
 			DeleteAndNullify!(textures);
 
 			// Bind groups
-			textureBindGroup = Gfxa.TEXTURE_BIND_GROUP_LAYOUT.Create(texture, Gfxa.NEAREST_SAMPLER);
-			textureMipmapBindGroup = Gfxa.TEXTURE_BIND_GROUP_LAYOUT.Create(texture, Gfxa.NEAREST_MIPMAP_SAMPLER);
-			bufferBindGroup = Gfxa.BUFFER_BIND_GROUP_LAYOUT.Create(buffer);
+			textureSet = Gfx.DescriptorSets.Create(Gfxa.IMAGE_SET_LAYOUT, .SampledImage(texture, .VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, Gfxa.NEAREST_SAMPLER));
+			textureMipmapSet = Gfx.DescriptorSets.Create(Gfxa.IMAGE_SET_LAYOUT, .SampledImage(texture, .VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, Gfxa.NEAREST_MIPMAP_SAMPLER));
+			bufferSet = Gfx.DescriptorSets.Create(Gfxa.STORAGE_SET_LAYOUT, .Storage(buffer));
 		}
 
-		public void Bind(RenderPass pass, bool mipmaps) {
-			if (mipmaps) textureMipmapBindGroup.Bind(pass, 1);
-			else textureBindGroup.Bind(pass, 1);
+		public void Bind(CommandBuffer cmds, bool mipmaps) {
+			if (mipmaps) cmds.Bind(textureMipmapSet, 1);
+			else cmds.Bind(textureSet, 1);
 
-			bufferBindGroup.Bind(pass, 2);
+			cmds.Bind(bufferSet, 2);
 		}
 
 		struct TempTexture : this(String path, UV[] uvs, int size, TextureAnimationMetadata animation) {
@@ -236,15 +238,15 @@ namespace Meteorite {
 		struct UV : this(int index, int x, int y) {}
 
 		class BindableTexture {
-			private BindGroup bindGroup ~ delete _;
-			private Texture texture ~ delete _;
+			private DescriptorSet set ~ delete _;
+			private GpuImage image ~ delete _;
 
-			public this(Texture texture) {
-				this.bindGroup = Gfxa.TEXTURE_BIND_GROUP_LAYOUT.Create(texture, Gfxa.NEAREST_SAMPLER);
-				this.texture = texture;
+			public this(GpuImage texture) {
+				this.set = Gfx.DescriptorSets.Create(Gfxa.IMAGE_SET_LAYOUT, .SampledImage(texture, .VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, Gfxa.NEAREST_SAMPLER));
+				this.image = texture;
 			}
 
-			public void Bind(RenderPass pass) => bindGroup.Bind(pass, 1);
+			public void Bind(CommandBuffer cmds) => cmds.Bind(set, 1);
 		}
 	}
 }

@@ -1,3 +1,5 @@
+#version 460
+
 layout(location = 0) in vec3 position;
 
 layout(location = 0) out float v_VertexDistance;

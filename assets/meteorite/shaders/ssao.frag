@@ -1,28 +1,27 @@
+#version 460
+
 layout(location = 0) in vec3 v_Position;
 layout(location = 1) in vec2 v_TexCoord;
 
 layout(location = 0) out vec4 color;
 
-#include lib/api
+#include <lib/api.glsl>
 
-layout(set = 1, binding = 0) uniform texture2D u_NormalTexture;
-layout(set = 1, binding = 1) uniform sampler u_NormalSampler;
-#define NORMAL_SAMPLER sampler2D(u_NormalTexture, u_NormalSampler)
+layout(set = 1, binding = 0) uniform sampler2D u_NormalTexture;
+#define NORMAL_SAMPLER u_NormalTexture
 
-layout(set = 2, binding = 0) uniform texture2D u_DepthTexture;
-layout(set = 2, binding = 1) uniform sampler u_DepthSampler;
-#define DEPTH_SAMPLER sampler2D(u_DepthTexture, u_DepthSampler)
+layout(set = 2, binding = 0) uniform sampler2D u_DepthTexture;
+#define DEPTH_SAMPLER u_DepthTexture
 
-layout(set = 3, binding = 0, std430) uniform Samples {
+layout(set = 3, binding = 0, std430) buffer Samples {
     vec4 samples[64];
 } omg;
 
-layout(set = 3, binding = 1) uniform texture2D u_NoiseTexture;
-layout(set = 3, binding = 2) uniform sampler u_NoiseSampler;
-#define NOISE_SAMPLER sampler2D(u_NoiseTexture, u_NoiseSampler)
+layout(set = 3, binding = 1) uniform sampler2D u_NoiseTexture;
+#define NOISE_SAMPLER u_NoiseTexture
 
 #define IDK
-#include lib/ssao
+#include <lib/ssao.glsl>
 
 void main() {
     color = vec4(ssao(v_TexCoord));

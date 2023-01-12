@@ -2,7 +2,6 @@ name: Build
 
 on:
   push:
-  pull_request:
   workflow_dispatch:
 
 jobs:
@@ -28,8 +27,11 @@ jobs:
       - name: Download ImGui
         run: git clone https://github.com/RogueMacro/imgui-beef.git Beef/BeefLibs/imgui-beef
       
-      - name: Download WGPU
-        run: git clone -b dev https://github.com/MineGame159/wgpu-beef.git Beef/BeefLibs/wgpu-beef
+      - name: Download Bulkan
+        run: git clone https://github.com/jayrulez/Bulkan.git Beef/BeefLibs/Bulkan
+      
+      - name: Download Shaderc
+        run: git clone https://github.com/MineGame159/shaderc-beef.git Beef/BeefLibs/shaderc-beef
       
       - name: Download Stb
         run: git clone https://github.com/EinScott/stb_beef.git Beef/BeefLibs/stb_beef

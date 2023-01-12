@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 
+using Cacti;
+
 namespace Meteorite {
 	class TexturePacker {
 		struct Entry : this(int width, int height, int* x, int* y) {}
@@ -15,8 +17,8 @@ namespace Meteorite {
 			this.maxSize = maxSize;
 		}
 
-		public void Add(Image image, int* x, int* y) {
-			entries.Add(.(image.width, image.height, x, y));
+		public void Add(ImageInfo image, int* x, int* y) {
+			entries.Add(.(image.Width, image.Height, x, y));
 		}
 
 		public int Finish() {
@@ -71,7 +73,7 @@ namespace Meteorite {
 		public void Put(Image image, int x, int y) {
 			// Generate mipmap
 			List<Mipmap> mipmaps = scope .(4);
-			MipmapGenerator.Generate(image.data, image.width, image.height, 4, mipmaps);
+			MipmapGenerator.Generate(image.pixels, image.Width, image.Height, 4, mipmaps);
 
 			// Copy texture to atlas
 			int divide = 1;
@@ -88,16 +90,14 @@ namespace Meteorite {
 			for (Mipmap mipmap in mipmaps) mipmap.Dispose();
 		}
 
-		public Texture Finish() {
-			Texture texture = Gfx.CreateTexture(.TextureBinding | .CopyDst, size, size, 4, null);
+		public GpuImage Finish() {
+			GpuImage image = Gfx.Images.Create(.RGBA, .Normal, .(size, size), "Block Atlas", 4);
 
-			int s = size;
 			for (int i < 4) {
-				texture.Write(s, s, i, datas[i]);
-				s >>= 1;
+				Gfx.Uploads.UploadImage(image, datas[i], i);
 			}
 
-			return texture;
+			return image;
 		}
 	}
 }

@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 
+using Cacti;
+
 namespace Meteorite {
 	static class Biomes {
 		public static Biome[] BIOMES ~ DeleteContainerAndItems!(_);

@@ -1,5 +1,7 @@
 using System;
 
+using Cacti;
+
 namespace Meteorite {
 	class NetBuffer {
 		private int capacity;

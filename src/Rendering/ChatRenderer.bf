@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 
+using Cacti;
+
 namespace Meteorite {
 	class ChatRenderer {
 		private const Color BACKGROUND = .(0, 0, 0, 125);
@@ -30,24 +32,24 @@ namespace Meteorite {
 
 			visibleMessages.AddFront(new .(message));
 			
-			Log.Chat("{}", message);
+			Log.Info("Chat: {}", message);
 		}
 
-		public void Render(RenderPass pass, float delta) {
-			MeshBuilder mb = me.frameBuffers.AllocateImmediate(pass, Buffers.QUAD_INDICES);
-			me.textRenderer.Begin(pass);
+		public void Render(CommandBuffer cmds, float delta) {
+			me.textRenderer.Begin();
+			MeshBuilder mb = scope .(false);
 
-			RenderMessages(pass, mb, delta);
-			if (typing) RenderTyping(pass, mb, delta);
+			RenderMessages(cmds, mb, delta);
+			if (typing) RenderTyping(cmds, mb, delta);
 
-			Gfxa.PIXEL_BIND_GRUP.Bind(pass);
-			mb.Finish();
+			cmds.Bind(Gfxa.PIXEL_SET, 0);
+			cmds.Draw(mb.End(.Frame, Buffers.QUAD_INDICES));
 
-			me.textRenderer.BindTexture(pass);
-			me.textRenderer.End();
+			me.textRenderer.BindTexture(cmds);
+			me.textRenderer.End(cmds);
 		}
 
-		private void RenderMessages(RenderPass pass, MeshBuilder mb, float delta) {
+		private void RenderMessages(CommandBuffer cmds, MeshBuilder mb, float delta) {
 			float y = 2 + me.textRenderer.Height + 8;
 
 			if (typing) {
@@ -87,7 +89,7 @@ namespace Meteorite {
 			}
 		}
 
-		private void RenderTyping(RenderPass pass, MeshBuilder mb, float delta) {
+		private void RenderTyping(CommandBuffer cmds, MeshBuilder mb, float delta) {
 			cursorTimer += delta * 2;
 			if (cursorTimer >= 1) {
 				showCursor = !showCursor;
@@ -97,15 +99,15 @@ namespace Meteorite {
 			float x = me.textRenderer.Render(4, 2, toSend, .WHITE);
 			if (showCursor) me.textRenderer.Render(x, 2, "_", .WHITE);
 
-			Quad(mb, 2, 2, me.window.width / 2 - 4, me.textRenderer.Height * 1.75f, BACKGROUND);
+			Quad(mb, 2, 2, me.window.Width / 2 - 4, me.textRenderer.Height * 1.75f, BACKGROUND);
 		}
 
 		private void Quad(MeshBuilder mb, float x, float y, float width, float height, Color color) {
 			mb.Quad(
-				mb.Vec2(.(x, y)).Vec2(.(0, 0)).Color(color).Next(),
-				mb.Vec2(.(x, y + height)).Vec2(.(0, 1)).Color(color).Next(),
-				mb.Vec2(.(x + width, y + height)).Vec2(.(1, 1)).Color(color).Next(),
-				mb.Vec2(.(x + width, y)).Vec2(.(1, 0)).Color(color).Next()
+				mb.Vertex<Pos2DUVColorVertex>(.(.(x, y), .(0, 0), color)),
+				mb.Vertex<Pos2DUVColorVertex>(.(.(x, y + height), .(0, 1), color)),
+				mb.Vertex<Pos2DUVColorVertex>(.(.(x + width, y + height), .(1, 1), color)),
+				mb.Vertex<Pos2DUVColorVertex>(.(.(x + width, y), .(1, 0), color))
 			);
 		}
 

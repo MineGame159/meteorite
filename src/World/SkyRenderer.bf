@@ -1,113 +1,137 @@
 using System;
 
-using Wgpu;
+using Cacti;
 
 namespace Meteorite {
 	static class SkyRenderer {
+		[CRepr]
+		struct PosVertex : this(Vec3f pos) {
+			public static VertexFormat FORMAT = new VertexFormat()
+				.Attribute(.Float, 3)
+				~ delete _;
+		}
+
 		private struct PushConstaints1 {
 			public Mat4 projectionView;
-			public Vec4 color;
+			public Vec4f color;
 		}
 
 		private struct PushConstaints2 {
 			public Mat4 projectionView;
-			public Vec4 color;
-			public Vec4 fogColor;
+			public Vec4f color;
+			public Vec4f fogColor;
 			public float fogStart, fogEnd;
 		}
 
-		private static Pipeline PIPELINE1 ~ delete _;
-		private static Pipeline PIPELINE2 ~ delete _;
-		private static Pipeline PIPELINE3 ~ delete _;
-		private static Pipeline PIPELINE4 ~ delete _;
+		private static Pipeline PIPELINE1;
+		private static Pipeline PIPELINE2;
+		private static Pipeline PIPELINE3;
+		private static Pipeline PIPELINE4;
 
-		private static Mesh LIGHT_MESH ~ delete _;
-		private static Mesh DARK_MESH ~ delete _;
-		private static Mesh STARS_MESH ~ delete _;
+		private static BuiltMesh LIGHT_MESH;
+		private static BuiltMesh DARK_MESH;
+		private static BuiltMesh STARS_MESH;
 
-		private static Texture SUN ~ delete _;
-		private static Texture MOON ~ delete _;
+		private static GpuImage SUN;
+		private static GpuImage MOON;
 
-		private static BindGroup SUN_BIND_GROUP ~ delete _;
-		private static BindGroup MOON_BIND_GROUP ~ delete _;
+		private static DescriptorSet SUN_SET;
+		private static DescriptorSet MOON_SET;
 
 		public static void Init() {
-			PIPELINE1 = Gfx.NewPipeline()
-				.Attributes(.Float3)
-				.Shader(Gfxa.POS_FOG)
-				.PushConstants(.Vertex | .Fragment, 0, sizeof(PushConstaints2))
-				.Primitive(.TriangleList, .None)
-				.Blend(false)
+			PIPELINE1 = Gfx.Pipelines.Get(scope PipelineInfo("Sky 1")
+				.VertexFormat(PosVertex.FORMAT)
+				.PushConstants<PushConstaints2>()
+				.Shader(Gfxa.POS_FOG, Gfxa.POS_FOG)
+				.Cull(.None, .Clockwise)
 				.Depth(true, false, false)
-				.Create();
-			PIPELINE2 = Gfx.NewPipeline()
-				.Attributes(.Float3, .UByte4)
-				.Shader(Gfxa.POS_COLOR_SHADER)
-				.PushConstants(.Vertex | .Fragment, 0, sizeof(PushConstaints1))
-				.Primitive(.TriangleList, .None)
+				.Targets(
+					.(.BGRA, .Disabled())
+				)
+			);
+			PIPELINE2 = Gfx.Pipelines.Get(scope PipelineInfo("Sky 2")
+				.VertexFormat(PosColorVertex.FORMAT)
+				.PushConstants<PushConstaints1>()
+				.Shader(Gfxa.POS_COLOR_SHADER, Gfxa.POS_COLOR_SHADER)
+				.Cull(.None, .Clockwise)
 				.Depth(true, false, false)
-				.Create();
-			PIPELINE3 = Gfx.NewPipeline()
-				.BindGroupLayouts(Gfxa.TEXTURE_BIND_GROUP_LAYOUT)
-				.Attributes(.Float3, .Float2)
-				.Shader(Gfxa.POS_TEX_SHADER)
-				.PushConstants(.Vertex | .Fragment, 0, sizeof(PushConstaints1))
-				.Primitive(.TriangleList, .None)
-				.BlendState(Wgpu.BlendState() {
-					color = .(.Add, .SrcAlpha, .One),
-					alpha = .(.Add, .One, .Zero)
-				})
+				.Targets(
+					.(.BGRA, .Default())
+				)
+			);
+			PIPELINE3 = Gfx.Pipelines.Get(scope PipelineInfo("Sky 3")
+				.VertexFormat(PosUVVertex.FORMAT)
+				.Sets(Gfxa.IMAGE_SET_LAYOUT)
+				.PushConstants<PushConstaints1>()
+				.Shader(Gfxa.POS_TEX_SHADER, Gfxa.POS_TEX_SHADER)
+				.Cull(.None, .Clockwise)
 				.Depth(true, false, false)
-				.Create();
-			PIPELINE4 = Gfx.NewPipeline()
-				.Attributes(.Float3)
-				.Shader(Gfxa.POS_FOG)
-				.PushConstants(.Vertex | .Fragment, 0, sizeof(PushConstaints2))
-				.Primitive(.TriangleList, .None)
-				.BlendState(Wgpu.BlendState() {
-					color = .(.Add, .SrcAlpha, .One),
-					alpha = .(.Add, .One, .Zero)
-				})
+				.Targets(
+					.(.BGRA, .Enabled(.(.Add, .SrcAlpha, .One), .(.Add, .One, .Zero)))
+				)
+			);
+			PIPELINE4 = Gfx.Pipelines.Get(scope PipelineInfo("Sky 4")
+				.VertexFormat(PosVertex.FORMAT)
+				.PushConstants<PushConstaints2>()
+				.Shader(Gfxa.POS_FOG, Gfxa.POS_FOG)
+				.Cull(.None, .Clockwise)
 				.Depth(true, false, false)
-				.Create();
+				.Targets(
+					.(.BGRA, .Enabled(.(.Add, .SrcAlpha, .One), .(.Add, .One, .Zero)))
+				)
+			);
 
-			CreateSkyDic(ref LIGHT_MESH, 16);
-			CreateSkyDic(ref DARK_MESH, -16);
+			CreateSkyDisc(ref LIGHT_MESH, 16);
+			CreateSkyDisc(ref DARK_MESH, -16);
 			CreateStars(ref STARS_MESH);
 
-			SUN = Gfx.CreateTexture("environment/sun.png");
-			MOON = Gfx.CreateTexture("environment/moon_phases.png");
+			SUN = Gfxa.CreateImage("environment/sun.png");
+			MOON = Gfxa.CreateImage("environment/moon_phases.png");
 
-			SUN_BIND_GROUP = Gfxa.TEXTURE_BIND_GROUP_LAYOUT.Create(SUN, Gfxa.NEAREST_SAMPLER);
-			MOON_BIND_GROUP = Gfxa.TEXTURE_BIND_GROUP_LAYOUT.Create(MOON, Gfxa.NEAREST_SAMPLER);
+			SUN_SET = Gfx.DescriptorSets.Create(Gfxa.IMAGE_SET_LAYOUT, .SampledImage(SUN, .VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, Gfxa.NEAREST_SAMPLER));
+			MOON_SET = Gfx.DescriptorSets.Create(Gfxa.IMAGE_SET_LAYOUT, .SampledImage(MOON, .VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, Gfxa.NEAREST_SAMPLER));
 		}
 
-		private static void CreateSkyDic(ref Mesh mesh, float y) {
-			mesh = new .();
+		public static void Destroy() {
+			ReleaseAndNullify!(PIPELINE1);
+			ReleaseAndNullify!(PIPELINE2);
+			ReleaseAndNullify!(PIPELINE3);
+			ReleaseAndNullify!(PIPELINE4);
 
+			LIGHT_MESH.Dispose();
+			DARK_MESH.Dispose();
+			STARS_MESH.Dispose();
+
+			DeleteAndNullify!(SUN);
+			DeleteAndNullify!(MOON);
+
+			DeleteAndNullify!(SUN_SET);
+			DeleteAndNullify!(MOON_SET);
+		}
+
+		private static void CreateSkyDisc(ref BuiltMesh mesh, float y) {
 			float f = Math.Sign(y) * 512.0F; // Uhhh signum?
 
-			MeshBuilder mb = mesh.Build();
-			uint32 center = mb.Vec3(.(0, y, 0)).Next();
+			MeshBuilder mb = scope .();
+			uint32 center = mb.Vertex<PosVertex>(.(.(0, y, 0)));
 			uint32[9] around = .();
 
 			int j = 0;
 			for(int i = -180; i <= 180; i += 45) {
-				around[j++] = mb.Vec3(.((f * Math.Cos(i * (Math.PI_f / 180f))), y, (512.0F * Math.Sin(i * (Math.PI_f / 180f))))).Next();
+				around[j++] = mb.Vertex<PosVertex>(.(.(f * Math.Cos(i * (Math.PI_f / 180f)), y, (512.0F * Math.Sin(i * (Math.PI_f / 180f))))));
 			}
 
 			for (int i < 8) {
 				mb.Triangle(center, around[i], around[i + 1]);
 			}
 
-			mb.Finish();
+			StringView name = scope $"Sky Disc {y}";
+			mesh = mb.End(.Create(name), .Create(name));
 		}
 
-		private static void CreateStars(ref Mesh mesh) {
-			mesh = new .(Buffers.QUAD_INDICES);
-
+		private static void CreateStars(ref BuiltMesh mesh) {
 			Random random = scope .();
-			MeshBuilder mb = mesh.Build();
+			MeshBuilder mb = scope .(false);
 
 			for (int i < 1500) {
 				double d = random.NextDouble() * 2 - 1;
@@ -146,18 +170,18 @@ namespace Meteorite {
 						double ae = 0.0 * q - aa * r;
 						double af = ae * n - ab * o;
 						double ah = ab * n + ae * o;
-						indices[v] = mb.Vec3(.((.) (j + af), (.) (k + ad), (.) (l + ah))).Next();
+						indices[v] = mb.Vertex<PosVertex>(.(.((.) (j + af), (.) (k + ad), (.) (l + ah))));
 					}
 
 					mb.Quad(indices[0], indices[1], indices[2], indices[3]);
 				}
 			}
 
-			mb.Finish();
+			mesh = mb.End(.Create("Sky Stars"), Buffers.QUAD_INDICES);
 		}
 
-		public static void Render(RenderPass pass, World world, Camera camera, double tickDelta) {
-			pass.PushDebugGroup("Sky");
+		public static void Render(CommandBuffer cmds, World world, Camera camera, double tickDelta) {
+			cmds.PushDebugGroup("Sky");
 
 			Vec3f skyColor = world.GetSkyColor(camera.pos, tickDelta);
 			Mat4 baseMatrix = camera.proj * camera.viewRotationOnly;
@@ -166,21 +190,21 @@ namespace Meteorite {
 			PushConstaints2 pc2 = .();
 
 			// Light
-			PIPELINE1.Bind(pass);
+			cmds.Bind(PIPELINE1);
 			
 			SetupFog(world, ref pc2);
 			pc2.projectionView = baseMatrix;
 			pc2.color = .(skyColor.x, skyColor.y, skyColor.z, 1);
 			Color clearColor = world.GetClearColor(camera, tickDelta);
 			pc2.fogColor = .(clearColor.R, clearColor.G, clearColor.B, clearColor.A);
-			pass.SetPushConstants(.Vertex | .Fragment, 0, sizeof(PushConstaints2), &pc2);
-
-			LIGHT_MESH.Render(pass);
+			cmds.SetPushConstants(pc2);
+			
+			cmds.Draw(LIGHT_MESH);
 
 			// Sunrise
-			Vec4? sunriseColor = world.GetSunriseColor(world.GetSkyAngle());
+			Vec4f? sunriseColor = world.GetSunriseColor(world.GetSkyAngle());
 			if (sunriseColor != null) {
-				PIPELINE2.Bind(pass);
+				cmds.Bind(PIPELINE2);
 				pc1.color = .(1, 1, 1, 1);
 
 				Mat4 matrix = .Identity();
@@ -190,11 +214,11 @@ namespace Meteorite {
 				matrix = matrix.Rotate(.(0, 0, 1), 90);
 				pc1.projectionView = baseMatrix * matrix;
 
-				pass.SetPushConstants(.Vertex | .Fragment, 0, sizeof(PushConstaints1), &pc1);
-				MeshBuilder mb = Meteorite.INSTANCE.frameBuffers.AllocateImmediate(pass);
+				cmds.SetPushConstants(pc1);
+				MeshBuilder mb = scope .();
 
 				Color color = .(sunriseColor.Value.x, sunriseColor.Value.y, sunriseColor.Value.z, sunriseColor.Value.w);
-				uint32 center = mb.Vec3(.(0, 100, 0)).Color(color).Next();
+				uint32 center = mb.Vertex<PosColorVertex>(.(.(0, 100, 0), color));
 				uint32[17] around = .();
 
 				color.a = 0;
@@ -203,40 +227,42 @@ namespace Meteorite {
 					float p = Math.Sin(o);
 					float q = Math.Cos(o);
 
-					around[i] = mb.Vec3(.(p * 120, q * 120, -q * 40 * sunriseColor.Value.w)).Color(color).Next();
+					around[i] = mb.Vertex<PosColorVertex>(.(.(p * 120, q * 120, -q * 40 * sunriseColor.Value.w), color));
 				}
 
 				for (int i < 16) {
 					mb.Triangle(center, around[i], around[i + 1]);
 				}
 
-				mb.Finish();
+				cmds.Draw(mb.End());
 			}
 
 			// Sun
 			float alpha = 1.0F - world.GetRainLevel(tickDelta);
 			{
-				PIPELINE3.Bind(pass);
-				SUN_BIND_GROUP.Bind(pass);
+				cmds.Bind(PIPELINE3);
+				cmds.Bind(SUN_SET, 0);
 
 				pc1.projectionView = baseMatrix * Mat4.Identity().Rotate(.(0, 1, 0), -90).Rotate(.(1, 0, 0), world.GetSkyAngle() * 360);
 				pc1.color = .(1, 1, 1, alpha);
-				pass.SetPushConstants(.Vertex | .Fragment, 0, sizeof(PushConstaints1), &pc1);
-
+				cmds.SetPushConstants(pc1);
+				
 				float k = 30.0F;
-				MeshBuilder mb = Meteorite.INSTANCE.frameBuffers.AllocateImmediate(pass, Buffers.QUAD_INDICES);
+				MeshBuilder mb = scope .(false);
+
 				mb.Quad(
-					mb.Vec3(.(-k, 100, -k)).Vec2(.(0, 0)).Next(),
-					mb.Vec3(.(k, 100, -k)).Vec2(.(1, 0)).Next(),
-					mb.Vec3(.(k, 100, k)).Vec2(.(1, 1)).Next(),
-					mb.Vec3(.(-k, 100, k)).Vec2(.(0, 1)).Next()
+					mb.Vertex<PosUVVertex>(.(.(-k, 100, -k), .(0, 0))),
+					mb.Vertex<PosUVVertex>(.(.(k, 100, -k), .(1, 0))),
+					mb.Vertex<PosUVVertex>(.(.(k, 100, k), .(1, 1))),
+					mb.Vertex<PosUVVertex>(.(.(-k, 100, k), .(0, 1)))
 				);
-				mb.Finish();
+
+				cmds.Draw(mb.End(.Frame, Buffers.QUAD_INDICES));
 			}
 
 			// Moon
 			{
-				MOON_BIND_GROUP.Bind(pass);
+				cmds.Bind(MOON_SET, 0);
 	
 				float k = 20.0F;
 				int r = world.GetMoonPhase();
@@ -247,25 +273,27 @@ namespace Meteorite {
 				float p = (s + 1) / 4f;
 				float q = (m + 1) / 2f;
 	
-				MeshBuilder mb = Meteorite.INSTANCE.frameBuffers.AllocateImmediate(pass, Buffers.QUAD_INDICES);
+				MeshBuilder mb = scope .(false);
+
 				mb.Quad(
-					mb.Vec3(.(-k, -100, k)).Vec2(.(p, q)).Next(),
-					mb.Vec3(.(k, -100, k)).Vec2(.(t, q)).Next(),
-					mb.Vec3(.(k, -100, -k)).Vec2(.(t, o)).Next(),
-					mb.Vec3(.(-k, -100, -k)).Vec2(.(p, o)).Next()
+					mb.Vertex<PosUVVertex>(.(.(-k, -100, k), .(p, q))),
+					mb.Vertex<PosUVVertex>(.(.(k, -100, k), .(t, q))),
+					mb.Vertex<PosUVVertex>(.(.(k, -100, -k), .(t, o))),
+					mb.Vertex<PosUVVertex>(.(.(-k, -100, -k), .(p, o)))
 				);
-				mb.Finish();
+
+				cmds.Draw(mb.End(.Frame, Buffers.QUAD_INDICES));
 	
 				// Stars
 				float u = world.GetStarBrightness() * alpha;
 				if (u > 0) {
-					PIPELINE4.Bind(pass);
+					cmds.Bind(PIPELINE4);
 	
 					pc2.fogStart = float.MaxValue;
 					pc2.color = .(u, u, u, u);
-					pass.SetPushConstants(.Vertex | .Fragment, 0, sizeof(PushConstaints2), &pc2);
-	
-					STARS_MESH.Render(pass);
+					cmds.SetPushConstants(pc2);
+
+					cmds.Draw(STARS_MESH);
 				}
 			}
 
@@ -273,17 +301,17 @@ namespace Meteorite {
 			//double d = this.minecraft.player.getEyePosition(partialTick).y - this.level.getLevelData().getHorizonHeight(this.level); // TODO
 			double d = camera.pos.y + world.minY - 63;
 			if (d < 0.0) {
-				PIPELINE1.Bind(pass);
+				cmds.Bind(PIPELINE1);
 
 				SetupFog(world, ref pc2);
 				pc2.projectionView = baseMatrix * Mat4.Identity().Translate(.(0, 12, 0));
 				pc2.color = .(0, 0, 0, 1);
-				pass.SetPushConstants(.Vertex | .Fragment, 0, sizeof(PushConstaints2), &pc2);
+				cmds.SetPushConstants(pc2);
 
-				DARK_MESH.Render(pass);
+				cmds.Draw(DARK_MESH);
 			}
 
-			pass.PopDebugGroup();
+			cmds.PopDebugGroup();
 		}
 
 		private static void SetupFog(World world, ref PushConstaints2 pc) {

@@ -1,5 +1,7 @@
 using System;
 
+using Cacti;
+
 namespace Meteorite {
 	public class LoginPacketHandler : PacketHandler {
 		private ClientConnection connection;

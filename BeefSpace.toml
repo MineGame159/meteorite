@@ -1,11 +1,12 @@
 FileVersion = 1
-Projects = {meteorite = {Path = "."}, GLFW = "*", ImGui = "*", ImGuiImplGlfw = "*", MiniZ = "*", stb_beef = "*", Wgpu = "*", Wgpu-Glfw = "*", Wgpu-Imgui = "*"}
+Projects = {Meteorite = {Path = "."}, GLFW = "*", ImGui = "*", ImGuiImplGlfw = "*", MiniZ = "*", stb_beef = "*", Cacti = {Path = "cacti"}}
+Unlocked = ["Shaderc"]
 
 [Workspace]
-StartupProject = "meteorite"
+StartupProject = "Meteorite"
 
 [Configs.Release.Win64]
 AllocType = "JEMalloc"
 
 [Configs.Debug.Win64]
-AllocStackTraceDepth = 5
+AllocStackTraceDepth = 10

@@ -103,13 +103,13 @@ float saturate(float x) {
 }
 
 float GetSubpixelBlendFactor(LumaNeighborhood luma) {
-	float filter = 2.0 * (luma.n + luma.e + luma.s + luma.w);
-	filter += luma.ne + luma.nw + luma.se + luma.sw;
-	filter *= 1.0 / 12.0;
-	filter = abs(filter - luma.m);
-	filter = saturate(filter / luma.range);
-	filter = smoothstep(0, 1, filter);
-	return filter * filter * SUBPIXEL_BLENDING;
+	float filter_ = 2.0 * (luma.n + luma.e + luma.s + luma.w);
+	filter_ += luma.ne + luma.nw + luma.se + luma.sw;
+	filter_ *= 1.0 / 12.0;
+	filter_ = abs(filter_ - luma.m);
+	filter_ = saturate(filter_ / luma.range);
+	filter_ = smoothstep(0, 1, filter_);
+	return filter_ * filter_ * SUBPIXEL_BLENDING;
 }
 
 bool IsHorizontalEdge(LumaNeighborhood luma) {

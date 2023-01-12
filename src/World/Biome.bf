@@ -1,5 +1,7 @@
 using System;
 
+using Cacti;
+
 namespace Meteorite {
 	class Biome : IID {
 		private static Color[] GRASS_COLORS ~ delete _;
@@ -10,8 +12,8 @@ namespace Meteorite {
 				// Grass
 				Image image = Meteorite.INSTANCE.resources.ReadImage("colormap/grass.png");
 
-				GRASS_COLORS = new Color[image.width * image.height];
-				Internal.MemCpy(&GRASS_COLORS[0], image.data, GRASS_COLORS.Count * 4);
+				GRASS_COLORS = new Color[image.Width * image.Height];
+				Internal.MemCpy(&GRASS_COLORS[0], image.pixels, GRASS_COLORS.Count * 4);
 
 				delete image;
 			}
@@ -19,8 +21,8 @@ namespace Meteorite {
 				// Foliage
 				Image image = Meteorite.INSTANCE.resources.ReadImage("colormap/foliage.png");
 
-				FOLIAGE_COLORS = new Color[image.width * image.height];
-				Internal.MemCpy(&FOLIAGE_COLORS[0], image.data, FOLIAGE_COLORS.Count * 4);
+				FOLIAGE_COLORS = new Color[image.Width * image.Height];
+				Internal.MemCpy(&FOLIAGE_COLORS[0], image.pixels, FOLIAGE_COLORS.Count * 4);
 
 				delete image;
 			}

@@ -1,7 +1,6 @@
 FileVersion = 1
-Dependencies = {corlib = "*", GLFW = "*", ImGui = "*", ImGuiImplGlfw = "*", MiniZ = "*", stb_beef = "*", Wgpu = "*", Wgpu-Glfw = "*", Wgpu-Imgui = "*"}
+Dependencies = {corlib = "*", GLFW = "*", ImGui = "*", ImGuiImplGlfw = "*", MiniZ = "*", stb_beef = "*", Bulkan = "*", "Bulkan.Utilities" = "*", Cacti = "*"}
 
 [Project]
-Name = "meteorite"
+Name = "Meteorite"
 StartupObject = "Meteorite.Program"
-DefaultNamespace = "Meteorite"

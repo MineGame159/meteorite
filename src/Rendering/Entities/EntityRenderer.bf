@@ -1,5 +1,7 @@
 using System;
 
+using Cacti;
+
 namespace Meteorite {
 	abstract class EntityRenderer {
 		public abstract String GetTexture(Entity entity);

@@ -1,5 +1,7 @@
 using System;
 
+using Cacti;
+
 namespace Meteorite {
 	class TextRenderer {
 		private Font font ~ delete _;
@@ -21,13 +23,13 @@ namespace Meteorite {
 			if (font == null) Log.Error("Failed to load default/ascii font");
 		}
 
-		public void Begin(RenderPass pass) {
-			if (mb == null) mb = Meteorite.INSTANCE.frameBuffers.AllocateImmediate(pass, Buffers.QUAD_INDICES);
+		public void Begin() {
+			if (mb == null) mb = new .(false);
 		}
 
-		public void End() {
-			mb.Finish();
-			mb = null;
+		public void End(CommandBuffer cmds) {
+			cmds.Draw(mb.End(.Frame, Buffers.QUAD_INDICES));
+			DeleteAndNullify!(mb);
 		}
 
 		public float Render(float x, float y, StringView text, Color color, bool shadow = true) {
@@ -57,10 +59,10 @@ namespace Meteorite {
 				}
 
 				mb.Quad(
-					mb.Vec2(.(x + glyph.MinX, y + glyph.MinY)).Vec2(.(glyph.MinU, glyph.MinV)).Color(color).Next(),
-					mb.Vec2(.(x + glyph.MinX, y + glyph.MaxY)).Vec2(.(glyph.MinU, glyph.MaxV)).Color(color).Next(),
-					mb.Vec2(.(x + glyph.MaxX, y + glyph.MaxY)).Vec2(.(glyph.MaxU, glyph.MaxV)).Color(color).Next(),
-					mb.Vec2(.(x + glyph.MaxX, y + glyph.MinY)).Vec2(.(glyph.MaxU, glyph.MinV)).Color(color).Next()
+					mb.Vertex<Pos2DUVColorVertex>(.(.(x + glyph.MinX, y + glyph.MinY), .(glyph.MinU, glyph.MinV), color)),
+					mb.Vertex<Pos2DUVColorVertex>(.(.(x + glyph.MinX, y + glyph.MaxY), .(glyph.MinU, glyph.MaxV), color)),
+					mb.Vertex<Pos2DUVColorVertex>(.(.(x + glyph.MaxX, y + glyph.MaxY), .(glyph.MaxU, glyph.MaxV), color)),
+					mb.Vertex<Pos2DUVColorVertex>(.(.(x + glyph.MaxX, y + glyph.MinY), .(glyph.MaxU, glyph.MinV), color))
 				);
 
 				x += char == ' ' ? glyph.Advance * 4 : glyph.Advance;
@@ -69,6 +71,6 @@ namespace Meteorite {
 			return x;
 		}
 
-		public void BindTexture(RenderPass pass) => font.BindTexture(pass);
+		public void BindTexture(CommandBuffer cmds) => font.BindTexture(cmds);
 	}
 }

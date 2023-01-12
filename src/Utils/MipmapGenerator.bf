@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 
+using Cacti;
+
 namespace Meteorite {
 	struct Mipmap : IDisposable {
 		public int w, h;

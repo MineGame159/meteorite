@@ -1,4 +1,4 @@
-layout(set = 0, binding = 0, std430) uniform FrameUniforms {
+layout(set = 0, binding = 0, std430) buffer FrameUniforms {
     mat4 projection;
     mat4 inverseProjection;
     mat4 view;

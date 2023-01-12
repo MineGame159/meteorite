@@ -1,5 +1,7 @@
 using System;
 
+using Cacti;
+
 namespace Meteorite {
 	abstract class BlockEntityRenderer {
 		public abstract void Render(MatrixStack matrices, BlockState blockState, BlockEntity _, NamedMeshBuilderProvider provider, float tickDelta);

@@ -2,19 +2,20 @@ using System;
 using System.IO;
 using System.Collections;
 
+using Cacti;
+using Bulkan;
+
 namespace Meteorite {
-	class Meteorite {
+	class Meteorite : Application {
 		public static Meteorite INSTANCE;
 
 		public Options options ~ delete _;
-		public Window window ~ delete _;
 		public ResourceLoader resources ~ delete _;
 		public TextureManager textures ~ delete _;
 
 		public Camera camera ~ delete _;
 		public RenderTickCounter tickCounter ~ delete _;
 
-		public BufferBumpAllocator frameBuffers;
 		public GameRenderer gameRenderer;
 		public WorldRenderer worldRenderer;
 		public BlockEntityRenderDispatcher blockEntityRenderDispatcher;
@@ -28,24 +29,25 @@ namespace Meteorite {
 
 		private List<delegate void()> tasks = new .() ~ DeleteContainerAndItems!(_);
 
-		public this() {
+		private GpuImage swapchainTarget;
+		private bool afterScreenshot;
+
+		public this() : base("Meteorite") {
 			INSTANCE = this;
 			Directory.CreateDirectory("run");
 
 			options = new .();
-			window = new .();
 
 			resources = new .();
 			Gfxa.Init();
 
 			textures = new .();
 
-			camera = new .();
+			camera = new .(window);
 			tickCounter = new .(20, 0);
 
 			EntityTypes.Register();
 
-			frameBuffers = new .();
 			gameRenderer = new .();
 			blockEntityRenderDispatcher = new .();
 			entityRenderDispatcher = new .();
@@ -66,6 +68,11 @@ namespace Meteorite {
 			BlockColors.Init();
 			Screenshots.Init();
 			FrameUniforms.Init();
+
+			Input.mousePosEvent.Add(new () => {
+				ClientPlayerEntity player = Meteorite.INSTANCE.player;
+				if (player != null && window.MouseHidden) player.Turn(Input.mouseDelta);
+			});
 		}
 
 		public ~this() {
@@ -76,13 +83,15 @@ namespace Meteorite {
 			delete blockEntityRenderDispatcher;
 			delete worldRenderer;
 			delete gameRenderer;
-			delete frameBuffers;
+
+			FrameUniforms.Destroy();
+			SkyRenderer.Destroy();
+			Buffers.Destroy();
+			Gfxa.Destroy();
 
 			// Connection needs to be deleted before world
 			delete connection;
 			delete world;
-
-			Gfx.Shutdown();
 		}
 
 		public void Join(StringView address, int32 port, int32 viewDistance) {
@@ -128,13 +137,52 @@ namespace Meteorite {
 			if (!window.minimized) gameRenderer.Tick();
 		}
 
-		public void Render(float delta) {
+		protected override void Update(double delta) {
+			Screenshots.Update();
+
 			int tickCount = tickCounter.BeginRenderTick();
 			for (int i < Math.Min(10, tickCount)) Tick(tickCounter.tickDelta);
-			
-			if (!window.minimized) gameRenderer.Render(delta);
-
-			frameBuffers.Reset();
 		}
+
+		protected override void Render(List<CommandBuffer> commandBuffers, GpuImage target, double delta) {
+			if (!window.minimized) {
+				CommandBuffer cmds = Gfx.CommandBuffers.GetBuffer();
+				commandBuffers.Add(cmds);
+
+				gameRenderer.Render(cmds, target, (.) delta);
+			}
+		}
+
+		protected override CommandBuffer AfterRender(GpuImage target) {
+			if (Screenshots.rendering) {
+				CommandBuffer cmds = Gfx.CommandBuffers.GetBuffer();
+
+				cmds.Begin();
+				cmds.PushDebugGroup("Screenshot");
+
+				cmds.CopyImageToBuffer(target, Screenshots.buffer);
+				cmds.BlitImage(Screenshots.texture, swapchainTarget);
+
+				cmds.PopDebugGroup();
+				cmds.End();
+
+				afterScreenshot = true;
+				return cmds;
+			}
+
+			return null;
+		}
+
+		protected override GpuImage GetTargetImage(VkSemaphore imageAvailableSemaphore) {
+			if (afterScreenshot) {
+				Screenshots.Save();
+				afterScreenshot = false;
+			}
+			
+			swapchainTarget = Gfx.Swapchain.GetImage(imageAvailableSemaphore);
+			return Screenshots.rendering ? Screenshots.texture : swapchainTarget;
+		}
+		
+		protected override GpuImage GetPresentImage() => swapchainTarget;
 	}
 }

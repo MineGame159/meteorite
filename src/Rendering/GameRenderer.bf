@@ -1,19 +1,19 @@
 using System;
 using System.Collections;
 
-using Wgpu;
+using Cacti;
 using ImGui;
 
 namespace Meteorite {
 	class GameRenderer {
 		private Meteorite me = .INSTANCE;
 
-		private List<Texture> textures = new .() ~ DeleteContainerAndItems!(_);
-		private Wgpu.TextureView output;
-		private Wgpu.CommandEncoder encoder;
+		private List<GpuImage> images = new .() ~ DeleteContainerAndItems!(_);
 
-		public Texture mainColor, mainNormal;
-		public Texture mainDepth;
+		public GpuImage mainColor, mainNormal;
+		public GpuImage mainDepth;
+
+		public DescriptorSet mainColorSet ~ delete _, mainNormalSet ~ delete _, mainDepthSet ~ delete _;
 
 		private SSAO ssao ~ delete _;
 
@@ -21,9 +21,13 @@ namespace Meteorite {
 		private bool afterScreenshot;
 
 		public this() {
-			mainColor = ColorTexture();
-			mainNormal = ColorTexture(.RGBA16Float);
-			mainDepth = DepthTexture();
+			mainColor = ColorImage("Main Color");
+			mainNormal = ColorImage("Main Normal", .RGBA16);
+			mainDepth = DepthImage("Main Depth");
+
+			mainColorSet = Gfx.DescriptorSets.Create(Gfxa.IMAGE_SET_LAYOUT, .SampledImage(mainColor, .VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, Gfxa.LINEAR_SAMPLER));
+			mainNormalSet = Gfx.DescriptorSets.Create(Gfxa.IMAGE_SET_LAYOUT, .SampledImage(mainNormal, .VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, Gfxa.NEAREST_SAMPLER));
+			mainDepthSet = Gfx.DescriptorSets.Create(Gfxa.IMAGE_SET_LAYOUT, .SampledImage(mainDepth, .VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, Gfxa.NEAREST_SAMPLER));
 
 			Input.keyEvent.Add(new => OnKey, -10);
 		}
@@ -43,15 +47,18 @@ namespace Meteorite {
 			if (me.world != null && me.worldRenderer != null) me.worldRenderer.Tick();
 		}
 
-		public void Render(float delta) {
+		public void Render(CommandBuffer cmds, GpuImage target, float delta) {
 			this.delta = delta;
 
-			Screenshots.Update();
 			FrameUniforms.Update();
 
-			if (me.options.ao.HasSSAO && ssao == null) ssao = new .(ColorTexture(.R8Unorm));
+			if (me.options.ao.HasSSAO && ssao == null) ssao = new .(ColorImage("SSAO", .R8));
 
-			Begin();
+			for (GpuImage image in images)
+				image.Resize(target.size);
+
+			cmds.Begin();
+			cmds.SetViewport(target.size, true, true);
 
 			Color clearColor = me.world != null ? me.world.GetClearColor(me.camera, me.tickCounter.tickDelta) : .(200, 200, 200, 255);
 			bool world = me.world != null && me.worldRenderer != null;
@@ -61,47 +68,52 @@ namespace Meteorite {
 
 				{
 					// Main Pre
-					RenderPass pass = RenderPass.Begin(encoder)
-						.Color(mainColor, clearColor)
-						.Depth(mainDepth, 1)
-						.Finish();
-					
-					RenderMainPre(pass);
-					pass.End();
+					cmds.PushDebugGroup("Main - Pre");
+					cmds.BeginPass(.(mainDepth, 1), .(mainColor, clearColor));
+
+					RenderMainPre(cmds);
+
+					cmds.EndPass();
+					cmds.PopDebugGroup();
 				}
 				{
 					// Main
-					RenderPass pass = RenderPass.Begin(encoder)
-						.Color(mainColor)
-						.Color(mainNormal, .ZERO)
-						.Depth(mainDepth)
-						.Finish();
-					
-					RenderMain(pass);
-					pass.End();
+					cmds.PushDebugGroup("Main");
+					cmds.BeginPass(.(mainDepth, null), .(mainColor, null), .(mainNormal, .ZERO));
+
+					RenderMain(cmds);
+
+					cmds.EndPass();
+					cmds.PopDebugGroup();
 				}
 				{
 					// Main Post
-					RenderPass pass = RenderPass.Begin(encoder)
-						.Color(mainColor)
-						.Depth(mainDepth)
-						.Finish();
-					
-					RenderMainPost(pass);
-					pass.End();
+					cmds.PushDebugGroup("Main - Post");
+					cmds.BeginPass(.(mainDepth, null), .(mainColor, null));
+
+					RenderMainPost(cmds);
+
+					cmds.EndPass();
+					cmds.PopDebugGroup();
 				}
+
 				if (me.options.ao.HasSSAO) {
 					// SSAO
-					ssao.Render(encoder);
+					ssao.Render(cmds);
 				}
+
 				{
 					// Post
-					RenderPass pass = RenderPass.Begin(encoder)
-						.Color(output, .(0, 0, 0, 0))
-						.Finish();
+					cmds.TransitionImage(mainColor, .Sample);
+					if (ssao != null) ssao.Transition(cmds);
 
-					RenderPost(pass);
-					pass.End();
+					cmds.PushDebugGroup("Post");
+					cmds.BeginPass(null, .(target, .ZERO));
+
+					RenderPost(cmds);
+
+					cmds.EndPass();
+					cmds.PopDebugGroup();
 				}
 			}
 
@@ -109,16 +121,17 @@ namespace Meteorite {
 			if (!Screenshots.rendering || Screenshots.includeGui) {
 				Color? clear = null;
 				if (!world) clear = clearColor;
+			
+				cmds.PushDebugGroup("2D");
+				cmds.BeginPass(null, .(target, clear));
 
-				RenderPass pass = RenderPass.Begin(encoder)
-					.Color(output, clear)
-					.Finish();
+				Render2D(cmds);
 
-				Render2D(pass);
-				pass.End();
+				cmds.EndPass();
+				cmds.PopDebugGroup();
 			}
 
-			End();
+			cmds.End();
 		}
 
 		private void SetupWorldRendering() {
@@ -131,74 +144,65 @@ namespace Meteorite {
 			else {
 				if (!Input.capturingCharacters) me.camera.FlightMovement(delta);
 			}
-			
+
+			me.camera.fov = Meteorite.INSTANCE.options.fov;
 			me.camera.Update(me.world.viewDistance * Section.SIZE * 4);
 		}
 
-		private void RenderMainPre(RenderPass pass) {
-			me.worldRenderer.RenderPre(pass, me.tickCounter.tickDelta, delta);
+		private void RenderMainPre(CommandBuffer cmds) {
+			me.worldRenderer.RenderPre(cmds, me.tickCounter.tickDelta, delta);
 		}
 
-		private void RenderMain(RenderPass pass) {
-			me.worldRenderer.Render(pass, me.tickCounter.tickDelta, delta);
+		private void RenderMain(CommandBuffer cmds) {
+			me.worldRenderer.Render(cmds, me.tickCounter.tickDelta, delta);
 		}
 
-		private void RenderMainPost(RenderPass pass) {
-			me.worldRenderer.RenderPost(pass, me.tickCounter.tickDelta, delta);
+		private void RenderMainPost(CommandBuffer cmds) {
+			me.worldRenderer.RenderPost(cmds, me.tickCounter.tickDelta, delta);
 		}
 
-		private void RenderPost(RenderPass pass) {
-			pass.PushDebugGroup("Post");
+		private void RenderPost(CommandBuffer cmds) {
+			cmds.Bind(Gfxa.POST_PIPELINE);
+			FrameUniforms.Bind(cmds);
+			cmds.Bind(mainColorSet, 1);
 
-			Gfxa.POST_PIPELINE.Bind(pass);
-			FrameUniforms.Bind(pass);
-			mainColor.Bind(pass, 1);
+			if (me.options.ao.HasSSAO) ssao.Bind(cmds, 2);
+			else cmds.Bind(Gfxa.PIXEL_SET, 2);
 
-			if (me.options.ao.HasSSAO) ssao.Bind(pass, 2);
-			else Gfxa.PIXEL_BIND_GRUP.Bind(pass, 2);
+			MeshBuilder mb = scope .();
 
-			MeshBuilder mb = me.frameBuffers.AllocateImmediate(pass);
 			mb.Quad(
-				mb.Vec2(.(-1, -1)).Vec2(.(0, 1)).Next(),
-				mb.Vec2(.(-1, 1)).Vec2(.(0, 0)).Next(),
-				mb.Vec2(.(1, 1)).Vec2(.(1, 0)).Next(),
-				mb.Vec2(.(1, -1)).Vec2(.(1, 1)).Next()
+				mb.Vertex<PostVertex>(.(.(-1, -1), .(0, 1))),
+				mb.Vertex<PostVertex>(.(.(-1, 1), .(0, 0))),
+				mb.Vertex<PostVertex>(.(.(1, 1), .(1, 0))),
+				mb.Vertex<PostVertex>(.(.(1, -1), .(1, 1)))
 			);
-			mb.Finish();
 
-			pass.PopDebugGroup();
+			cmds.Draw(mb.End());
 		}
 
-		private void Render2D(RenderPass pass) {
-			pass.PushDebugGroup("2D");
+		private void Render2D(CommandBuffer cmds) {
+			if (ImGuiCacti.NewFrame()) {
+				if (me.connection == null) MainMenu.Render();
+				else me.hud.Render(cmds, delta);
 
-			ImGuiImplWgpu.NewFrame();
-			ImGuiImplGlfw.NewFrame();
-			ImGui.NewFrame();
-
-			if (me.connection == null) MainMenu.Render();
-			else me.hud.Render(pass, delta);
-
-			Screenshots.Render();
-
-			ImGui.Render();
-			ImGuiImplWgpu.RenderDrawData(ImGui.GetDrawData(), pass.[Friend]encoder);
-			pass.PopDebugGroup();
+				Screenshots.Render();
+			}
 		}
 
-		private Texture ColorTexture(Wgpu.TextureFormat format = .BGRA8Unorm) {
-			Texture texture = Gfx.CreateTexture(.RenderAttachment | .TextureBinding, 0, 0, 1, null, format, false, format == .BGRA8Unorm ? Gfxa.LINEAR_SAMPLER : Gfxa.NEAREST_SAMPLER);
-			textures.Add(texture);
-			return texture;
+		private GpuImage ColorImage(StringView name, ImageFormat format = .BGRA) {
+			GpuImage image = Gfx.Images.Create(format, .ColorAttachment, .(1280, 720), name);
+			images.Add(image);
+			return image;
 		}
 
-		private Texture DepthTexture() {
-			Texture texture = Gfx.CreateTexture(.RenderAttachment | .TextureBinding, 0, 0, 1, null, .Depth32Float, false);
-			textures.Add(texture);
-			return texture;
+		private GpuImage DepthImage(StringView name) {
+			GpuImage image = Gfx.Images.Create(.Depth, .DepthAttachment, .(1280, 720), name);
+			images.Add(image);
+			return image;
 		}
 
-		private void Begin() {
+		/*private void Begin() {
 			int screenWidth = me.window.width;
 			int screenHeight = me.window.height;
 
@@ -238,6 +242,6 @@ namespace Meteorite {
 				afterScreenshot = true;
 				Screenshots.rendering = false;
 			}
-		}
+		}*/
 	}
 }

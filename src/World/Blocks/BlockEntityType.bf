@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 
+using Cacti;
+
 namespace Meteorite {
 	class BlockEntityType {
 		public typealias Factory = delegate BlockEntity(Vec3i);
