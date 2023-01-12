@@ -55,11 +55,21 @@ namespace Cacti {
 			float tanHalfFovy = Math.Tan((fovy * Math.DEG2RADf) / 2);
 
 			Mat4 m = .();
-			m.vecs[0].x = 1 / (aspect * tanHalfFovy);
-			m.vecs[1].y = 1 / (tanHalfFovy);
-			m.vecs[2].z = far / (far - near);
-			m.vecs[2].w = 1;
-			m.vecs[3].z = -(far * near) / (far - near);
+
+			// RH_ZO
+			m[0][0] = 1 / (aspect * tanHalfFovy);
+			m[1][1] = 1 / (tanHalfFovy);
+			m[2][2] = far / (near - far);
+			m[2][3] = -1;
+			m[3][2] = -(far * near) / (far - near);
+
+			// RH_NO
+			/*m[0][0] = 1 / (aspect * tanHalfFovy);
+			m[1][1] = 1 / (tanHalfFovy);
+			m[2][2] = - (far + near) / (far - near);
+			m[2][3] = - 1;
+			m[3][2] = - (2 * far * near) / (far - near);*/
+
 			return m;
 		}
 

@@ -39,7 +39,7 @@ namespace Meteorite {
 
 			textures = new .();
 
-			camera = new .();
+			camera = new .(window);
 			tickCounter = new .(20, 0);
 
 			EntityTypes.Register();

@@ -43,7 +43,7 @@ namespace Meteorite {
 				.VertexFormat(PosVertex.FORMAT)
 				.PushConstants<PushConstaints2>()
 				.Shader(Gfxa.POS_FOG, Gfxa.POS_FOG)
-				.Cull(.None, .CounterClockwise)
+				.Cull(.None, .Clockwise)
 				.Depth(true, false, false)
 				.Targets(
 					.(.BGRA, .Disabled())
@@ -53,7 +53,7 @@ namespace Meteorite {
 				.VertexFormat(PosColorVertex.FORMAT)
 				.PushConstants<PushConstaints1>()
 				.Shader(Gfxa.POS_COLOR_SHADER, Gfxa.POS_COLOR_SHADER)
-				.Cull(.None, .CounterClockwise)
+				.Cull(.None, .Clockwise)
 				.Depth(true, false, false)
 				.Targets(
 					.(.BGRA, .Default())
@@ -64,7 +64,7 @@ namespace Meteorite {
 				.Sets(Gfxa.IMAGE_SET_LAYOUT)
 				.PushConstants<PushConstaints1>()
 				.Shader(Gfxa.POS_TEX_SHADER, Gfxa.POS_TEX_SHADER)
-				.Cull(.None, .CounterClockwise)
+				.Cull(.None, .Clockwise)
 				.Depth(true, false, false)
 				.Targets(
 					.(.BGRA, .Enabled(.(.Add, .SrcAlpha, .One), .(.Add, .One, .Zero)))
@@ -74,7 +74,7 @@ namespace Meteorite {
 				.VertexFormat(PosVertex.FORMAT)
 				.PushConstants<PushConstaints2>()
 				.Shader(Gfxa.POS_FOG, Gfxa.POS_FOG)
-				.Cull(.None, .CounterClockwise)
+				.Cull(.None, .Clockwise)
 				.Depth(true, false, false)
 				.Targets(
 					.(.BGRA, .Enabled(.(.Add, .SrcAlpha, .One), .(.Add, .One, .Zero)))

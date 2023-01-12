@@ -129,7 +129,7 @@ class PipelineInfo {
 	private PolygonMode polygonMode = .Fill;
 
 	private CullMode cullMode = .Back;
-	private FrontFace frontFace = .CounterClockwise;
+	private FrontFace frontFace = .Clockwise;
 
 	private bool depthTarget, depthTest, depthWrite;
 

@@ -147,7 +147,8 @@ namespace Meteorite {
 			else {
 				if (!Input.capturingCharacters) me.camera.FlightMovement(delta);
 			}
-			
+
+			me.camera.fov = Meteorite.INSTANCE.options.fov;
 			me.camera.Update(me.world.viewDistance * Section.SIZE * 4);
 		}
 

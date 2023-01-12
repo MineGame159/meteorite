@@ -52,7 +52,10 @@ namespace Meteorite {
 				me.options.ao = (.) ao;
 
 				if (prevVanilla != me.options.ao.HasVanilla) me.world.ReloadChunks();
-				if (prevSsao != me.options.ao.HasSSAO) Gfxa.POST_PIPELINE.Reload();
+				if (prevSsao != me.options.ao.HasSSAO) {
+					Gfxa.POST_PIPELINE.Reload();
+					Meteorite.INSTANCE.gameRenderer.[Friend]ssao?.pipeline.Reload();
+				}
 			}
 			if (ImGui.Checkbox("FXAA", &me.options.fxaa)) Gfxa.POST_PIPELINE.Reload();
 			ImGui.PopItemWidth();

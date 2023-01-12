@@ -1,6 +1,6 @@
 FileVersion = 1
 Projects = {Meteorite = {Path = "."}, GLFW = "*", ImGui = "*", ImGuiImplGlfw = "*", MiniZ = "*", stb_beef = "*", Cacti = {Path = "cacti"}}
-Unlocked = ["Cacti", "Shaderc"]
+Unlocked = ["Shaderc"]
 
 [Workspace]
 StartupProject = "Meteorite"

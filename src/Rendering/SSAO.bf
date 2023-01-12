@@ -5,7 +5,7 @@ using Cacti;
 namespace Meteorite {
 	class SSAO {
 		private GpuImage ssao;
-		private Pipeline pipeline;
+		public Pipeline pipeline;
 
 		private GpuBuffer samplesBuffer ~ delete _;
 		private GpuImage noiseTexture ~ delete _;
@@ -78,11 +78,11 @@ namespace Meteorite {
 
 			MeshBuilder mb = scope .();
 
-			mb.Quad(
-				mb.Vertex<PostVertex>(.(.(-1, -1), .(0, 1))),
-				mb.Vertex<PostVertex>(.(.(-1, 1), .(0, 0))),
-				mb.Vertex<PostVertex>(.(.(1, 1), .(1, 0))),
-				mb.Vertex<PostVertex>(.(.(1, -1), .(1, 1)))
+			mb.Quad<PostVertex>(
+				.(.(-1, -1), .(0, 1)),
+				.(.(-1, 1), .(0, 0)),
+				.(.(1, 1), .(1, 0)),
+				.(.(1, -1), .(1, 1))
 			);
 
 			cmds.Draw(mb.End());

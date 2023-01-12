@@ -13,10 +13,8 @@ namespace Meteorite {
 		public static void Main(String[] args) {
 			if (Array.BinarySearch(args, "--renderdoc") != -1 || RENDERDOC) {
 				Log.Info("Loading RenderDoc");
-				Internal.LoadSharedLibrary("renderdoc");
+				RenderDoc.Init();
 			}
-
-			RenderDoc.Init();
 
 			scope Meteorite().Run();
 		}

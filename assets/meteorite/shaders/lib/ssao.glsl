@@ -50,18 +50,10 @@ float ssao(vec2 texCoord) {
         vec2 texel = 1.0 / api_Resolution;
         float result = 0.0;
 
-        // Workaround around (probably) Naga issue where variables are put into the function scope and not reassigned automatically at the end of the loop
-        int x = -2;
-        while (x < 2) {
-            int y = -2;
-
-            while (y < 2) {
+        for (int x = -2; x < 2; x++) {
+            for (int y = -2; y < 2; y++) {
                 result += texture(SSAO_SAMPLER, texCoord + vec2(x, y) * texel).r;
-                y++;
             }
-
-            y = -2;
-            x++;
         }
 
         return result / (4.0 * 4.0);

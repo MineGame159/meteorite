@@ -119,7 +119,6 @@ namespace Meteorite {
 				.VertexFormat(EntityVertex.FORMAT)
 				.Sets(STORAGE_SET_LAYOUT, IMAGE_SET_LAYOUT, STORAGE_SET_LAYOUT)
 				.Shader("entity", "entity")
-				.Cull(.Back, .CounterClockwise)
 				.Depth(true, true, true)
 				.Targets(
 					.(.BGRA, .Disabled()),
@@ -130,9 +129,8 @@ namespace Meteorite {
 				.VertexFormat(PostVertex.FORMAT)
 				.Sets(STORAGE_SET_LAYOUT, IMAGE_SET_LAYOUT, IMAGE_SET_LAYOUT)
 				.Shader("post", "post", new => PostPreProcessor)
-				.Cull(.Back, .Clockwise)
 				.Targets(
-					.(.BGRA, .Default())
+					.(.BGRA, .Disabled())
 				)
 			);
 			LINES_PIPELINE = Gfx.Pipelines.Get(scope PipelineInfo("Lines")
@@ -140,7 +138,6 @@ namespace Meteorite {
 				.PushConstants<Mat4>()
 				.Shader(POS_COLOR_SHADER, POS_COLOR_SHADER)
 				.Primitive(.Lines)
-				.Cull(.Back, .Clockwise)
 				.Depth(true, false, false)
 				.Targets(
 					.(.BGRA, .Default())
@@ -151,7 +148,6 @@ namespace Meteorite {
 				.Sets(IMAGE_SET_LAYOUT)
 				.PushConstants<Mat4>()
 				.Shader(POS_TEX_COLOR_SHADER, POS_TEX_COLOR_SHADER)
-				.Cull(.Back, .Clockwise)
 				.Targets(
 					.(.BGRA, .Default())
 				)
