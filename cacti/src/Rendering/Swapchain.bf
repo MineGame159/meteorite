@@ -10,6 +10,8 @@ class Swapchain {
 	private VkSwapchainKHR handle = .Null ~ vkDestroySwapchainKHR(Gfx.Device, _, null);
 	private List<GpuImage> images = new .() ~ DeleteContainerAndItems!(_);
 
+	public uint32 index;
+
 	public Result<void> Recreate(Vec2i size) {
 		ImageFormat format = .BGRA;
 
@@ -90,10 +92,9 @@ class Swapchain {
 		}
 	}
 
-	public (GpuImage, uint32) GetImage(VkSemaphore semaphore) {
-		uint32 index = 0;
+	public GpuImage GetImage(VkSemaphore semaphore) {
 		vkAcquireNextImageKHR(Gfx.Device, handle, uint64.MaxValue, semaphore, .Null, &index);
 
-		return (images[index], index);
+		return images[index];
 	}
 }

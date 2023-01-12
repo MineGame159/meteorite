@@ -42,7 +42,7 @@ namespace Cacti {
 			int fbHeight = (int)(drawData.DisplaySize.y * drawData.FramebufferScale.y);
 			if (fbWidth <= 0 || fbHeight <= 0) return null;
 
-			if (drawData.CmdListsCount == 0 && target.Access == .Present) return null;
+			if (drawData.CmdListsCount == 0) return null;
 
 			// Begin command buffer
 			CommandBuffer cmds = Gfx.CommandBuffers.GetBuffer();
@@ -154,9 +154,6 @@ namespace Cacti {
 
 			// End render pass
 			if (drawData.CmdListsCount > 0) cmds.EndPass();
-
-			// Transition image to present
-			cmds.TransitionImage(target, .Present);
 
 			// End command buffer
 			cmds.PopDebugGroup();

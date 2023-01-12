@@ -51,6 +51,7 @@ enum ImageAccess {
 		 ColorAttachment,
 		 DepthAttachment,
 		 Write,
+		 Read,
 		 Sample,
 		 Present;
 
@@ -60,6 +61,7 @@ enum ImageAccess {
 		case .ColorAttachment:	return .THSVS_ACCESS_COLOR_ATTACHMENT_WRITE;
 		case .DepthAttachment:	return .THSVS_ACCESS_DEPTH_ATTACHMENT_WRITE_STENCIL_READ_ONLY;
 		case .Write:			return .THSVS_ACCESS_TRANSFER_WRITE;
+		case .Read:				return .THSVS_ACCESS_TRANSFER_READ;
 		case .Sample:			return .THSVS_ACCESS_FRAGMENT_SHADER_READ_SAMPLED_IMAGE_OR_UNIFORM_TEXEL_BUFFER;
 		case .Present:			return .THSVS_ACCESS_PRESENT;
 		}

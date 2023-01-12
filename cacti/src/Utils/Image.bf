@@ -41,7 +41,7 @@ namespace Cacti {
 
 		// Writing
 
-		public void Write(StringView path, bool isBgra = false) {
+		public void Write(StringView path, bool isBgra = false, bool bgraNoAlpha = true) {
 			if (components != 4) return;
 
 			FileStream s = scope .();
@@ -90,7 +90,7 @@ namespace Cacti {
 							row[1 + x * components] = pixel[2];
 							row[1 + x * components + 1] = pixel[1];
 							row[1 + x * components + 2] = pixel[0];
-							row[1 + x * components + 3] = pixel[3];
+							row[1 + x * components + 3] = bgraNoAlpha ? 255 : pixel[3];
 						}
 					}
 					else Internal.MemCpy(&row[1], &this.pixels[y * (size.x * components)], size.x * components);

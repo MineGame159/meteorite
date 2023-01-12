@@ -247,6 +247,60 @@ class CommandBuffer {
 		TransitionImage(dst, .Sample, mipLevel);
 	}
 
+	public void CopyImageToBuffer(GpuImage src, GpuBufferView dst, int mipLevel = 0) {
+		VkBufferImageCopy info = .() {
+			bufferOffset = dst.offset,
+			imageSubresource = .() {
+				aspectMask = src.usage == .DepthAttachment ? .VK_IMAGE_ASPECT_DEPTH_BIT : .VK_IMAGE_ASPECT_COLOR_BIT,
+				mipLevel = (.) mipLevel,
+				layerCount = 1
+			},
+			imageExtent = .() {
+				width = (.) src.GetWidth(mipLevel),
+				height = (.) src.GetHeight(mipLevel),
+				depth = 1
+			}
+		};
+
+		TransitionImage(src, .Read, mipLevel);
+		vkCmdCopyImageToBuffer(handle, src.[Friend]handle, .VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dst.buffer.[Friend]handle, 1, &info);
+		TransitionImage(src, .ColorAttachment, mipLevel);
+	}
+
+	public void BlitImage(GpuImage src, GpuImage dst, int mipLevel = 0) {
+		VkImageBlit info = .() {
+			srcSubresource = .() {
+				aspectMask = src.usage == .DepthAttachment ? .VK_IMAGE_ASPECT_DEPTH_BIT : .VK_IMAGE_ASPECT_COLOR_BIT,
+				mipLevel = (.) mipLevel,
+				layerCount = 1
+			},
+			srcOffsets = .(
+				.(),
+				.() {
+					z = 1
+				}
+			),
+			dstSubresource = .() {
+				aspectMask = src.usage == .DepthAttachment ? .VK_IMAGE_ASPECT_DEPTH_BIT : .VK_IMAGE_ASPECT_COLOR_BIT,
+				mipLevel = (.) mipLevel,
+				layerCount = 1
+			},
+			dstOffsets = .(
+				.(),
+				.() {
+					z = 1
+				}
+			)
+		};
+
+		TransitionImage(src, .Read, mipLevel);
+		TransitionImage(dst, .Write, mipLevel);
+
+		vkCmdBlitImage(handle, src.[Friend]handle, .VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dst.[Friend]handle, .VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &info, .VK_FILTER_NEAREST);
+
+		TransitionImage(src, .ColorAttachment, mipLevel);
+	}
+
 	public void PushDebugGroup(StringView name, Color color = .BLACK) {
 		if (!Gfx.DebugUtilsExt) return;
 

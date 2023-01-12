@@ -45,7 +45,7 @@ static class ImGuiCacti {
 		return true;
 	}
 
-	public static CommandBuffer Render(GpuImage image) {
+	public static CommandBuffer Render(GpuImage target) {
 		if (!initialized) return null;
 
 		if (firstFrame) {
@@ -57,6 +57,6 @@ static class ImGuiCacti {
 		newFrameCalled = false;
 
 		ImGui.Render();
-		return ImGuiImplCacti.Render(image, ImGui.GetDrawData());
+		return ImGuiImplCacti.Render(target, ImGui.GetDrawData());
 	}
 }

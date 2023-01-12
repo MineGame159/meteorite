@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections;
 
 using Cacti;
+using Bulkan;
 
 namespace Meteorite {
 	class Meteorite : Application {
@@ -27,6 +28,9 @@ namespace Meteorite {
 		public ClientPlayerEntity player;
 
 		private List<delegate void()> tasks = new .() ~ DeleteContainerAndItems!(_);
+
+		private GpuImage swapchainTarget;
+		private bool afterScreenshot;
 
 		public this() : base("Meteorite") {
 			INSTANCE = this;
@@ -62,8 +66,7 @@ namespace Meteorite {
 			Buffers.CreateGlobalIndices();
 			SkyRenderer.Init();
 			BlockColors.Init();
-			// TODO: Screenshots
-			//Screenshots.Init();
+			Screenshots.Init();
 			FrameUniforms.Init();
 
 			Input.mousePosEvent.Add(new () => {
@@ -135,6 +138,8 @@ namespace Meteorite {
 		}
 
 		protected override void Update(double delta) {
+			Screenshots.Update();
+
 			int tickCount = tickCounter.BeginRenderTick();
 			for (int i < Math.Min(10, tickCount)) Tick(tickCounter.tickDelta);
 		}
@@ -147,5 +152,37 @@ namespace Meteorite {
 				gameRenderer.Render(cmds, target, (.) delta);
 			}
 		}
+
+		protected override CommandBuffer AfterRender(GpuImage target) {
+			if (Screenshots.rendering) {
+				CommandBuffer cmds = Gfx.CommandBuffers.GetBuffer();
+
+				cmds.Begin();
+				cmds.PushDebugGroup("Screenshot");
+
+				cmds.CopyImageToBuffer(target, Screenshots.buffer);
+				cmds.BlitImage(Screenshots.texture, swapchainTarget);
+
+				cmds.PopDebugGroup();
+				cmds.End();
+
+				afterScreenshot = true;
+				return cmds;
+			}
+
+			return null;
+		}
+
+		protected override GpuImage GetTargetImage(VkSemaphore imageAvailableSemaphore) {
+			if (afterScreenshot) {
+				Screenshots.Save();
+				afterScreenshot = false;
+			}
+			
+			swapchainTarget = Gfx.Swapchain.GetImage(imageAvailableSemaphore);
+			return Screenshots.rendering ? Screenshots.texture : swapchainTarget;
+		}
+		
+		protected override GpuImage GetPresentImage() => swapchainTarget;
 	}
 }

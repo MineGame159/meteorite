@@ -50,7 +50,6 @@ namespace Meteorite {
 		public void Render(CommandBuffer cmds, GpuImage target, float delta) {
 			this.delta = delta;
 
-			//Screenshots.Update();
 			FrameUniforms.Update();
 
 			if (me.options.ao.HasSSAO && ssao == null) ssao = new .(ColorImage("SSAO", .R8));
@@ -58,7 +57,6 @@ namespace Meteorite {
 			for (GpuImage image in images)
 				image.Resize(target.size);
 
-			//Begin();
 			cmds.Begin();
 			cmds.SetViewport(target.size, true, true);
 
@@ -120,7 +118,7 @@ namespace Meteorite {
 			}
 
 			// 2D
-			//if (!Screenshots.rendering || Screenshots.includeGui) {
+			if (!Screenshots.rendering || Screenshots.includeGui) {
 				Color? clear = null;
 				if (!world) clear = clearColor;
 			
@@ -131,10 +129,9 @@ namespace Meteorite {
 
 				cmds.EndPass();
 				cmds.PopDebugGroup();
-			//}
+			}
 
 			cmds.End();
-			//End();
 		}
 
 		private void SetupWorldRendering() {
@@ -188,6 +185,8 @@ namespace Meteorite {
 			if (ImGuiCacti.NewFrame()) {
 				if (me.connection == null) MainMenu.Render();
 				else me.hud.Render(cmds, delta);
+
+				Screenshots.Render();
 			}
 		}
 

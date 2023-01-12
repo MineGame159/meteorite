@@ -61,7 +61,8 @@ namespace Cacti {
 					vkWaitForFences(Gfx.Device, 1, &inFlightFence, true, uint64.MaxValue);
 					vkResetFences(Gfx.Device, 1, &inFlightFence);
 	
-					var (target, targetIndex) = Gfx.Swapchain.GetImage(imageAvailableSemaphore);
+					GpuImage target = GetTargetImage(imageAvailableSemaphore);
+					GpuImage present = GetPresentImage();
 
 					TimeSpan frameStart = sw.Elapsed;
 	
@@ -77,12 +78,16 @@ namespace Cacti {
 					CommandBuffer imguiCmds = ImGuiCacti.Render(target);
 					if (imguiCmds != null) commandBuffers.Add(imguiCmds);
 
+					// After render
+					CommandBuffer afterCmds = AfterRender(target);
+					if (afterCmds != null) commandBuffers.Add(afterCmds);
+
 					// Transition target to Present if needed
-					if (target.Access != .Present) {
+					if (present.Access != .Present) {
 						CommandBuffer cmds = Gfx.CommandBuffers.GetBuffer();
 						cmds.Begin();
 
-						cmds.TransitionImage(target, .Present);
+						cmds.TransitionImage(present, .Present);
 
 						cmds.End();
 						commandBuffers.Add(cmds);
@@ -115,9 +120,9 @@ namespace Cacti {
 						pWaitSemaphores = &renderFinishedSemaphore,
 						swapchainCount = 1,
 						pSwapchains = &Gfx.Swapchain.[Friend]handle,
-						pImageIndices = &targetIndex
+						pImageIndices = &Gfx.Swapchain.index
 					};
-	
+
 					vkQueuePresentKHR(Gfx.PresentQueue, &presentInfo);
 				}
 
@@ -131,5 +136,19 @@ namespace Cacti {
 		protected abstract void Update(double delta);
 
 		protected abstract void Render(List<CommandBuffer> commandBuffers, GpuImage target, double delta);
+
+		protected virtual CommandBuffer AfterRender(GpuImage target) {
+			return null;
+		}
+
+
+
+		private GpuImage swapchainImage;
+
+		protected virtual GpuImage GetTargetImage(VkSemaphore imageAvailableSemaphore) {
+			return swapchainImage = Gfx.Swapchain.GetImage(imageAvailableSemaphore);
+		}
+
+		protected virtual GpuImage GetPresentImage() => swapchainImage;
 	}
 }
