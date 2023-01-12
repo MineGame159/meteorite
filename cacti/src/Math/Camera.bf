@@ -109,11 +109,11 @@ class Camera {
 		planes[(.) Planes.Far].normal.z = clip[2][3] - clip[2][2];
 		planes[(.) Planes.Far].distanceToOrigin = clip[3][3] - clip[3][2];
 
-		/*for (ref Plane plane in ref planes) {
-		    float length = plane.normal.Length;
+		for (ref Plane plane in ref planes) {
+		    float length = (.) plane.normal.Length;
 		    plane.normal /= length;
 		    plane.distanceToOrigin /= length;
-		}*/
+		}
 	}
 
 	public void FlightMovement(float delta) {
