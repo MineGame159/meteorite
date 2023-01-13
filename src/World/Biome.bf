@@ -28,12 +28,14 @@ namespace Meteorite {
 			}
 		}
 
+		public String name ~ delete _;
 		public int32 id { get; set; }
 
 		public float temperature, downfall;
 		public Color waterColor, skyColor, fogColor;
 
-		public this(int32 id, float temperature, float downfall, Color waterColor, Color skyColor, Color fogColor) {
+		public this(StringView name, int32 id, float temperature, float downfall, Color waterColor, Color skyColor, Color fogColor) {
+			this.name = new .(name);
 			this.id = id;
 
 			this.temperature = temperature;

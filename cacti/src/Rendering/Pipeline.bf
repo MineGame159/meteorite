@@ -337,7 +337,7 @@ class PipelineInfo {
 		VkPipelineDepthStencilStateCreateInfo() {
 			depthTestEnable = depthTest,
 			depthWriteEnable = depthWrite,
-			depthCompareOp = .VK_COMPARE_OP_LESS
+			depthCompareOp = .VK_COMPARE_OP_LESS_OR_EQUAL
 		}
 	}
 

@@ -65,7 +65,7 @@ namespace Meteorite {
 
 				case .Stem:
 					int age = blockState.GetProperty("age").value;
-					return .(age * 32, 255 - age * 8, age * 4);
+					return .((uint8) (age * 32), (uint8) (255 - age * 8), (uint8) (age * 4));
 
 				case .Custom(let color): return color;
 				default:

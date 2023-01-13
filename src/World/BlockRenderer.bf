@@ -146,7 +146,7 @@ namespace Meteorite {
 			int g = 0;
 			int b = 0;
 
-			int s = true ? 1 : 0;
+			int s = 1;
 
 			int count = 0;
 			for (int x1 = x - s; x1 <= x + s; x1++) {
@@ -174,7 +174,7 @@ namespace Meteorite {
 			World world = chunk.world;
 
 			if (y < 0 || y >= world.height) return null;
-			if (x >= 0 && x < Section.SIZE && z >= 0 && z < Section.SIZE) return chunk.GetSection(y >> world.SectionCount).GetBiome(x, y % world.SectionCount, z);
+			if (x >= 0 && x < Section.SIZE && z >= 0 && z < Section.SIZE) return chunk.GetBiome(x, y, z);
 
 			int bx = chunk.pos.x * Section.SIZE + x;
 			int bz = chunk.pos.z * Section.SIZE + z;
@@ -182,8 +182,7 @@ namespace Meteorite {
 			Chunk c = world.GetChunk(bx >> 4, bz >> 4);
 			if (c == null) return null;
 
-			Section s = c.GetSection(y >> 4);
-			return s == null ? null : s.GetBiome(x, y % world.SectionCount, z);
+			return c.GetBiome(x, y, z);
 		}
 		
 		private static BlockState GetBlock(World world, Chunk chunk, int x, int y, int z) {

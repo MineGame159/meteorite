@@ -41,7 +41,7 @@ jobs:
       
       - name: Download assets
         run: |
-          Start-BitsTransfer -Source "https://launcher.mojang.com/v1/objects/2e9a3e3107cca00d6bc9c97bf7d149cae163ef21/client.jar" -Destination "minecraft.jar"
+          Start-BitsTransfer -Source "https://piston-data.mojang.com/v1/objects/977727ec9ab8b4631e5c12839f064092f17663f8/client.jar" -Destination "minecraft.jar"
           7z x minecraft.jar assets/minecraft
       
       - name: Create ZIP archive

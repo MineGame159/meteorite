@@ -18,6 +18,24 @@ namespace Cacti {
 		    return value - (double) Lfloor(value);
 		}
 
+		public static int FloorDiv(int x, int y) {
+		    int r = x / y;
+		    // if the signs are different and modulo not zero, round down
+		    if ((x ^ y) < 0 && (r * y != x)) {
+		        r--;
+		    }
+		    return r;
+		}
+
+		public static int PositiveCeilDiv(int x, int y) {
+			return -FloorDiv(-x, y);
+		}
+
+		public static int64 UnixTimeEpoch { get {
+			TimeSpan time = DateTime.Now.Subtract(DateTime(1970, 1, 1));
+			return ((int64) time / TimeSpan.TicksPerSecond) % 60;
+		} }
+
 #if BF_PLATFORM_WINDOWS
 		[CRepr]
 		struct ProcessMemoryCounters {

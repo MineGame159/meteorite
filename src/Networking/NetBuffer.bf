@@ -134,13 +134,16 @@ namespace Meteorite {
 			data[size++] = (.) v;
 		}
 
-		public void WriteString(StringView v) {
-			WriteVarInt((.) v.Length);
-			EnsureCapacity(v.Length);
+		public void WriteString(StringView v, int length = -1) {
+			var length;
+			if (length == -1) length = v.Length;
+
+			WriteVarInt((.) length);
+			EnsureCapacity(length);
 
 			char8* c = v.ToScopeCStr!();
-			Internal.MemCpy(&data[size], c, v.Length);
-			size += v.Length;
+			Internal.MemCpy(&data[size], c, length);
+			size += length;
 		}
 
 		// Read

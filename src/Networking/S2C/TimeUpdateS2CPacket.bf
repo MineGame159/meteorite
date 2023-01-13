@@ -2,7 +2,7 @@ using System;
 
 namespace Meteorite {
 	class TimeUpdateS2CPacket : S2CPacket {
-		public const int32 ID = 0x59;
+		public const int32 ID = 0x5A;
 
 		public int64 worldAge, timeOfDay;
 

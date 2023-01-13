@@ -49,7 +49,7 @@ namespace Meteorite {
 	}
 
 	class EntityPositionS2CPacket : BaseEntityPositionS2CPacket {
-		public const int32 ID = 0x29;
+		public const int32 ID = 0x27;
 
 		public this() : base(ID) {}
 
@@ -61,7 +61,7 @@ namespace Meteorite {
 	}
 
 	class EntityRotationS2CPacket : BaseEntityPositionS2CPacket {
-		public const int32 ID = 0x2B;
+		public const int32 ID = 0x29;
 
 		public this() : base(ID) {}
 
@@ -73,7 +73,7 @@ namespace Meteorite {
 	}
 
 	class EntityPositionAndRotationS2CPacket : BaseEntityPositionS2CPacket {
-		public const int32 ID = 0x2A;
+		public const int32 ID = 0x28;
 
 		public this() : base(ID) {}
 
@@ -86,7 +86,9 @@ namespace Meteorite {
 	}
 
 	class EntityTeleportS2CPacket : BaseEntityPositionS2CPacket {
-		public const int32 ID = 0x62;
+		public const int32 ID = 0x64;
+
+		public bool onGround;
 
 		public this() : base(ID) {}
 
@@ -98,6 +100,10 @@ namespace Meteorite {
 			x = buf.ReadDouble();
 			y = buf.ReadDouble() - me.world.minY;
 			z = buf.ReadDouble();
+
+			ReadRotation(buf);
+
+			onGround = buf.ReadBool();
 		}
 	}
 }

@@ -20,24 +20,4 @@ namespace Meteorite {
 			z = buf.ReadDouble();
 		}
 	}
-
-	class SpawnLivingEntityC2SPacket : S2CPacket {
-		public const int32 ID = 0x02;
-
-		public int entityId;
-		// UUID
-		public EntityType type;
-		public double x, y, z;
-
-		public this() : base(ID, .World) {}
-
-		public override void Read(NetBuffer buf) {
-			entityId = buf.ReadVarInt();
-			buf.Skip(16);
-			type = EntityTypes.ENTITY_TYPES[buf.ReadVarInt()];
-			x = buf.ReadDouble();
-			y = buf.ReadDouble() - me.world.minY;
-			z = buf.ReadDouble();
-		}
-	}
 }

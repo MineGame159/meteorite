@@ -1,6 +1,6 @@
 # Meteorite
 A Minecraft client written in [Beef](https://www.beeflang.org).  
-Currently protocol: 1.18.2
+Currently protocol: 1.19.3
 
 ## Dependencies
 - [GLFW](https://github.com/MineGame159/glfw-beef)

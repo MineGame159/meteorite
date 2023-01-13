@@ -2,7 +2,7 @@ using System;
 
 namespace Meteorite {
 	class KeepAliveS2CPacket : S2CPacket {
-		public const int32 ID = 0x21;
+		public const int32 ID = 0x1F;
 
 		public uint8[8] data;
 

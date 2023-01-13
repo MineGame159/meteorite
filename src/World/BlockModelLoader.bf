@@ -472,6 +472,10 @@ namespace Meteorite{
 			String str1 = scope .();
 			String str2 = scope .();
 
+			if (blockState.block == Blocks.CHISELED_BOOKSHELF) {
+
+			}
+
 			for (Json json in blockstateJson["multipart"].AsArray) {
 				bool apply = true;
 
@@ -505,30 +509,38 @@ namespace Meteorite{
 		}
 
 		private static void EvaluateWhen(Json json, BlockState blockState, String str1, String str2, ref bool apply) {
-			for (let pair in json.AsObject) {
+			main: for (let pair in json.AsObject) {
 				defer {
 					str1.Clear();
 					str2.Clear();
 				}
 
 				if (pair.key == "OR") {
-					bool a = false;
-
 					for (let j in pair.value.AsArray) {
-						bool b = true;
-						EvaluateWhen(j, blockState, str1, str2, ref b);
+						bool apply2 = false;
+						EvaluateWhen(j, blockState, str1, str2, ref apply2);
 
-						if (b) {
-							a = true;
-							break;
+						if (apply2) {
+							apply = true;
+							continue main;
 						}
 					}
 
-					if (!a) {
-						apply = false;
-						break;
+					apply = false;
+					continue;
+				}
+				else if (pair.key == "AND") {
+					for (let j in pair.value.AsArray) {
+						bool apply2 = false;
+						EvaluateWhen(j, blockState, str1, str2, ref apply2);
+
+						if (!apply2) {
+							apply = false;
+							continue main;
+						}
 					}
 
+					apply = true;
 					continue;
 				}
 

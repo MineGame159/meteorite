@@ -2,7 +2,7 @@ using System;
 
 namespace Meteorite {
 	class ChangeGameStateS2CPacket : S2CPacket {
-		public const int32 ID = 0x1E;
+		public const int32 ID = 0x1C;
 
 		public uint8 reason;
 		public float value;

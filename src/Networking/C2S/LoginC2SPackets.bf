@@ -15,7 +15,7 @@ namespace Meteorite {
 		}
 
 		public override void Write(NetBuffer buf) {
-			buf.WriteVarInt(758); // Protocol version (1.18.2)
+			buf.WriteVarInt(761); // Protocol version (1.19.3)
 			buf.WriteString(address); // Address
 			buf.WriteUShort((.) port); // Port
 			buf.WriteVarInt(2); // Next state
@@ -34,7 +34,9 @@ namespace Meteorite {
 		}
 
 		public override void Write(NetBuffer buf) {
-			buf.WriteString(username);
+			buf.WriteString(username); // Username
+			buf.WriteBool(false); // Has player UUID
+			// Player UUID
 		}
 	}
 }

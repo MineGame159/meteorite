@@ -2,7 +2,7 @@ using System;
 
 namespace Meteorite {
 	class ClientSettingsC2SPacket : C2SPacket {
-		public const int32 ID = 0x05;
+		public const int32 ID = 0x07;
 
 		public int viewDistance;
 

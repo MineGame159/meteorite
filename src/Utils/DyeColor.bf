@@ -24,7 +24,12 @@ namespace Meteorite {
 		public static Color YELLOW = Add("yellow", .(255, 255, 85));
 		public static Color WHITE = Add("white", .(255, 255, 255));
 
-		public static Result<Color> Get(String name) => COLORS.GetValue(name);
+		public static Result<Color> Get(StringView name) {
+			Color color;
+
+			if (COLORS.TryGetValueAlt(name, out color)) return color;
+			return .Err;
+		}
 
 		private static Color Add(StringView name, Color color) {
 			COLORS[new .(name)] = color;

@@ -10,7 +10,7 @@ namespace Meteorite {
 
 		public bool onGround;
 
-		public this(ClientPlayerEntity player, bool position, bool rotation) : base((position && rotation) ? 0x12 : (position ? 0x11 : 0x13)) {
+		public this(ClientPlayerEntity player, bool position, bool rotation) : base((position && rotation) ? 0x14 : (position ? 0x13 : 0x15)) {
 			if (position) {
 				hasPosition = true;
 				this.x = player.pos.x;

@@ -3,14 +3,18 @@ using System.Collections;
 
 namespace Meteorite {
 	class JoinGameS2CPacket : S2CPacket {
-		public const int32 ID = 0x26;
+		public const int32 ID = 0x24;
 
 		public int playerId;
 		public bool hardcore;
 		public Gamemode gamemode, previousGamemode;
-		public List<String> worlds ~ DeleteContainerAndItems!(_);
-		public Tag dimensionCodec ~ _.Dispose();
-		public Tag dimension ~ _.Dispose();
+
+		public List<String> dimensionNames ~ DeleteContainerAndItems!(_);
+
+		public Tag registryCodec ~ _.Dispose();
+
+		public String dimensionType ~ delete _;
+		public String dimensionName ~ delete _;
 
 		public this() : base(ID) {}
 
@@ -20,12 +24,14 @@ namespace Meteorite {
 			gamemode = (.) packet.ReadUByte();
 			previousGamemode = (.) packet.ReadUByte();
 
-			int worldCount = packet.ReadVarInt();
-			worlds = new .(worldCount);
-			for (int i < worldCount) worlds.Add(packet.ReadString());
+			int dimensionCount = packet.ReadVarInt();
+			dimensionNames = new .(dimensionCount);
+			for (int i < dimensionCount) dimensionNames.Add(packet.ReadString());
 
-			dimensionCodec = packet.ReadNbt();
-			dimension = packet.ReadNbt();
+			registryCodec = packet.ReadNbt();
+
+			dimensionType = packet.ReadString();
+			dimensionName = packet.ReadString();
 		}
 	}
 }

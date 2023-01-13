@@ -62,6 +62,7 @@ namespace Meteorite {
 			Blocks.Register();
 			BlockModelLoader.LoadModels();
 			Biomes.Register();
+			ChatTypes.Register();
 			Biome.LoadColormaps();
 			Buffers.CreateGlobalIndices();
 			SkyRenderer.Init();

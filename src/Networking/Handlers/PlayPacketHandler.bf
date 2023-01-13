@@ -47,7 +47,20 @@ namespace Meteorite {
 				delete me.worldRenderer;
 			}
 
-			me.world = new .(connection.viewDistance, packet.dimension["min_y"].AsInt, packet.dimension["height"].AsInt);
+			Tag dimensionTypes = packet.registryCodec["minecraft:dimension_type"]["value"];
+			Tag dimensionType = default;
+
+			for (let dimensionType2 in dimensionTypes.AsList) {
+				if (dimensionType2["name"].AsString == packet.dimensionName) {
+					dimensionType = dimensionType2;
+					break;
+				}
+			}
+
+			Runtime.Assert(dimensionType != default, "Failed to find dimenstion type");
+			dimensionType = dimensionType["element"];
+
+			me.world = new .(connection.viewDistance, dimensionType["min_y"].AsInt, dimensionType["height"].AsInt);
 			me.worldRenderer = new .();
 		}
 
@@ -129,10 +142,6 @@ namespace Meteorite {
 			me.world.AddEntity(new .(packet.type, packet.entityId, .(packet.x, packet.y, packet.z)));
 		}
 
-		private void OnSpawnLivingEntity(SpawnLivingEntityC2SPacket packet) {
-			me.world.AddEntity(new .(packet.type, packet.entityId, .(packet.x, packet.y, packet.z)));
-		}
-
 		private void OnDestroyEntities(DestroyEntitiesS2CPacket packet) {
 			for (let id in packet.entityIds) me.world.RemoveEntity(id);
 		}
@@ -164,11 +173,14 @@ namespace Meteorite {
 			if (packet.reason == 3) me.player.gamemode = (.) packet.value;
 		}
 
-		private void OnChatMessage(ChatMessageS2CPacket packet) {
-			// 2 - above hotbar thing
-			if (packet.position != 2) {
+		private void OnSystemChatMessage(SystemChatMessageS2CPacket packet) {
+			if (!packet.actionBar) {
 				me.hud.chat.AddMessage(packet.text);
 			}
+		}
+
+		private void OnPlayerChatMessage(PlayerCharMessageS2CPacket packet) {
+			me.hud.chat.AddMessage(packet.text);
 		}
 
 		private void OnDisconnect(DisconnectS2CPacket packet) {
@@ -179,26 +191,26 @@ namespace Meteorite {
 
 		public override S2CPacket GetPacket(int32 id) {
 			switch (id) {
-			case KeepAliveS2CPacket.ID: return new KeepAliveS2CPacket();
-			case PlayerInfoS2CPacket.ID: return new PlayerInfoS2CPacket();
-			case JoinGameS2CPacket.ID: return new JoinGameS2CPacket();
-			case PlayerAbilitiesS2CPacket.ID: return new PlayerAbilitiesS2CPacket();
-			case PlayerPositionAndLookS2CPacket.ID: return new PlayerPositionAndLookS2CPacket();
-			case ChunkDataS2CPacket.ID: return new ChunkDataS2CPacket();
-			case BlockChangeS2CPacket.ID: return new BlockChangeS2CPacket();
-			case MultiBlockChangeS2CPacket.ID: return new MultiBlockChangeS2CPacket();
-			case BlockEntityDataS2CPacket.ID: return new BlockEntityDataS2CPacket();
-			case SpawnEntityS2CPacket.ID: return new SpawnEntityS2CPacket();
-			case SpawnLivingEntityC2SPacket.ID: return new SpawnLivingEntityC2SPacket();
-			case DestroyEntitiesS2CPacket.ID: return new DestroyEntitiesS2CPacket();
-			case EntityPositionS2CPacket.ID: return new EntityPositionS2CPacket();
-			case EntityRotationS2CPacket.ID: return new EntityRotationS2CPacket();
+			case KeepAliveS2CPacket.ID:					return new KeepAliveS2CPacket();
+			case PlayerInfoS2CPacket.ID:				return new PlayerInfoS2CPacket();
+			case JoinGameS2CPacket.ID:					return new JoinGameS2CPacket();
+			case PlayerAbilitiesS2CPacket.ID:			return new PlayerAbilitiesS2CPacket();
+			case PlayerPositionAndLookS2CPacket.ID:		return new PlayerPositionAndLookS2CPacket();
+			case ChunkDataS2CPacket.ID:					return new ChunkDataS2CPacket();
+			case BlockChangeS2CPacket.ID:				return new BlockChangeS2CPacket();
+			case MultiBlockChangeS2CPacket.ID:			return new MultiBlockChangeS2CPacket();
+			case BlockEntityDataS2CPacket.ID:			return new BlockEntityDataS2CPacket();
+			case SpawnEntityS2CPacket.ID:				return new SpawnEntityS2CPacket();
+			case DestroyEntitiesS2CPacket.ID:			return new DestroyEntitiesS2CPacket();
+			case EntityPositionS2CPacket.ID:			return new EntityPositionS2CPacket();
+			case EntityRotationS2CPacket.ID:			return new EntityRotationS2CPacket();
 			case EntityPositionAndRotationS2CPacket.ID: return new EntityPositionAndRotationS2CPacket();
-			case EntityTeleportS2CPacket.ID: return new EntityTeleportS2CPacket();
-			case TimeUpdateS2CPacket.ID: return new TimeUpdateS2CPacket();
-			case ChangeGameStateS2CPacket.ID: return new ChangeGameStateS2CPacket();
-			case ChatMessageS2CPacket.ID: return new ChatMessageS2CPacket();
-			case DisconnectS2CPacket.ID: return new DisconnectS2CPacket();
+			case EntityTeleportS2CPacket.ID:			return new EntityTeleportS2CPacket();
+			case TimeUpdateS2CPacket.ID:				return new TimeUpdateS2CPacket();
+			case ChangeGameStateS2CPacket.ID:			return new ChangeGameStateS2CPacket();
+			case SystemChatMessageS2CPacket.ID:			return new SystemChatMessageS2CPacket();
+			case PlayerCharMessageS2CPacket.ID:			return new PlayerCharMessageS2CPacket();
+			case DisconnectS2CPacket.ID:				return new DisconnectS2CPacket();
 			}
 
 			return null;
@@ -213,26 +225,26 @@ namespace Meteorite {
 			CheckPacketCondition!(packet);
 
 			switch (packet.id) {
-			case KeepAliveS2CPacket.ID: OnKeepAlive((.) packet);
-			case PlayerInfoS2CPacket.ID: OnPlayerInfo((.) packet);
-			case JoinGameS2CPacket.ID: OnJoinGame((.) packet);
-			case PlayerAbilitiesS2CPacket.ID: OnPlayerAbilities((.) packet);
-			case PlayerPositionAndLookS2CPacket.ID: OnPlayerPositionAndLook((.) packet);
-			case ChunkDataS2CPacket.ID: OnChunkData((.) packet);
-			case BlockChangeS2CPacket.ID: OnBlockChange((.) packet);
-			case MultiBlockChangeS2CPacket.ID: OnMultiBlockChange((.) packet);
-			case BlockEntityDataS2CPacket.ID: OnBlockEntityData((.) packet);
-			case SpawnEntityS2CPacket.ID: OnSpawnEntity((.) packet);
-			case SpawnLivingEntityC2SPacket.ID: OnSpawnLivingEntity((.) packet);
-			case DestroyEntitiesS2CPacket.ID: OnDestroyEntities((.) packet);
-			case EntityPositionS2CPacket.ID: OnEntityPosition((.) packet);
-			case EntityRotationS2CPacket.ID: OnEntityPosition((.) packet);
-			case EntityPositionAndRotationS2CPacket.ID: OnEntityPosition((.) packet);
-			case EntityTeleportS2CPacket.ID: OnEntityPosition((.) packet);
-			case TimeUpdateS2CPacket.ID: OnTimeUpdate((.) packet);
-			case ChangeGameStateS2CPacket.ID: OnChangeGameState((.) packet);
-			case ChatMessageS2CPacket.ID: OnChatMessage((.) packet);
-			case DisconnectS2CPacket.ID: OnDisconnect((.) packet);
+			case KeepAliveS2CPacket.ID:					OnKeepAlive((.) packet);
+			case PlayerInfoS2CPacket.ID:				OnPlayerInfo((.) packet);
+			case JoinGameS2CPacket.ID:					OnJoinGame((.) packet);
+			case PlayerAbilitiesS2CPacket.ID:			OnPlayerAbilities((.) packet);
+			case PlayerPositionAndLookS2CPacket.ID:		OnPlayerPositionAndLook((.) packet);
+			case ChunkDataS2CPacket.ID:					OnChunkData((.) packet);
+			case BlockChangeS2CPacket.ID:				OnBlockChange((.) packet);
+			case MultiBlockChangeS2CPacket.ID:			OnMultiBlockChange((.) packet);
+			case BlockEntityDataS2CPacket.ID:			OnBlockEntityData((.) packet);
+			case SpawnEntityS2CPacket.ID:				OnSpawnEntity((.) packet);
+			case DestroyEntitiesS2CPacket.ID:			OnDestroyEntities((.) packet);
+			case EntityPositionS2CPacket.ID:			OnEntityPosition((.) packet);
+			case EntityRotationS2CPacket.ID:			OnEntityPosition((.) packet);
+			case EntityPositionAndRotationS2CPacket.ID:	OnEntityPosition((.) packet);
+			case EntityTeleportS2CPacket.ID:			OnEntityPosition((.) packet);
+			case TimeUpdateS2CPacket.ID:				OnTimeUpdate((.) packet);
+			case ChangeGameStateS2CPacket.ID:			OnChangeGameState((.) packet);
+			case SystemChatMessageS2CPacket.ID:			OnSystemChatMessage((.) packet);
+			case PlayerCharMessageS2CPacket.ID:			OnPlayerChatMessage((.) packet);
+			case DisconnectS2CPacket.ID:				OnDisconnect((.) packet);
 			}
 
 			delete packet;

@@ -2,7 +2,7 @@ using System;
 
 namespace Meteorite {
 	class ClientStatusC2SPacket : C2SPacket {
-		public const int32 ID = 0x04;
+		public const int32 ID = 0x06;
 
 		public int actionId;
 

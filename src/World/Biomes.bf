@@ -15,6 +15,7 @@ namespace Meteorite {
 			BIOMES = new .[json.AsArray.Count];
 
 			for (Json e in json.AsArray) {
+				StringView name = e["id"].AsString;
 				int32 id = (.) e["raw_id"].AsNumber;
 
 				float temperature = (.) e["temperature"].AsNumber;
@@ -23,7 +24,7 @@ namespace Meteorite {
 				Color skyColor = .((int32) e["sky_color"].AsNumber);
 				Color fogColor = .((int32) e["fog_color"].AsNumber);
 
-				BIOMES[id] = new .(id, temperature, downfall, waterColor, skyColor, fogColor);
+				BIOMES[id] = new .(name, id, temperature, downfall, waterColor, skyColor, fogColor);
 
 				if (id == 0) VOID = BIOMES[id];
 			}

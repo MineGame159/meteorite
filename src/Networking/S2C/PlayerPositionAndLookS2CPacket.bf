@@ -8,6 +8,7 @@ namespace Meteorite {
 		public float yaw, pitch;
 		public uint8 flags;
 		public int32 teleportId;
+		public bool dismountVehicle;
 
 		public this() : base(ID, .World) {}
 
@@ -21,6 +22,7 @@ namespace Meteorite {
 
 			flags = buf.ReadUByte();
 			teleportId = buf.ReadVarInt();
+			dismountVehicle = buf.ReadBool();
 		}
 	}
 }

@@ -6,7 +6,7 @@ using Cacti;
 namespace Meteorite {
 	class
 		ChunkDataS2CPacket : S2CPacket {
-		public const int32 ID = 0x22;
+		public const int32 ID = 0x20;
 
 		public ChunkPos pos;
 		public int minY, maxY;

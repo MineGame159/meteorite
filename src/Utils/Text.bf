@@ -47,12 +47,26 @@ namespace Meteorite {
 		public static Text Of(StringView string) => new .(string, .WHITE, null);
 
 		public static Text Parse(Json json) {
-			if (!json.IsObject) {
+			if (!json.IsString && !json.IsObject) {
 				Log.Error("Invalid text");
 				return null;
 			}
 
 			return ToText(json);
+		}
+
+		public static Result<Color> ParseColor(StringView raw) {
+			if (raw.StartsWith('#')) {
+				Color color = .(int32.Parse(raw[1...], .HexNumber));
+				color.a = 255;
+
+				return color;
+			}
+			else if (raw != "reset") {
+				return DyeColor.Get(raw);
+			}
+
+			return .Err;
 		}
 
 		private static Text ToText(Json json) {
@@ -62,16 +76,8 @@ namespace Meteorite {
 			Color color = .WHITE;
 
 			if (json.Contains("color")) {
-				String raw = json["color"].AsString;
-
-				if (raw.StartsWith('#')) {
-					color = .(int32.Parse(raw[1...], .HexNumber));
-					color.a = 255;
-				}
-				else if (raw != "reset") {
-					Result<Color> c = DyeColor.Get(raw);
-					if (c case .Ok(let val)) color = val;
-				}
+				Result<Color> c = ParseColor(json["color"].AsString);
+				if (c case .Ok(let val)) color = val;
 			}
 
 			// Content
@@ -89,6 +95,12 @@ namespace Meteorite {
 						String s = new .();
 
 						Text text = .Parse(with[i]);
+						if (text == null) {
+							delete s;
+							DeleteContainerAndItems!(args);
+							return null;
+						}
+
 						text.ToString(s);
 						delete text;
 

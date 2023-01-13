@@ -122,7 +122,7 @@ namespace Meteorite {
 					Input.capturingCharacters = false;
 
 					if ((key == .Enter || key == .KpEnter) && !toSend.IsEmpty) {
-						me.connection.Send(scope MessageC2SPacket(toSend));
+						me.connection.Send(scope ChatC2SPacket(toSend));
 
 						sentMessages.AddFront(new .(toSend));
 						if (sentMessages.Count > 16) delete sentMessages.PopBack();

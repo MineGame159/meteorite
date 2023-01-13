@@ -2,7 +2,7 @@ using System;
 
 namespace Meteorite {
 	class PluginMessageC2SPacket : C2SPacket {
-		public const int32 ID = 0x0A;
+		public const int32 ID = 0x0C;
 
 		public String channel;
 		public String data ~ delete _;

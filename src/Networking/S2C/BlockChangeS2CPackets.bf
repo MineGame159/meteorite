@@ -4,7 +4,7 @@ using Cacti;
 
 namespace Meteorite {
 	class BlockChangeS2CPacket : S2CPacket {
-		public const int32 ID = 0x0C;
+		public const int32 ID = 0x09;
 
 		public Vec3i pos;
 		public BlockState blockState;
