@@ -126,6 +126,19 @@ static class Gfx {
 		newFrameCallbacks.Add(callback);
 	}
 
+	public static uint64 UsedMemory { get {
+		VmaBudget[VulkanNative.VK_MAX_MEMORY_HEAPS] budgets = .();
+		vmaGetHeapBudgets(VmaAllocator, &budgets);
+
+		uint64 usage = 0;
+
+		for (let budget in budgets) {
+			usage += budget.usage;
+		}
+
+		return usage;
+	} }
+
 	// Initialization
 
 	private static Result<void> CreateInstance() {

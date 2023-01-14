@@ -4,11 +4,19 @@ using Cacti;
 using ImGui;
 using GLFW;
 
+using Bulkan;
+using Bulkan.Utilities;
+using static Bulkan.Utilities.VulkanMemoryAllocator;
+
 namespace Meteorite {
 	class HudRenderer {
 		private Meteorite me = .INSTANCE;
 
 		public ChatRenderer chat = new .() ~ delete _;
+
+		private Average<60> fps = new .() ~ delete _;
+		private Average<60> frameTime = new .() ~ delete _;
+		private double lastTime;
 
 		private char8*[?] aos = .("None", "Vanilla", "SSAO", "Both");
 
@@ -24,10 +32,16 @@ namespace Meteorite {
 				chat.Render(cmds, delta);
 			}
 
+			double time = Glfw.GetTime();
+			double deltaTime = time - lastTime;
+			lastTime = time;
+
+			fps.Add(1.0 / deltaTime);
+			frameTime.Add(me.lastFrameTime.TotalMilliseconds);
+
 			ImGui.Begin("Meteorite", null, .AlwaysAutoResize);
-			ImGui.Text("Frame: {:0.000} ms", Meteorite.INSTANCE.lastFrameTime.TotalMilliseconds);
-			ImGui.Text("Memory: {} MB", Utils.GetUsedMemory());
-			//ImGui.Text("GPU Memory: {} MB", Gfx.ALLOCATED / 1024 / 1024);
+			ImGui.Text("FPS: {:0}, {:0.000} ms", fps.Get(), frameTime.Get());
+			ImGui.Text("Memory: {} MB, GPU: {} MB", Utils.UsedMemory, Gfx.UsedMemory / (1024 * 1024));
 			ImGui.Separator();
 
 			if (me.world != null && me.worldRenderer != null) {
@@ -54,7 +68,7 @@ namespace Meteorite {
 				if (prevVanilla != me.options.ao.HasVanilla) me.world.ReloadChunks();
 				if (prevSsao != me.options.ao.HasSSAO) {
 					Gfxa.POST_PIPELINE.Reload();
-					Meteorite.INSTANCE.gameRenderer.[Friend]ssao?.pipeline.Reload();
+					me.gameRenderer.[Friend]ssao?.pipeline.Reload();
 				}
 			}
 			if (ImGui.Checkbox("FXAA", &me.options.fxaa)) Gfxa.POST_PIPELINE.Reload();

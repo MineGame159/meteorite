@@ -162,7 +162,6 @@ namespace Meteorite {
 			buffer.Upload(&bufferData[0], buffer.size);
 			
 			DeleteAndNullify!(textures);
-			Log.Debug("Created textures SSBO");
 
 			// Bind groups
 			textureSet = Gfx.DescriptorSets.Create(Gfxa.IMAGE_SET_LAYOUT, .SampledImage(texture, .VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, Gfxa.NEAREST_SAMPLER));

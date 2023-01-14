@@ -55,7 +55,7 @@ namespace Cacti {
 		public static extern Windows.IntBool GetProcessMemoryInfo(Windows.Handle handle, ProcessMemoryCounters* ppsmemCounters, uint32 cb);
 #endif
 
-		public static int GetUsedMemory() {
+		public static int UsedMemory { get {
 #if BF_PLATFORM_WINDOWS
 			ProcessMemoryCounters pmc = default;
 			GetProcessMemoryInfo(Windows.GetCurrentProcess(), &pmc, sizeof(ProcessMemoryCounters));
@@ -63,7 +63,7 @@ namespace Cacti {
 #else
 			return 0;
 #endif
-		}
+		} }
 	}
 
 	interface IPool<T> {
