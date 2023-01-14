@@ -199,7 +199,7 @@ namespace Meteorite {
 			Meteorite me = Meteorite.INSTANCE;
 
 			for (Entity entity in me.world.Entities) {
-				if (entity == me.player && me.player.gamemode != .Spectator) continue;
+				if (entity == me.player && me.player.gamemode != .Creative) continue;
 
 				entity.Render(mb, tickDelta);
 			}

@@ -100,10 +100,12 @@ namespace Meteorite {
 					abilities = new .();
 				}
 
-				me.world.AddEntity(new ClientPlayerEntity(playerId, .(packet.x, packet.y - 2, packet.z), (.) packet.yaw, (.) packet.pitch, gamemode, abilities));
+				me.world.AddEntity(new ClientPlayerEntity(playerId, .(), 0, 0, gamemode, abilities));
 
 				firstPlayerPositionAndLook = false;
 			}
+
+			packet.Apply(me.player);
 		}
 
 		private void OnChunkData(ChunkDataS2CPacket packet) {
