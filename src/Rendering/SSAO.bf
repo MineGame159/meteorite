@@ -22,7 +22,7 @@ namespace Meteorite {
 			// Pipeline
 			pipeline = Gfx.Pipelines.Get(scope PipelineInfo("SSAO")
 				.VertexFormat(PostVertex.FORMAT)
-				.Sets(Gfxa.STORAGE_SET_LAYOUT, Gfxa.IMAGE_SET_LAYOUT, Gfxa.IMAGE_SET_LAYOUT, setLayout)
+				.Sets(Gfxa.UNIFORM_SET_LAYOUT, Gfxa.IMAGE_SET_LAYOUT, Gfxa.IMAGE_SET_LAYOUT, setLayout)
 				.Shader("ssao", "ssao")
 				.Targets(
 					.(.R8, .Disabled())

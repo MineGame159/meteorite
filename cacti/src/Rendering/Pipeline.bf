@@ -496,7 +496,8 @@ class PipelineManager {
 		VkPipelineCacheCreateInfo info = .();
 		vkCreatePipelineCache(Gfx.Device, &info, null, &vkCache);
 
-		#if DEBUG
+#if DEBUG
+		options.SetGenerateDebugInfo();
 		options.SetOptimizationLevel(.Zero);
 #elif RELEASE
 		options.SetOptimizationLevel(.Performance);
@@ -639,8 +640,8 @@ struct ShaderPreProcessor {
 		this.options = options;
 	}
 
-	public void Define(StringView name) {
-		options.AddMacroDefinition(name, "TRUE");
+	public void Define(StringView name, StringView value = "TRUE") {
+		options.AddMacroDefinition(name, value);
 	}
 }
 

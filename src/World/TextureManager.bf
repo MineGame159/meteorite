@@ -158,15 +158,16 @@ namespace Meteorite {
 				tex.Dispose();
 			}
 
-			buffer = Gfx.Buffers.Create(.Storage, .Mappable, (.) (sizeof(BufferTexture) * bufferData.Count), "Textures");
+			buffer = Gfx.Buffers.Create(.Uniform, .Mappable, (.) (sizeof(BufferTexture) * bufferData.Count), "Textures");
 			buffer.Upload(&bufferData[0], buffer.size);
 			
 			DeleteAndNullify!(textures);
+			Log.Debug("Created textures SSBO");
 
 			// Bind groups
 			textureSet = Gfx.DescriptorSets.Create(Gfxa.IMAGE_SET_LAYOUT, .SampledImage(texture, .VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, Gfxa.NEAREST_SAMPLER));
 			textureMipmapSet = Gfx.DescriptorSets.Create(Gfxa.IMAGE_SET_LAYOUT, .SampledImage(texture, .VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, Gfxa.NEAREST_MIPMAP_SAMPLER));
-			bufferSet = Gfx.DescriptorSets.Create(Gfxa.STORAGE_SET_LAYOUT, .Storage(buffer));
+			bufferSet = Gfx.DescriptorSets.Create(Gfxa.UNIFORM_SET_LAYOUT, .Uniform(buffer));
 		}
 
 		public void Bind(CommandBuffer cmds, bool mipmaps) {

@@ -1,4 +1,5 @@
 #version 460
+#extension GL_EXT_scalar_block_layout : enable
 
 layout(location = 0) in vec3 position;
 layout(location = 1) in vec2 texCoords;
@@ -25,8 +26,8 @@ struct Texture {
     float blend;
 };
 
-layout(set = 2, binding = 0, std430) buffer TextureBuffer {
-    Texture textures[];
+layout(set = 2, binding = 0, std430) uniform TextureBuffer {
+    Texture textures[1];
 };
 
 void main() {

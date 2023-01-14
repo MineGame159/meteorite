@@ -19,8 +19,8 @@ namespace Meteorite {
 		private static DescriptorSet set;
 
 		public static void Init() {
-			buffer = Gfx.Buffers.Create(.Storage, .Mappable, sizeof(Data), "Frame Uniforms");
-			set = Gfx.DescriptorSets.Create(Gfx.DescriptorSetLayouts.Get(.StorageBuffer), .Storage(buffer));
+			buffer = Gfx.Buffers.Create(.Uniform, .Mappable, sizeof(Data), "Frame Uniforms");
+			set = Gfx.DescriptorSets.Create(Gfxa.UNIFORM_SET_LAYOUT, .Uniform(buffer));
 		}
 
 		public static void Destroy() {

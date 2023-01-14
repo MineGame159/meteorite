@@ -224,7 +224,7 @@ class CommandBuffer {
 			size = size
 		};
 
-		VulkanNative.vkCmdCopyBuffer(handle, src.buffer.[Friend]handle, dst.buffer.[Friend]handle, 1, &info);
+		vkCmdCopyBuffer(handle, src.buffer.[Friend]handle, dst.buffer.[Friend]handle, 1, &info);
 	}
 
 	public void CopyBufferToImage(GpuBufferView src, GpuImage dst, int mipLevel = 0) {
