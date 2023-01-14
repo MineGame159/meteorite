@@ -42,9 +42,11 @@ class CommandBuffer {
 		};
 
 		vkBeginCommandBuffer(handle, &info);
+		vkCmdWriteTimestamp(handle, .VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, Gfx.Queries.pool, Gfx.Queries.Get());
 	}
 
 	public void End() {
+		vkCmdWriteTimestamp(handle, .VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, Gfx.Queries.pool, Gfx.Queries.Get());
 		vkEndCommandBuffer(handle);
 	}
 

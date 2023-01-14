@@ -34,6 +34,7 @@ static class Gfx {
 	public static Swapchain Swapchain;
 	public static CommandBufferManager CommandBuffers;
 	public static UploadManager Uploads;
+	public static Queries Queries;
 
 	private static Window Window;
 	private static bool firstFrame = true;
@@ -73,6 +74,7 @@ static class Gfx {
 		Swapchain = new .();
 		CommandBuffers = new .();
 		Uploads = new .();
+		Queries = new .();
 
 		Swapchain.Recreate(window.size);
 
@@ -83,6 +85,7 @@ static class Gfx {
 	public static void Destroy() {
 		vkDeviceWaitIdle(Device);
 
+		DeleteAndNullify!(Queries);
 		DeleteAndNullify!(Uploads);
 		DeleteAndNullify!(CommandBuffers);
 		DeleteAndNullify!(Swapchain);
@@ -113,6 +116,7 @@ static class Gfx {
 		CommandBuffers.NewFrame();
 		Pipelines.NewFrame();
 		Uploads.NewFrame();
+		Queries.NewFrame();
 
 		// Callbacks
 		for (let callback in newFrameCallbacks) {
@@ -127,7 +131,7 @@ static class Gfx {
 	}
 
 	public static uint64 UsedMemory { get {
-		VmaBudget[VulkanNative.VK_MAX_MEMORY_HEAPS] budgets = .();
+		VmaBudget[VK_MAX_MEMORY_HEAPS] budgets = .();
 		vmaGetHeapBudgets(VmaAllocator, &budgets);
 
 		uint64 usage = 0;
@@ -295,10 +299,15 @@ static class Gfx {
 		}
 
 		VkPhysicalDeviceFeatures features = .() {
-			independentBlend = true
+			independentBlend = true,
+		};
+
+		VkPhysicalDeviceHostQueryResetFeatures queryResetFeatures = .() {
+			hostQueryReset = true
 		};
 
 		VkPhysicalDeviceVulkan13Features features13 = .() {
+			pNext = &queryResetFeatures,
 			dynamicRendering = true
 		};
 

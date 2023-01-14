@@ -60,7 +60,8 @@ namespace Cacti {
 					// GPU Synchronization
 					vkWaitForFences(Gfx.Device, 1, &inFlightFence, true, uint64.MaxValue);
 					vkResetFences(Gfx.Device, 1, &inFlightFence);
-	
+					
+					// Get targets
 					GpuImage target = GetTargetImage(imageAvailableSemaphore);
 					GpuImage present = GetPresentImage();
 
@@ -86,9 +87,9 @@ namespace Cacti {
 					if (present.Access != .Present) {
 						CommandBuffer cmds = Gfx.CommandBuffers.GetBuffer();
 						cmds.Begin();
-
+	
 						cmds.TransitionImage(present, .Present);
-
+	
 						cmds.End();
 						commandBuffers.Add(cmds);
 					}

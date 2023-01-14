@@ -16,6 +16,7 @@ namespace Meteorite {
 
 		private Average<60> fps = new .() ~ delete _;
 		private Average<60> frameTime = new .() ~ delete _;
+		private Average<60> gpuFrameTime = new .() ~ delete _;
 		private double lastTime;
 
 		private char8*[?] aos = .("None", "Vanilla", "SSAO", "Both");
@@ -38,9 +39,11 @@ namespace Meteorite {
 
 			fps.Add(1.0 / deltaTime);
 			frameTime.Add(me.lastFrameTime.TotalMilliseconds);
+			gpuFrameTime.Add(Gfx.Queries.total.TotalMilliseconds);
 
 			ImGui.Begin("Meteorite", null, .AlwaysAutoResize);
-			ImGui.Text("FPS: {:0}, {:0.000} ms", fps.Get(), frameTime.Get());
+			ImGui.Text("FPS: {:0}", fps.Get());
+			ImGui.Text("CPU: {:0.000} ms, GPU: {:0.000} ms", frameTime.Get(), gpuFrameTime.Get());
 			ImGui.Text("Memory: {} MB, GPU: {} MB", Utils.UsedMemory, Gfx.UsedMemory / (1024 * 1024));
 			ImGui.Separator();
 
