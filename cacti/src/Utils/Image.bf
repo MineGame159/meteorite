@@ -195,7 +195,8 @@ namespace Cacti {
 			uint8* pixels = stbi.stbi_load_from_callbacks(&IO_CALLBACKS, Internal.UnsafeCastToPtr(fs), &width, &height, &comp, (.) components);
 			if (pixels == null) return .Err;
 
-			return new Image(.(width, height), comp, pixels, true);
+			// Either the STB Image port does not correctly return the required components argument as the components in the image or the original STB also does not do this, don't know
+			return new Image(.(width, height), components, pixels, true);
 		}
 
 		public static Result<ImageInfo> ReadInfo(StringView path) {

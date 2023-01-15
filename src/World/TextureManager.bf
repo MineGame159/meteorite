@@ -7,6 +7,7 @@ namespace Meteorite {
 	class TextureManager {
 		private TexturePacker packer;
 		private List<TempTexture> textures;
+		private uint16? missingTexture;
 
 		private List<AnimatedTexture> animatedTextures ~ DeleteContainerAndItems!(_);
 
@@ -55,7 +56,14 @@ namespace Meteorite {
 		}
 
 		public uint16 Add(StringView path) {
-			ImageInfo image = Meteorite.INSTANCE.resources.ReadImageInfo(path);
+			Result<ImageInfo> imageResult = Meteorite.INSTANCE.resources.ReadImageInfo(path);
+
+			if (imageResult == .Err) {
+				Log.Debug("Texture '{}' is missing, using a fallback", path);
+				return AddMissingTexture();
+			}
+
+			ImageInfo image = imageResult;
 			TextureMetadata metadata = .Parse(path);
 
 			if (metadata?.animation == null) {
@@ -64,6 +72,7 @@ namespace Meteorite {
 				textures.Add(.(new .(path), uvs, image.Width, null));
 			}
 			else {
+				// TODO: This whole animation loading is fucked
 				TextureAnimationMetadata animation = metadata.animation;
 				metadata.animation = null;
 
@@ -82,9 +91,17 @@ namespace Meteorite {
 
 				UV[] uvs = new .[framesY];
 
-				for (let frame in animation.frames) {
+				// framesY can be smaller than the number of frames specified inside the json, for example when a resource pack overrides the texture but not the animation json file
+				// don't know what the correct outcome should be so for now I am simply limiting the frames to those that actually exist in the texture
+				for (int i < framesY) {
+					AnimationFrame frame = animation.frames[i];
+
 					uvs[frame.index].index = frame.index;
-					packer.Add(.(.(frameWidth, frameHeight), 4), &uvs[frame.index].x, &uvs[frame.index].y);
+				}
+
+				// A horrible hack because once again, this whole animation code is fundamentally broken
+				for (var uv in ref uvs) {
+					packer.Add(.(.(frameWidth, frameHeight), 4), &uv.x, &uv.y);
 				}
 
 				textures.Add(.(new .(path), uvs, frameWidth, animation));
@@ -93,6 +110,19 @@ namespace Meteorite {
 			delete metadata;
 			
 			return (.) textures.Count - 1;
+		}
+
+		private uint16 AddMissingTexture() {
+			if (missingTexture.HasValue) return missingTexture.Value;
+
+			ImageInfo image = Meteorite.INSTANCE.resources.ReadImageInfo("missing.png");
+
+			UV[] uvs = new .[1];
+			packer.Add(image, &uvs[0].x, &uvs[0].y);
+			textures.Add(.(new .("missing.png"), uvs, image.Width, null));
+
+			missingTexture = (.) (textures.Count - 1);
+			return missingTexture.Value;
 		}
 
 		public void Finish() {
@@ -107,7 +137,6 @@ namespace Meteorite {
 			TextureAtlas atlas = scope .(size);
 			for (let texture in textures) {
 				Image image = Meteorite.INSTANCE.resources.ReadImage(texture.path);
-				TextureMetadata metadata = .Parse(texture.path);
 
 				if (texture.uvs.Count == 1) {
 					atlas.Put(image, texture.uvs[0].x, texture.uvs[0].y);
@@ -126,7 +155,6 @@ namespace Meteorite {
 					delete data;
 				}
 
-				delete metadata;
 				delete image;
 			}
 			texture = atlas.Finish();
