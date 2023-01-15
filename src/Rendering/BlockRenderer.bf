@@ -19,12 +19,11 @@ namespace Meteorite {
 			return block == Blocks.SEAGRASS || block == Blocks.TALL_SEAGRASS || block == Blocks.KELP || block == Blocks.KELP_PLANT;
 		}
 		
-		private static void RenderFluid(World world, Chunk chunk, int x, int y, int z, BlockState blockState, Biome biome) {
+		private static void RenderFluid(World world, Chunk chunk, int x, int y, int z, BlockState blockState, Buffer[Enum.GetCount<QuadCullFace>()] buffers) {
 			Block b = chunk.Get(x, y + 1, z).block;
 			if (b == Blocks.WATER || b == Blocks.LAVA || IsFilledWithWater(b)) return;
 
 			Quad quad = blockState.model.quads[0];
-			MeshBuilder mb = (blockState.block == Blocks.WATER ? chunk.transparentMb : chunk.solidMb);
 
 			Color c = .(255, 255, 255);
 			if (blockState.block == Blocks.WATER) Tint(chunk, blockState, x, y, z, ref c);
@@ -34,26 +33,26 @@ namespace Meteorite {
 			float yOffset = (p.value == 0 ? 15 : 15 - p.value) / 16f;
 
 			Vec3f normal = .(0, 127, 0);
-			uint32 i1 = Vertex!(mb, x, y, z, Vertex(.(0, yOffset, 0), quad.vertices[0].uv), quad.texture, c, normal);
-			uint32 i2 = Vertex!(mb, x, y, z, Vertex(.(1, yOffset, 0), quad.vertices[1].uv), quad.texture, c, normal);
-			uint32 i3 = Vertex!(mb, x, y, z, Vertex(.(1, yOffset, 1), quad.vertices[2].uv), quad.texture, c, normal);
-			uint32 i4 = Vertex!(mb, x, y, z, Vertex(.(0, yOffset, 1), quad.vertices[3].uv), quad.texture, c, normal);
 
-			mb.Quad(i1, i2, i3, i4); // Top
-			mb.Quad(i1, i4, i3, i2); // Bottom
+			Buffer buffer = buffers[(.) QuadCullFace.Up];
+			buffer.EnsureCapacity<BlockVertex>(4);
+
+			Vertex!(buffer, x, y, z, Vertex(.(0, yOffset, 0), quad.vertices[0].uv), quad.texture, c, normal);
+			Vertex!(buffer, x, y, z, Vertex(.(1, yOffset, 0), quad.vertices[1].uv), quad.texture, c, normal);
+			Vertex!(buffer, x, y, z, Vertex(.(1, yOffset, 1), quad.vertices[2].uv), quad.texture, c, normal);
+			Vertex!(buffer, x, y, z, Vertex(.(0, yOffset, 1), quad.vertices[3].uv), quad.texture, c, normal);
 		}
 		
-		public static void Render(World world, Chunk chunk, int x, int y, int z, BlockState blockState, Biome biome) {
+		public static void Render(World world, Chunk chunk, int x, int y, int z, BlockState blockState, Buffer[Enum.GetCount<QuadCullFace>()] buffers) {
 			if (blockState.model == null) return;
 
 			if (blockState.block == Blocks.WATER || blockState.block == Blocks.LAVA) {
-				RenderFluid(world, chunk, x, y, z, blockState, biome);
+				RenderFluid(world, chunk, x, y, z, blockState, buffers);
 				return;
 			}
-			else if (IsFilledWithWater(blockState.block)) RenderFluid(world, chunk, x, y, z, Blocks.WATER.defaultBlockState, biome);
+			else if (IsFilledWithWater(blockState.block)) RenderFluid(world, chunk, x, y, z, Blocks.WATER.defaultBlockState, buffers);
 
 			Foo foo = .(world, chunk, x, y, z);
-			MeshBuilder mb = (blockState.block == Blocks.NETHER_PORTAL ? chunk.transparentMb : chunk.solidMb); // TODO: Fix this
 			bool ao = Meteorite.INSTANCE.options.ao.HasVanilla;
 
 			for (Quad quad in blockState.model.quads) {
@@ -111,7 +110,7 @@ namespace Meteorite {
 
 				// Tint
 				Color c = .(255, 255, 255);
-				if (quad.tint && biome != null) Tint(chunk, blockState, x, y, z, ref c);
+				if (quad.tint) Tint(chunk, blockState, x, y, z, ref c);
 
 				// Normal
 				Vec3f d0 = quad.vertices[2].pos - quad.vertices[0].pos;
@@ -122,23 +121,24 @@ namespace Meteorite {
 				normal *= 127;
 				
 				// Emit quad
-				mb.Quad(
-					Vertex!(mb, x, y, z, quad.vertices[0], quad.texture, c.MulWithoutA(quad.light * ao1), normal),
-					Vertex!(mb, x, y, z, quad.vertices[1], quad.texture, c.MulWithoutA(quad.light * ao2), normal),
-					Vertex!(mb, x, y, z, quad.vertices[2], quad.texture, c.MulWithoutA(quad.light * ao3), normal),
-					Vertex!(mb, x, y, z, quad.vertices[3], quad.texture, c.MulWithoutA(quad.light * ao4), normal)
-				);
+				Buffer buffer = buffers[(.) quad.cullFace];
+				buffer.EnsureCapacity<BlockVertex>(4);
+
+				Vertex!(buffer, x, y, z, quad.vertices[0], quad.texture, c.MulWithoutA(quad.light * ao1), normal);
+				Vertex!(buffer, x, y, z, quad.vertices[1], quad.texture, c.MulWithoutA(quad.light * ao2), normal);
+				Vertex!(buffer, x, y, z, quad.vertices[2], quad.texture, c.MulWithoutA(quad.light * ao3), normal);
+				Vertex!(buffer, x, y, z, quad.vertices[3], quad.texture, c.MulWithoutA(quad.light * ao4), normal);
 			}
 		}
 
-		private static mixin Vertex(MeshBuilder mb, int x, int y, int z, Vertex v, uint16 texture, Color color, Vec3f normal) {
-			mb.Vertex<BlockVertex>(.(
+		private static mixin Vertex(Buffer buffer, int x, int y, int z, Vertex v, uint16 texture, Color color, Vec3f normal) {
+			buffer.Add(BlockVertex(
 				.(x + v.pos.x, y + v.pos.y, z + v.pos.z),
 				v.uv,
 				color,
 				.(texture, 0),
 				.((.) normal.x, (.) normal.y, (.) normal.z, 0)
-			))
+			));
 		}
 
 		private static void Tint(Chunk chunk, BlockState blockState, int x, int y, int z, ref Color color) {

@@ -44,9 +44,9 @@ namespace Meteorite {
 		}
 
 		public void Tick() {
-			if (me.world != null && me.worldRenderer != null) me.worldRenderer.Tick();
+			
 		}
-
+		
 		public void Render(CommandBuffer cmds, GpuImage target, float delta) {
 			this.delta = delta;
 
@@ -133,7 +133,7 @@ namespace Meteorite {
 
 			cmds.End();
 		}
-
+		
 		private void SetupWorldRendering() {
 			if (me.player != null && me.player.gamemode == .Spectator) {
 				Vec3d pos = me.player.pos.Lerp(me.tickCounter.tickDelta, me.player.lastPos);
@@ -148,19 +148,19 @@ namespace Meteorite {
 			me.camera.fov = Meteorite.INSTANCE.options.fov;
 			me.camera.Update(me.world.viewDistance * Section.SIZE * 4);
 		}
-
+		
 		private void RenderMainPre(CommandBuffer cmds) {
 			me.worldRenderer.RenderPre(cmds, me.tickCounter.tickDelta, delta);
 		}
-
+		
 		private void RenderMain(CommandBuffer cmds) {
 			me.worldRenderer.Render(cmds, me.tickCounter.tickDelta, delta);
 		}
-
+		
 		private void RenderMainPost(CommandBuffer cmds) {
 			me.worldRenderer.RenderPost(cmds, me.tickCounter.tickDelta, delta);
 		}
-
+		
 		private void RenderPost(CommandBuffer cmds) {
 			cmds.Bind(Gfxa.POST_PIPELINE);
 			FrameUniforms.Bind(cmds);

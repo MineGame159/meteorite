@@ -7,40 +7,10 @@ namespace Meteorite {
 	class WorldRenderer {
 		private Meteorite me = .INSTANCE;
 
-		private ThreadPool threadPool = new .();
-
-		private List<Chunk> visibleChunks = new .() ~ delete _;
-
-		public Counter<int> chunkUpdates = new .(20) ~ delete _;
-		public int renderedChunks;
-
-		private int chunkUpdatesThisTick;
-		private bool shuttingDown;
-
-		public ~this() {
-			shuttingDown = true;
-
-			// Thread pool needs to be deleted before ending un-uploaded meshes
-			delete threadPool;
-
-			for (Chunk chunk in me.world.Chunks) {
-				if (chunk.status == .Upload) {
-					chunk.solidMb.Cancel();
-					DeleteAndNullify!(chunk.solidMb);
-
-					chunk.transparentMb.Cancel();
-					DeleteAndNullify!(chunk.solidMb);
-				}
-			}
-		}
-
-		public void Tick() {
-			chunkUpdates.Add(chunkUpdatesThisTick);
-			chunkUpdatesThisTick = 0;
-		}
+		public ChunkRenderer chunkRenderer = new .() ~ delete _;
 
 		public void RenderPre(CommandBuffer cmds, float tickDelta, float delta) {
-			SetupChunks();
+			chunkRenderer.Setup();
 
 			SkyRenderer.Render(cmds, me.world, me.camera, tickDelta);
 		}
@@ -48,10 +18,10 @@ namespace Meteorite {
 		public void Render(CommandBuffer cmds, float tickDelta, float delta) {
 			cmds.PushDebugGroup("World");
 
-			RenderChunks(cmds, true, Gfxa.CHUNK_PIPELINE, delta);
+			chunkRenderer.RenderLayer(cmds, .Solid);
 			RenderBlockEntities(cmds, tickDelta);
 			RenderEntities(cmds, tickDelta);
-			RenderChunks(cmds, false, Gfxa.CHUNK_TRANSPARENT_PIPELINE, delta);
+			chunkRenderer.RenderLayer(cmds, .Transparent);
 			
 			cmds.PopDebugGroup();
 		}
@@ -96,92 +66,13 @@ namespace Meteorite {
 			}
 		}
 
-		private void SetupChunks() {
-			visibleChunks.Clear();
-			renderedChunks = 0;
-
-			// Frustrum cull and schedule rebuilds
-			for (Chunk chunk in me.world.Chunks) {
-				if (chunk.dirty && (chunk.status == .NotReady || chunk.status == .Ready) && me.world.IsChunkLoaded(chunk.pos.x + 1, chunk.pos.z) && me.world.IsChunkLoaded(chunk.pos.x - 1, chunk.pos.z) && me.world.IsChunkLoaded(chunk.pos.x, chunk.pos.z + 1) && me.world.IsChunkLoaded(chunk.pos.x, chunk.pos.z - 1)) {
-					chunk.status = .Building;
-
-					chunk.solidMb = new .(false);
-					chunk.transparentMb = new .(false);
-
-					threadPool.Add(new () => GenerateChunkMesh(chunk));
-					chunkUpdatesThisTick++;
-				}
-				if (chunk.status == .Upload) {
-					chunk.status = .Uploading;
-
-					chunk.solidMesh = chunk.solidMb.End(.ProvidedResize(chunk.SolidVbo), Buffers.QUAD_INDICES, new () => chunk.status = .Ready);
-					DeleteAndNullify!(chunk.solidMb);
-
-					chunk.transparentMesh = chunk.transparentMb.End(.ProvidedResize(chunk.TransparentVbo), Buffers.QUAD_INDICES, new () => chunk.status = .Ready);
-					DeleteAndNullify!(chunk.transparentMb);
-				}
-
-				if (me.camera.IsBoxVisible(chunk.min, chunk.max)) {
-					visibleChunks.Add(chunk);
-					renderedChunks++;
-				}
-			}
-
-			// Sort chunks
-			if (me.options.sortChunks) {
-				visibleChunks.Sort(scope (lhs, rhs) => {
-					double x1 = (lhs.pos.x + 0.5) * 16 - me.camera.pos.x;
-					double z1 = (lhs.pos.z + 0.5) * 16 - me.camera.pos.z;
-					double dist1 = x1 * x1 + z1 * z1;
-
-					double x2 = (rhs.pos.x + 0.5) * 16 - me.camera.pos.x;
-					double z2 = (rhs.pos.z + 0.5) * 16 - me.camera.pos.z;
-					double dist2 = x2 * x2 + z2 * z2;
-
-					return dist2.CompareTo(dist1);
-				});
-			}
-		}
-
-		[Inline]
-		private void UpdateChunkPushConstants(CommandBuffer cmds, Chunk chunk, float delta) {
-			if (chunk.goingDown) {
-				chunk.yOffset -= delta * 20;
-			}
-			else if (chunk.yOffset < 0) {
-				chunk.yOffset += delta * 20;
-				if (chunk.yOffset > 0) chunk.yOffset = 0;
-			}
-
-			Vec3f chunkPos = .(chunk.pos.x * Section.SIZE, (.) chunk.yOffset, chunk.pos.z * Section.SIZE);
-			cmds.SetPushConstants(chunkPos);
-		}
-
-		private void RenderChunks(CommandBuffer cmds, bool solid, Pipeline pipeline, float delta) {
-			cmds.PushDebugGroup(scope $"Chunks - {solid ? ("Solid") : ("Transparent")}");
-			cmds.Bind(pipeline);
-			FrameUniforms.Bind(cmds);
-			Meteorite.INSTANCE.textures.Bind(cmds, me.options.mipmaps);
-
-			for (Chunk chunk in visibleChunks) {
-				if (chunk.status == .NotReady) continue;
-
-				UpdateChunkPushConstants(cmds, chunk, delta);
-
-				if (solid) cmds.Draw(chunk.solidMesh);
-				else cmds.Draw(chunk.transparentMesh);
-			}
-
-			cmds.PopDebugGroup();
-		}
-
 		private void RenderBlockEntities(CommandBuffer cmds, float tickDelta) {
 			cmds.PushDebugGroup("Block Entities");
 			me.blockEntityRenderDispatcher.Begin();
-
-			for (Chunk chunk in visibleChunks) {
+			
+			for (Chunk chunk in chunkRenderer) {
 				for (BlockEntity blockEntity in chunk.BlockEntities) {
-					me.blockEntityRenderDispatcher.Render(blockEntity, chunk.yOffset, tickDelta);
+					me.blockEntityRenderDispatcher.Render(blockEntity, 0, tickDelta);
 				}
 			}
 
@@ -305,50 +196,6 @@ namespace Meteorite {
 				mb.Vertex<PosColorVertex>(.(.(x, 0, z), color)),
 				mb.Vertex<PosColorVertex>(.(.(x, me.world.height, z), color))
 			);
-		}
-
-		private void GenerateChunkMesh(Chunk chunk) {
-			int minI = (.) chunk.min.y / Section.SIZE;
-			int maxI = Math.Min((int) chunk.max.y / Section.SIZE, me.world.SectionCount - 1);
-
-			for (int i = minI; i <= maxI; i++) {
-				Section section = chunk.GetSection(i);
-				if (section == null) continue;
-
-				int sectionY = i * Section.SIZE;
-
-				for (int x < Section.SIZE) {
-					for (int y < Section.SIZE) {
-						for (int z < Section.SIZE) {
-							int by = sectionY + y;
-							int sy = y % Section.SIZE;
-							BlockState blockState = section.Get(x, sy, z);
-
-							BlockRenderer.Render(me.world, chunk, x, by, z, blockState, section.GetBiome(x, sy, z));
-						}
-					}
-				}
-			}
-
-			if (shuttingDown) {
-				chunk.solidMb.Cancel();
-				DeleteAndNullify!(chunk.solidMb);
-
-				chunk.transparentMb.Cancel();
-				DeleteAndNullify!(chunk.solidMb);
-
-				chunk.status = .Ready;
-			}
-			else {
-				chunk.status = .Upload;
-			}
-
-			chunk.dirty = false;
-
-			if (chunk.firstBuild) {
-				chunk.yOffset = -16;
-				chunk.firstBuild = false;
-			}
 		}
 	}
 }

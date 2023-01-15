@@ -413,6 +413,15 @@ namespace Meteorite{
 					else if (v.y > 15.9999) v.y = 16;
 				}
 
+				// Get cull face
+				QuadCullFace cullFace = .None;
+
+				if (pair.value.Contains("cullface")) {
+					if (Enum.Parse<QuadCullFace>(pair.value["cullface"].AsString, true) case .Ok(let val)) {
+						cullFace = val;
+					}
+				}
+
 				// Create quad
 				mixin ToVertexUv(float u, float v) {
 					Vec2<uint16>((.) (u / 16f * uint16.MaxValue), (.) (v / 16f * uint16.MaxValue))
@@ -420,6 +429,7 @@ namespace Meteorite{
 
 				Quad quad = new .(
 					finalDirection,
+					cullFace,
 					.(
 						.(positions[0], ToVertexUv!(uvs[0].x, uvs[0].y)),
 						.(positions[1], ToVertexUv!(uvs[1].x, uvs[1].y)),

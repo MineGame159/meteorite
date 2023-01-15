@@ -144,7 +144,7 @@ namespace Meteorite {
 			int tickCount = tickCounter.BeginRenderTick();
 			for (int i < Math.Min(10, tickCount)) Tick(tickCounter.tickDelta);
 		}
-
+		
 		protected override void Render(List<CommandBuffer> commandBuffers, GpuImage target, double delta) {
 			if (!window.minimized) {
 				CommandBuffer cmds = Gfx.CommandBuffers.GetBuffer();
@@ -153,7 +153,7 @@ namespace Meteorite {
 				gameRenderer.Render(cmds, target, (.) delta);
 			}
 		}
-
+		
 		protected override CommandBuffer AfterRender(GpuImage target) {
 			if (Screenshots.rendering) {
 				CommandBuffer cmds = Gfx.CommandBuffers.GetBuffer();

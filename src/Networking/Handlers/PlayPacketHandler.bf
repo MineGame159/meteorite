@@ -248,8 +248,6 @@ namespace Meteorite {
 			case PlayerCharMessageS2CPacket.ID:			OnPlayerChatMessage((.) packet);
 			case DisconnectS2CPacket.ID:				OnDisconnect((.) packet);
 			}
-
-			delete packet;
 		}
 	}
 }

@@ -14,7 +14,7 @@ namespace Cacti {
 
 		private bool shuttingDown;
 
-		public this() {
+		public this(int count = 4) {
 			threads = new .();
 			wait = new .();
 
@@ -22,7 +22,7 @@ namespace Cacti {
 			monitor = new .();
 
 			// TODO: Don't hard code number of threads
-			for (int i < 4) {
+			for (int i < count) {
 				Thread t = new .(new => Run);
 				t.SetName(scope $"Thread Pool - {i}");
 				t.Start(false);

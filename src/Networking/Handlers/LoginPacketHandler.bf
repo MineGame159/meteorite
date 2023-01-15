@@ -43,8 +43,6 @@ namespace Meteorite {
 			case LoginDisconnectS2CPacket.ID: OnLoginDisconnect((.) packet);
 			case LoginSuccessS2CPacket.ID: OnLoginSuccess((.) packet);
 			}
-
-			delete packet;
 		}
 	}
 }

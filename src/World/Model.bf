@@ -6,8 +6,8 @@ using Cacti;
 namespace Meteorite {
 	enum QuadCullFace {
 		None,
-		Top,
-		Bottom,
+		Up,
+		Down,
 		East, // Východ
 		West, // Západ
 		North, // Sever
@@ -26,6 +26,8 @@ namespace Meteorite {
 
 	class Quad {
 		public Direction direction;
+		public QuadCullFace cullFace;
+
 		public Vertex[4] vertices;
 		public float light;
 		public uint16 texture;
@@ -33,8 +35,9 @@ namespace Meteorite {
 		public Vec3f min, max;
 		public bool adjacent;
 
-		public this(Direction direction, Vertex[4] vertices, float light, bool tint) {
+		public this(Direction direction, QuadCullFace cullFace, Vertex[4] vertices, float light, bool tint) {
 			this.direction = direction;
+			this.cullFace = cullFace;
 			this.vertices = vertices;
 			this.light = light;
 			this.tint = tint;

@@ -32,6 +32,10 @@ namespace Cacti {
 			capacity = newCapacity;
 		}
 
+		public void EnsureCapacity<T>(int count) where T : struct {
+			EnsureCapacity((.) (sizeof(T) * count));
+		}
+
 		// Add
 
 		public void Add<T>(T value) where T : struct {

@@ -1,5 +1,7 @@
 using System;
+using System.Threading;
 using System.Collections;
+using System.Diagnostics;
 
 using Cacti;
 
@@ -39,7 +41,7 @@ namespace Meteorite {
 			int by = this.y * SIZE + y;
 			if (by < chunk.min.y) chunk.min.y = by;
 			else if (by > chunk.max.y) chunk.max.y = by;
-
+			
 			chunk.dirty = true;
 		}
 		
@@ -47,16 +49,11 @@ namespace Meteorite {
 		public Biome GetBiome(int x, int y, int z) => biomes.Get((x >> 2) & 3, (y >> 2) & 3, (z >> 2) & 3);
 	}
 
-	class Chunk {
-		public enum Status {
-			NotReady,
-			Ready,
-			Building,
-			Upload,
-			Uploading
-		}
-
+	class Chunk : IRefCounted {
 		private static Dictionary<Vec3i, BlockEntity> EMPTY = new .(0) ~ delete _;
+
+		private int refCount = 1;
+		private bool valid = true;
 
 		public World world;
 		public ChunkPos pos;
@@ -64,19 +61,7 @@ namespace Meteorite {
 		private Section[] sections;
 		private Dictionary<Vec3i, BlockEntity> blockEntities ~ DeleteDictionaryAndValues!(_);
 
-		public Status status = .NotReady;
-		public bool dirty, firstBuild = true;
-
-		public MeshBuilder solidMb;
-		public BuiltMesh solidMesh;
-		private GpuBuffer solidVbo ~ delete _;
-
-		public MeshBuilder transparentMb;
-		public BuiltMesh transparentMesh;
-		private GpuBuffer transparentVbo ~ delete _;
-
-		public double yOffset;
-		public bool goingDown;
+		public bool dirty;
 
 		public Vec3f min, max;
 
@@ -95,6 +80,8 @@ namespace Meteorite {
 		}
 
 		public ~this() {
+			Debug.Assert(refCount == 0);
+
 			for (int i < sections.Count) {
 				Section section = sections[i];
 				if (section != null) delete section;
@@ -102,19 +89,37 @@ namespace Meteorite {
 
 			delete sections;
 		}
+		
+		public void AddRef() {
+			Interlocked.Increment(ref refCount);
+		}
 
-		public GpuBuffer SolidVbo { get {
-			if (solidVbo == null) solidVbo = Gfx.Buffers.Create(.Vertex, .TransferDst, 0, scope $"Chunk {pos.x}, {pos.z} - Solid");
-			return solidVbo;
-		} }
+		public void Release() {
+			Debug.Assert(refCount > 0);
 
-		public GpuBuffer TransparentVbo { get {
-			if (transparentVbo == null) transparentVbo = Gfx.Buffers.Create(.Vertex, .TransferDst, 0, scope $"Chunk {pos.x}, {pos.z} - Transparent");
-			return transparentVbo;
-		} }
+			Interlocked.Decrement(ref refCount);
+
+			if (refCount == 0 && valid) {
+				Meteorite.INSTANCE.Execute(new () => {
+					delete this;
+				});
+
+				valid = false;
+			}
+		}
+
+		private void ForceDelete() {
+			refCount = 0;
+
+			valid = false;
+			delete this;
+		}
+
+		public bool ReleaseWillDelete => refCount == 1;
 		
 		[Inline]
 		public BlockState Get(int x, int y, int z) {
+			if (y < 0 || y > max.y) return Blocks.AIR.defaultBlockState;
 			return sections[y / Section.SIZE].Get(x, y % Section.SIZE, z);
 		}
 

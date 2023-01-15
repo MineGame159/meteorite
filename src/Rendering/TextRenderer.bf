@@ -13,7 +13,7 @@ namespace Meteorite {
 		public this() {
 			Json json = Meteorite.INSTANCE.resources.ReadJson("font/default.json");
 			for (let j in json["providers"].AsArray) {
-				if (j["file"].AsString.EndsWith("ascii.png")) {
+				if (j.Contains("file") && j["file"].AsString.EndsWith("ascii.png")) {
 					font = Font.Parse(j);
 					break;
 				}

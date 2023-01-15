@@ -48,7 +48,7 @@ namespace Meteorite {
 			ImGui.Separator();
 
 			if (me.world != null && me.worldRenderer != null) {
-				ImGui.Text("Chunks: {} / {} (U: {})", me.worldRenderer.renderedChunks, me.world.ChunkCount, me.worldRenderer.chunkUpdates.Get());
+				ImGui.Text("Chunks: {} / {}", me.worldRenderer.chunkRenderer.VisibleChunkCount, me.world.ChunkCount);
 				ImGui.Text("Entities: {} (B: {})", me.world.EntityCount, me.world.BlockEntityCount);
 			}
 			ImGui.Text("Pos: {:0} {:0} {:0}", me.camera.pos.x, me.camera.pos.y, me.camera.pos.z);

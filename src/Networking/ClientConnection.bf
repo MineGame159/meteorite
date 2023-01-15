@@ -34,7 +34,7 @@ namespace Meteorite {
 				p.Read(packet);
 
 				if (handler != null) handler.Handle(p);
-				else delete packet;
+				delete p;
 			}
 		}
 

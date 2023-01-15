@@ -8,8 +8,7 @@ namespace Meteorite {
 	class World {
 		public int viewDistance;
 
-		private Dictionary<ChunkPos, Chunk> chunks ~ DeleteDictionaryAndValues!(_);
-		private List<Chunk> chunksToDelete = new .() ~ delete _;
+		private Dictionary<ChunkPos, Chunk> chunks;
 
 		private Dictionary<int, Entity> entities = new .() ~ DeleteDictionaryAndValues!(_);
 
@@ -22,6 +21,14 @@ namespace Meteorite {
 			this.chunks = new Dictionary<ChunkPos, Chunk>();
 			this.minY = minY;
 			this.height = height;
+		}
+
+		public ~this() {
+			for (Chunk chunk in chunks.Values) {
+				chunk.[Friend]ForceDelete();
+			}
+
+			delete chunks;
 		}
 
 		public Dictionary<ChunkPos, Chunk>.ValueEnumerator Chunks => chunks.Values;
@@ -43,9 +50,7 @@ namespace Meteorite {
 			bool replacing = chunks.TryGet(chunk.pos, out p, out c);
 
 			if (replacing) {
-				chunksToDelete.Add(c);
-				chunk.firstBuild = c.firstBuild;
-				chunk.yOffset = c.yOffset;
+				c.Release();
 			}
 
 			chunks[chunk.pos] = chunk;
@@ -120,20 +125,9 @@ namespace Meteorite {
 				for (Chunk chunk in Chunks) {
 					if (IsChunkInRange(chunk.pos.x, chunk.pos.z, x, z)) continue;
 
-					chunk.goingDown = true;
-
-					if (chunk.yOffset < -16) {
-						@chunk.Remove();
-						chunksToDelete.Add(chunk);
-					}
+					@chunk.Remove();
+					chunk.Release();
 				}
-			}
-
-			for (Chunk chunk in chunksToDelete) {
-				if (chunk.status == .Building) continue;
-
-				@chunk.Remove();
-				delete chunk;
 			}
 		}
 

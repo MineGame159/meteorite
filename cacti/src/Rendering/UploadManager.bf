@@ -6,8 +6,8 @@ namespace Cacti;
 class UploadManager {
 	private const int MAX_FRAME_ALLOCATOR_SIZE = 1024 * 1024; // 1 kB
 
-	private List<BufferUpload> bufferUploads = new .() ~ delete _;
-	private List<ImageUpload> imageUploads = new .() ~ delete _;
+	private List<BufferUpload> bufferUploads = new .() ~ DeleteContainerAndDisposeItems!(_);
+	private List<ImageUpload> imageUploads = new .() ~ DeleteContainerAndDisposeItems!(_);
 
 	public void UploadBuffer(GpuBufferView dst, void* data, uint64 size, delegate void() callback = null, bool deleteCallback = true) {
 		let (src, deleteSrc) = UploadSrc(data, size);
@@ -42,28 +42,22 @@ class UploadManager {
 	public void NewFrame() {
 		// Buffers
 		for (let upload in bufferUploads) {
-			if (upload.deleteSrc) {
-				delete upload.src.buffer;
-			}
-
 			if (upload.callback != null) {
 				upload.callback();
-				if (upload.deleteCallback) delete upload.callback;
 			}
+
+			upload.Dispose();
 		}
 
 		bufferUploads.Clear();
 
 		// Images
 		for (let upload in imageUploads) {
-			if (upload.deleteSrc) {
-				delete upload.src.buffer;
-			}
-
 			if (upload.callback != null) {
 				upload.callback();
-				if (upload.deleteCallback) delete upload.callback;
 			}
+
+			upload.Dispose();
 		}
 
 		imageUploads.Clear();
@@ -92,7 +86,17 @@ class UploadManager {
 		return cmds;
 	}
 
-	struct BufferUpload : this(GpuBufferView src, GpuBufferView dst, delegate void() callback, bool deleteSrc, bool deleteCallback) {}
+	struct BufferUpload : this(GpuBufferView src, GpuBufferView dst, delegate void() callback, bool deleteSrc, bool deleteCallback), IDisposable {
+		public void Dispose() {
+			if (deleteSrc) delete src.buffer;
+			if (deleteCallback) delete callback;
+		}
+	}
 
-	struct ImageUpload : this(GpuBufferView src, GpuImage dst, int mipLevel, delegate void() callback, bool deleteSrc, bool deleteCallback) {}
+	struct ImageUpload : this(GpuBufferView src, GpuImage dst, int mipLevel, delegate void() callback, bool deleteSrc, bool deleteCallback), IDisposable {
+		public void Dispose() {
+			if (deleteSrc) delete src.buffer;
+			if (deleteCallback) delete callback;
+		}
+	}
 }

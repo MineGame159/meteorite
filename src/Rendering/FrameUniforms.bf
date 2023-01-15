@@ -27,7 +27,7 @@ namespace Meteorite {
 			delete buffer;
 			delete set;
 		}
-
+		
 		public static void Update() {
 			Data data = .();
 
