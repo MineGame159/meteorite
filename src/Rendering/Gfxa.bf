@@ -95,7 +95,7 @@ namespace Meteorite {
 			// Pipelines
 			CHUNK_PIPELINE = Gfx.Pipelines.Get(scope PipelineInfo("Chunks")
 				.VertexFormat(BlockVertex.FORMAT)
-				.Sets(UNIFORM_SET_LAYOUT, IMAGE_SET_LAYOUT, UNIFORM_SET_LAYOUT)
+				.Sets(UNIFORM_SET_LAYOUT, IMAGE_SET_LAYOUT, UNIFORM_SET_LAYOUT, IMAGE_SET_LAYOUT)
 				.PushConstants<Vec3f>()
 				.Shader("chunk", "chunk", new (preProcessor) => preProcessor.Define("SOLID"))
 				.Depth(true, true, true)
@@ -106,7 +106,7 @@ namespace Meteorite {
 			);
 			CHUNK_TRANSPARENT_PIPELINE = Gfx.Pipelines.Get(scope PipelineInfo("Transparent chunks")
 				.VertexFormat(BlockVertex.FORMAT)
-				.Sets(UNIFORM_SET_LAYOUT, IMAGE_SET_LAYOUT, UNIFORM_SET_LAYOUT)
+				.Sets(UNIFORM_SET_LAYOUT, IMAGE_SET_LAYOUT, UNIFORM_SET_LAYOUT, IMAGE_SET_LAYOUT)
 				.PushConstants<Vec3f>()
 				.Shader("chunk", "chunk")
 				.Depth(true, true, false)

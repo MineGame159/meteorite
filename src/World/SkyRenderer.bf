@@ -299,7 +299,7 @@ namespace Meteorite {
 
 			// Dark
 			//double d = this.minecraft.player.getEyePosition(partialTick).y - this.level.getLevelData().getHorizonHeight(this.level); // TODO
-			double d = camera.pos.y + world.minY - 63;
+			double d = camera.pos.y + world.dimension.minY - 63;
 			if (d < 0.0) {
 				cmds.Bind(PIPELINE1);
 

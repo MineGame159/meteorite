@@ -4,13 +4,15 @@ using System.Collections;
 using Cacti;
 
 namespace Meteorite {
-	class
-		ChunkDataS2CPacket : S2CPacket {
+	class ChunkDataS2CPacket : S2CPacket {
 		public const int32 ID = 0x20;
 
 		public ChunkPos pos;
 		public int minY, maxY;
+
 		public Section[] sections;
+		public SectionLightData[] sectionLightDatas;
+
 		public Dictionary<Vec3i, BlockEntity> blockEntities;
 
 		private bool consumed;
@@ -20,6 +22,8 @@ namespace Meteorite {
 		public ~this() {
 			if (!consumed) {
 				DeleteContainerAndItems!(sections);
+				DeleteContainerAndItems!(sectionLightDatas);
+
 				DeleteDictionaryAndValues!(blockEntities);
 			}
 		}
@@ -31,6 +35,7 @@ namespace Meteorite {
 
 			buf.ReadNbt().Dispose(); // Heightmaps
 
+			// Sections
 			int size = buf.ReadVarInt(); // Size
 			int afterDataPos = buf.pos + size;
 
@@ -100,7 +105,7 @@ namespace Meteorite {
 					int x = (packedXZ >> 4) & 15;
 					int z = packedXZ & 15;
 
-					int y = buf.ReadShort() - me.world.minY;
+					int y = buf.ReadShort() - me.world.dimension.minY;
 																				
 					int32 typeId = buf.ReadVarInt();
 					Result<Tag> tag = buf.ReadNbt();
@@ -115,6 +120,25 @@ namespace Meteorite {
 					tag.Dispose();
 				}
 			}
+
+			// Light
+			LightPacketData lightData = .Read(buf, false);
+			sectionLightDatas = new .[me.world.SectionCount + 2];
+
+			int skyLightSectionI = 0;
+			int blockLightSectionI = 0;
+
+			for (int i < sectionLightDatas.Count) {
+				bool hasSkyLight = lightData.skyLightMask.IsSet(i);
+				bool hasBlockLight = lightData.blockLightMask.IsSet(i);
+
+				sectionLightDatas[i] = new .(
+					hasSkyLight ? lightData.skyLightSections[skyLightSectionI++] : null,
+					hasBlockLight ? lightData.blockLightSections[blockLightSectionI++] : null
+				);
+			}
+
+			delete lightData;
 		}
 
 		private static IPalette<T> ReadPalette<T>(NetBuffer buf, int bitsPerEntry, int maxIndirect, T[] global) where T : IID {

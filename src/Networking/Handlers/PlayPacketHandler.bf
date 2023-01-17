@@ -48,19 +48,20 @@ namespace Meteorite {
 			}
 
 			Tag dimensionTypes = packet.registryCodec["minecraft:dimension_type"]["value"];
-			Tag dimensionType = default;
+			DimensionType dimensionType = null;
 
-			for (let dimensionType2 in dimensionTypes.AsList) {
-				if (dimensionType2["name"].AsString == packet.dimensionName) {
-					dimensionType = dimensionType2;
+			for (let tag in dimensionTypes.AsList) {
+				if (tag["name"].AsString == packet.dimensionName) {
+					dimensionType = new .();
+					dimensionType.Read(tag["element"]);
+
 					break;
 				}
 			}
 
-			Runtime.Assert(dimensionType != default, "Failed to find dimenstion type");
-			dimensionType = dimensionType["element"];
+			Runtime.Assert(dimensionType != null, "Failed to find dimenstion type");
 
-			me.world = new .(connection.viewDistance, dimensionType["min_y"].AsInt, dimensionType["height"].AsInt);
+			me.world = new .(dimensionType, connection.viewDistance);
 			me.worldRenderer = new .();
 		}
 
@@ -109,13 +110,31 @@ namespace Meteorite {
 		}
 
 		private void OnChunkData(ChunkDataS2CPacket packet) {
-			Chunk chunk = new .(me.world, packet.pos, packet.sections, packet.blockEntities);
+			Chunk chunk = new .(me.world, packet.pos, packet.sections, packet.sectionLightDatas, packet.blockEntities);
 
 			chunk.min.y = packet.minY;
 			chunk.max.y = packet.maxY;
 
 			me.world.AddChunk(chunk);
 			packet.Consume();
+		}
+
+		private void OnLightData(LightDataS2CPacket packet) {
+			Chunk chunk = me.world.GetChunk(packet.pos.x, packet.pos.z);
+			if (chunk == null) return;
+
+			int skyLightSectionI = 0;
+			int blockLightSectionI = 0;
+
+			for (int i < chunk.[Friend]sectionLightDatas.Count) {
+				SectionLightData section = chunk.[Friend]sectionLightDatas[i];
+
+				if (packet.data.emptySkyLightMask.IsSet(i)) section.Clear(.Sky);
+				else if (packet.data.skyLightMask.IsSet(i)) section.Set(.Sky, packet.data.skyLightSections[skyLightSectionI++]);
+				
+				if (packet.data.emptyBlockLightMask.IsSet(i)) section.Clear(.Block);
+				else if (packet.data.blockLightMask.IsSet(i)) section.Set(.Block, packet.data.blockLightSections[blockLightSectionI++]);
+			}
 		}
 
 		private void OnBlockChange(BlockChangeS2CPacket packet) {
@@ -199,6 +218,7 @@ namespace Meteorite {
 			case PlayerAbilitiesS2CPacket.ID:			return new PlayerAbilitiesS2CPacket();
 			case PlayerPositionAndLookS2CPacket.ID:		return new PlayerPositionAndLookS2CPacket();
 			case ChunkDataS2CPacket.ID:					return new ChunkDataS2CPacket();
+			//case LightDataS2CPacket.ID:					return new LightDataS2CPacket(); :skoll:
 			case BlockChangeS2CPacket.ID:				return new BlockChangeS2CPacket();
 			case MultiBlockChangeS2CPacket.ID:			return new MultiBlockChangeS2CPacket();
 			case BlockEntityDataS2CPacket.ID:			return new BlockEntityDataS2CPacket();
@@ -233,6 +253,7 @@ namespace Meteorite {
 			case PlayerAbilitiesS2CPacket.ID:			OnPlayerAbilities((.) packet);
 			case PlayerPositionAndLookS2CPacket.ID:		OnPlayerPositionAndLook((.) packet);
 			case ChunkDataS2CPacket.ID:					OnChunkData((.) packet);
+			case LightDataS2CPacket.ID:					OnLightData((.) packet);
 			case BlockChangeS2CPacket.ID:				OnBlockChange((.) packet);
 			case MultiBlockChangeS2CPacket.ID:			OnMultiBlockChange((.) packet);
 			case BlockEntityDataS2CPacket.ID:			OnBlockEntityData((.) packet);

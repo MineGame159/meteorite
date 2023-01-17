@@ -44,13 +44,14 @@ namespace Meteorite {
 		}
 
 		public void Tick() {
-			
+			me.lightmapManager.Tick();
 		}
 		
 		public void Render(CommandBuffer cmds, GpuImage target, float delta) {
 			this.delta = delta;
 
 			FrameUniforms.Update();
+			me.lightmapManager.Update(delta);
 
 			if (me.options.ao.HasSSAO && ssao == null) ssao = new .(ColorImage("SSAO", .R8));
 

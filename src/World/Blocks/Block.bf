@@ -32,6 +32,9 @@ namespace Meteorite {
 		public Block block;
 		public int32 id { get; set; };
 
+		public uint8 luminance;
+		public bool emissive;
+
 		public Model model ~ delete _;
 
 		public List<Property> properties ~ delete _;

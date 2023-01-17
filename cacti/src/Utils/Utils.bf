@@ -5,9 +5,13 @@ using Bulkan;
 
 namespace Cacti {
 	static class Utils {
+		public static Random RANDOM = new .() ~ delete _;
+
 		public static int CombineHashCode(int h1, int h2) => (((h1 << 5) + h1) ^ h2);
 
-		public static double Lerp(double delta, double start, double end) => start + delta * (end - start);
+		public static T Lerp<T>(T delta, T start, T end) where T : operator T - T, operator T * T, operator T + T {
+			return start + delta * (end - start);
+		}
 
 		public static int64 Lfloor(double value) {
 		    int64 l = (.) value;

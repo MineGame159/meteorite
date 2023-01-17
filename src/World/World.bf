@@ -6,21 +6,19 @@ using Cacti;
 
 namespace Meteorite {
 	class World {
+		public DimensionType dimension ~ delete _;
 		public int viewDistance;
 
 		private Dictionary<ChunkPos, Chunk> chunks;
 
 		private Dictionary<int, Entity> entities = new .() ~ DeleteDictionaryAndValues!(_);
 
-		public int minY, height;
-
 		public int64 worldAge, timeOfDay;
 
-		public this(int viewDistance, int minY, int height) {
+		public this(DimensionType dimension, int viewDistance) {
+			this.dimension = dimension;
 			this.viewDistance = viewDistance;
 			this.chunks = new Dictionary<ChunkPos, Chunk>();
-			this.minY = minY;
-			this.height = height;
 		}
 
 		public ~this() {
@@ -34,7 +32,7 @@ namespace Meteorite {
 		public Dictionary<ChunkPos, Chunk>.ValueEnumerator Chunks => chunks.Values;
 		public Dictionary<int, Entity>.ValueEnumerator Entities => entities.Values;
 
-		public int SectionCount => height / Section.SIZE;
+		public int SectionCount => dimension.height / Section.SIZE;
 		public int ChunkCount => chunks.Count;
 		public int EntityCount => entities.Count;
 
@@ -309,15 +307,9 @@ namespace Meteorite {
 		}
 
 		public float GetSkyAngle() {
-			// TODO: Need to parse dimension codec
-			/*double d = MathHelper.fractionalPart((double)this.fixedTime.orElse(time) / 24000.0 - 0.25);
-			double e = 0.5 - Math.cos(d * Math.PI) / 2.0;
-			return (float)(d * 2.0 + e) / 3.0f;*/
-
-			
-			double d = Utils.FractionalPart(timeOfDay / 24000.0 - 0.25);
+			double d = Utils.FractionalPart((double) dimension.fixedTime.GetValueOrDefault(timeOfDay) / 24000.0 - 0.25);
 			double e = 0.5 - Math.Cos(d * Math.PI_d) / 2.0;
-			return (.) (d * 2.0 + e) / 3.0f;
+			return (float) (d * 2.0 + e) / 3.0f;
 		}
 
 		public float GetCelestialAngle() {
@@ -327,11 +319,20 @@ namespace Meteorite {
 
 		public int GetMoonPhase() => (timeOfDay / 24000L % 8L + 8L) % 8;
 
-		public float GetStarBrightness() {
+		public float GetStarBrightness(float tickDelta = 1) {
 			float f = GetSkyAngle();
-			float g = 1 - (Math.Cos(f * (Math.PI_f * 2)) * 2 + 0.25f);
-			g = Math.Clamp(g, 0, 1);
-			return g * g * 0.5f;
+			float g = 1.0F - (Math.Cos(f * (float) (Math.PI_f * 2)) * 2.0F + 0.25F);
+			g = Math.Clamp(g, 0.0F, 1.0F);
+			return g * g * 0.5F;
+		}
+
+		public float GetSkyDarken(float tickDelta = 1) {
+			float f = GetSkyAngle();
+			float g = 1.0f - (Math.Cos(f * ((float) Math.PI_f * 2)) * 2.0f + 0.2f);
+			g = Math.Clamp(g, 0.0f, 1.0f);
+			g = 1.0f - g;
+			g *= 1.0f - GetRainLevel(tickDelta) * 5.0f / 16.0f;
+			return (g *= 1.0f - GetThunderLevel(tickDelta) * 5.0f / 16.0f) * 0.8f + 0.2f;
 		}
 
 		public float GetRainLevel(double tickDelta) => 0;
@@ -403,7 +404,7 @@ namespace Meteorite {
 
 			//
 
-			float r = ((float)camera.pos.y - (float)minY) * 0.03125F; // TODO: Dimension clear color scale
+			float r = ((float)camera.pos.y - (float)dimension.minY) * 0.03125F; // TODO: Dimension clear color scale
 			// TODO: Blindness
 			/*if (activeRenderInfo.getEntity() instanceof LivingEntity && ((LivingEntity)activeRenderInfo.getEntity()).hasEffect(MobEffects.BLINDNESS)) {
 				int w = ((LivingEntity)activeRenderInfo.getEntity()).getEffect(MobEffects.BLINDNESS).getDuration();

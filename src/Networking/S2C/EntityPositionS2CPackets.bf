@@ -98,7 +98,7 @@ namespace Meteorite {
 			hasPosition = true;
 			teleport = true;
 			x = buf.ReadDouble();
-			y = buf.ReadDouble() - me.world.minY;
+			y = buf.ReadDouble() - me.world.dimension.minY;
 			z = buf.ReadDouble();
 
 			ReadRotation(buf);

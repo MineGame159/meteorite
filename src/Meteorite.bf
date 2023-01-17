@@ -17,6 +17,7 @@ namespace Meteorite {
 		public RenderTickCounter tickCounter ~ delete _;
 
 		public GameRenderer gameRenderer;
+		public LightmapManager lightmapManager;
 		public WorldRenderer worldRenderer;
 		public BlockEntityRenderDispatcher blockEntityRenderDispatcher;
 		public EntityRenderDispatcher entityRenderDispatcher;
@@ -49,6 +50,7 @@ namespace Meteorite {
 			EntityTypes.Register();
 
 			gameRenderer = new .();
+			lightmapManager = new .();
 			blockEntityRenderDispatcher = new .();
 			entityRenderDispatcher = new .();
 			textRenderer = new .();
@@ -83,6 +85,7 @@ namespace Meteorite {
 			delete entityRenderDispatcher;
 			delete blockEntityRenderDispatcher;
 			delete worldRenderer;
+			delete lightmapManager;
 			delete gameRenderer;
 
 			FrameUniforms.Destroy();

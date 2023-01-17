@@ -58,17 +58,20 @@ namespace Meteorite {
 		public World world;
 		public ChunkPos pos;
 
-		private Section[] sections;
+		private Section[] sections ~ DeleteContainerAndItems!(_);
+		private SectionLightData[] sectionLightDatas ~ DeleteContainerAndItems!(_);
+
 		private Dictionary<Vec3i, BlockEntity> blockEntities ~ DeleteDictionaryAndValues!(_);
 
 		public bool dirty;
 
 		public Vec3f min, max;
 
-		public this(World world, ChunkPos pos, Section[] sections, Dictionary<Vec3i, BlockEntity> blockEntities) {
+		public this(World world, ChunkPos pos, Section[] sections, SectionLightData[] sectionLightDatas, Dictionary<Vec3i, BlockEntity> blockEntities) {
 			this.world = world;
 			this.pos = pos;
 			this.sections = sections;
+			this.sectionLightDatas = sectionLightDatas;
 			this.blockEntities = blockEntities;
 
 			this.dirty = true;
@@ -81,13 +84,6 @@ namespace Meteorite {
 
 		public ~this() {
 			Debug.Assert(refCount == 0);
-
-			for (int i < sections.Count) {
-				Section section = sections[i];
-				if (section != null) delete section;
-			}
-
-			delete sections;
 		}
 		
 		public void AddRef() {
@@ -126,6 +122,11 @@ namespace Meteorite {
 		[Inline]
 		public void Set(int x, int y, int z, BlockState blockState) {
 			sections[y / Section.SIZE].Set(x, y % Section.SIZE, z, blockState);
+		}
+
+		[Inline]
+		public int GetLight(LightType type, int x, int y, int z) {
+			return sectionLightDatas[y / Section.SIZE + 1].Get(type, x, y % Section.SIZE, z);
 		}
 
 		[Inline]

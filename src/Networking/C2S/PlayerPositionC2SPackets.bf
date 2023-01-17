@@ -14,7 +14,7 @@ namespace Meteorite {
 			if (position) {
 				hasPosition = true;
 				this.x = player.pos.x;
-				this.y = player.pos.y + me.world.minY;
+				this.y = player.pos.y + me.world.dimension.minY;
 				this.z = player.pos.z;
 			}
 

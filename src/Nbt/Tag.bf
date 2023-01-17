@@ -155,6 +155,7 @@ namespace Meteorite {
 		public bool IsLongs => type == .LongArray;
 
 		public int8 AsByte => data.byte;
+		public bool AsBool => data.byte != 0;
 		public int16 AsShort => data.short;
 		public int32 AsInt => data.int;
 		public int64 AsLong => data.long;
@@ -176,7 +177,7 @@ namespace Meteorite {
 			AsList.Add(tag);
 		}
 
-		public bool Contains(String key) => !AsCompound.ContainsKey(key);
+		public bool Contains(String key) => AsCompound.ContainsKey(key);
 
 		public void Remove(String key) {
 			if (AsCompound.GetAndRemove(key) case .Ok(let pair)) {

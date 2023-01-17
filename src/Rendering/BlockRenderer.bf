@@ -4,10 +4,11 @@ using Cacti;
 
 namespace Meteorite {
 	[CRepr]
-	struct BlockVertex : this(Vec3f pos, Vec2<uint16> uv, Color color, Vec2<uint16> texture, Vec4<int8> normal) {
+	struct BlockVertex : this(Vec3f pos, Vec2<uint16> uv, uint32 lightUv, Color color, Vec2<uint16> texture, Vec4<int8> normal) {
 		public static VertexFormat FORMAT = new VertexFormat()
 			.Attribute(.Float, 3)
 			.Attribute(.U16, 2, true)
+			.Attribute(.U16, 2, false)
 			.Attribute(.U8, 4, true)
 			.Attribute(.U16, 2)
 			.Attribute(.I8, 4, true)
@@ -34,13 +35,15 @@ namespace Meteorite {
 
 			Vec3f normal = .(0, 127, 0);
 
+			uint32 lightUv = GetLightmapUv(world, chunk, blockState, x, y, z, quad);
+
 			Buffer buffer = buffers[(.) QuadCullFace.Up];
 			buffer.EnsureCapacity<BlockVertex>(4);
 
-			Vertex!(buffer, x, y, z, Vertex(.(0, yOffset, 0), quad.vertices[0].uv), quad.texture, c, normal);
-			Vertex!(buffer, x, y, z, Vertex(.(1, yOffset, 0), quad.vertices[1].uv), quad.texture, c, normal);
-			Vertex!(buffer, x, y, z, Vertex(.(1, yOffset, 1), quad.vertices[2].uv), quad.texture, c, normal);
-			Vertex!(buffer, x, y, z, Vertex(.(0, yOffset, 1), quad.vertices[3].uv), quad.texture, c, normal);
+			Vertex!(buffer, x, y, z, Vertex(.(0, yOffset, 0), quad.vertices[0].uv), quad.texture, lightUv, c, normal);
+			Vertex!(buffer, x, y, z, Vertex(.(1, yOffset, 0), quad.vertices[1].uv), quad.texture, lightUv, c, normal);
+			Vertex!(buffer, x, y, z, Vertex(.(1, yOffset, 1), quad.vertices[2].uv), quad.texture, lightUv, c, normal);
+			Vertex!(buffer, x, y, z, Vertex(.(0, yOffset, 1), quad.vertices[3].uv), quad.texture, lightUv, c, normal);
 		}
 		
 		public static void Render(World world, Chunk chunk, int x, int y, int z, BlockState blockState, Buffer[Enum.GetCount<QuadCullFace>()] buffers) {
@@ -108,6 +111,9 @@ namespace Meteorite {
 			    ao3 = ao3 / 2.0f + 0.5f;
 			    ao4 = ao4 / 2.0f + 0.5f;
 
+				// Light
+				uint32 lightUv = GetLightmapUv(world, chunk, blockState, x, y, z, quad);
+
 				// Tint
 				Color c = .(255, 255, 255);
 				if (quad.tint) Tint(chunk, blockState, x, y, z, ref c);
@@ -124,17 +130,18 @@ namespace Meteorite {
 				Buffer buffer = buffers[(.) quad.cullFace];
 				buffer.EnsureCapacity<BlockVertex>(4);
 
-				Vertex!(buffer, x, y, z, quad.vertices[0], quad.texture, c.MulWithoutA(quad.light * ao1), normal);
-				Vertex!(buffer, x, y, z, quad.vertices[1], quad.texture, c.MulWithoutA(quad.light * ao2), normal);
-				Vertex!(buffer, x, y, z, quad.vertices[2], quad.texture, c.MulWithoutA(quad.light * ao3), normal);
-				Vertex!(buffer, x, y, z, quad.vertices[3], quad.texture, c.MulWithoutA(quad.light * ao4), normal);
+				Vertex!(buffer, x, y, z, quad.vertices[0], quad.texture, lightUv, c.MulWithoutA(quad.light * ao1), normal);
+				Vertex!(buffer, x, y, z, quad.vertices[1], quad.texture, lightUv, c.MulWithoutA(quad.light * ao2), normal);
+				Vertex!(buffer, x, y, z, quad.vertices[2], quad.texture, lightUv, c.MulWithoutA(quad.light * ao3), normal);
+				Vertex!(buffer, x, y, z, quad.vertices[3], quad.texture, lightUv, c.MulWithoutA(quad.light * ao4), normal);
 			}
 		}
 
-		private static mixin Vertex(Buffer buffer, int x, int y, int z, Vertex v, uint16 texture, Color color, Vec3f normal) {
+		private static mixin Vertex(Buffer buffer, int x, int y, int z, Vertex v, uint16 texture, uint32 lightUv, Color color, Vec3f normal) {
 			buffer.Add(BlockVertex(
 				.(x + v.pos.x, y + v.pos.y, z + v.pos.z),
 				v.uv,
+				lightUv,
 				color,
 				.(texture, 0),
 				.((.) normal.x, (.) normal.y, (.) normal.z, 0)
@@ -173,7 +180,7 @@ namespace Meteorite {
 		private static Biome GetBiome(Chunk chunk, int x, int y, int z) {
 			World world = chunk.world;
 
-			if (y < 0 || y >= world.height) return null;
+			if (y < 0 || y >= world.dimension.height) return null;
 			if (x >= 0 && x < Section.SIZE && z >= 0 && z < Section.SIZE) return chunk.GetBiome(x, y, z);
 
 			int bx = chunk.pos.x * Section.SIZE + x;
@@ -197,6 +204,43 @@ namespace Meteorite {
 			if (c == null) return Blocks.AIR.defaultBlockState;
 
 			return c.Get(bx & 15, y, bz & 15);
+		}
+
+		private static uint32 GetLightmapUv(World world, Chunk chunk, BlockState blockState, int x, int y, int z, Quad quad) {
+			if (quad.adjacent) {
+				Vec3i offset = quad.direction.GetOffset();
+				return GetLightmapUv(world, chunk, blockState, x + offset.x, y + offset.y, z + offset.z);
+			}
+
+			return GetLightmapUv(world, chunk, blockState, x, y, z);
+		}
+
+		private static uint32 GetLightmapUv(World world, Chunk chunk, BlockState blockState, int x, int y, int z) {
+		    if (blockState.emissive) return 0xF000F0;
+
+			var x, z;
+			Chunk c;
+
+			if (x >= 0 && x < Section.SIZE && z >= 0 && z < Section.SIZE) {
+				c = chunk;
+			}
+			else {
+				int bx = chunk.pos.x * Section.SIZE + x;
+				int bz = chunk.pos.z * Section.SIZE + z;
+
+				c = world.GetChunk(bx >> 4, bz >> 4);
+				if (c == null) return 0;
+
+				x = bx & 15;
+				z = bz & 15;
+			}
+
+			uint32 i = (.) c.GetLight(.Sky, x, y, z);
+			uint32 j = (.) c.GetLight(.Block, x, y, z);
+
+			if (j < blockState.luminance) j = blockState.luminance;
+
+		    return i << 20 | j << 4;
 		}
 		
 		private static bool ShouldRender(ref Foo foo, Quad quad, Direction direction) {

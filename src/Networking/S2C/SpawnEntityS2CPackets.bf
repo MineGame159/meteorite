@@ -16,7 +16,7 @@ namespace Meteorite {
 			buf.Skip(16);
 			type = EntityTypes.ENTITY_TYPES[buf.ReadVarInt()];
 			x = buf.ReadDouble();
-			y = buf.ReadDouble() - me.world.minY;
+			y = buf.ReadDouble() - me.world.dimension.minY;
 			z = buf.ReadDouble();
 		}
 	}

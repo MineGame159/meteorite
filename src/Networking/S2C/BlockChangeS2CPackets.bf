@@ -13,7 +13,7 @@ namespace Meteorite {
 
 		public override void Read(NetBuffer buf) {
 			pos = buf.ReadPosition();
-			pos.y -= me.world.minY;
+			pos.y -= me.world.dimension.minY;
 
 			blockState = Blocks.BLOCKSTATES[buf.ReadVarInt()];
 		}
@@ -30,7 +30,7 @@ namespace Meteorite {
 		public override void Read(NetBuffer buf) {
 			int64 section = buf.ReadLong();
 			sectionPos = .(section >> 42, section << 44 >> 44, section << 22 >> 42);
-			sectionPos.y -= me.world.minY / Section.SIZE;
+			sectionPos.y -= me.world.dimension.minY / Section.SIZE;
 
 			buf.ReadBool();
 

@@ -47,7 +47,9 @@ namespace Cacti {
 		}
 
 		public float Dot(Self v) => x * v.x + y * v.y + z * v.z + w * v.w;
-		public Self Lerp(double delta, Self start) => .(Utils.Lerp(delta, start.x, x), Utils.Lerp(delta, start.y, y), Utils.Lerp(delta, start.z, z), Utils.Lerp(delta, start.w, w));
+
+		public Self Clamp(T min, T max) => .(Math.Clamp(x, min, max), Math.Clamp(y, min, max), Math.Clamp(z, min, max), Math.Clamp(w, min, max));
+		public Self Lerp(T delta, Self end) => .(Utils.Lerp(delta, x, end.x), Utils.Lerp(delta, y, end.y), Utils.Lerp(delta, z, end.z), Utils.Lerp(delta, w, end.z));
 
 		public bool Equals(Object o) => (o is Self) ? Equals((Self) o) : false;
 		public bool Equals(Self v) => x == v.x && y == v.y && z == v.z && w == v.w;

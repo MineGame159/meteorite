@@ -194,7 +194,7 @@ namespace Meteorite {
 		private void Line(MeshBuilder mb, int x, int z, Color color) {
 			mb.Line(
 				mb.Vertex<PosColorVertex>(.(.(x, 0, z), color)),
-				mb.Vertex<PosColorVertex>(.(.(x, me.world.height, z), color))
+				mb.Vertex<PosColorVertex>(.(.(x, me.world.dimension.height, z), color))
 			);
 		}
 	}

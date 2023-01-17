@@ -7,23 +7,25 @@ namespace Meteorite {
 	extension Blocks {
 		public static BlockState[] BLOCKSTATES = new .[MAX_ID + 1] ~ delete _;
 
-		private static Json IDS;
+		private static Json JSON;
 		private static String STR1, STR2;
 
 		private static void BeforeRegister() {
-			IDS = Meteorite.INSTANCE.resources.ReadJson("data/block_states.json");
+			JSON = Meteorite.INSTANCE.resources.ReadJson("data/block_states.json");
 			STR1 = new .();
 			STR2 = new .();
 		}
 
 		private static void AfterRegister() {
-			IDS.Dispose();
+			JSON.Dispose();
 			delete STR1;
 			delete STR2;
 		}
 
-		private static int32 GetId(BlockState blockState) {
+		private static void ReadOptions(BlockState blockState) {
+			// Build property string
 			STR1.Append(blockState.block.id);
+			defer STR1.Clear();
 
 			for (int i < blockState.properties.Count) {
 				Property property = blockState.properties[i];
@@ -37,10 +39,17 @@ namespace Meteorite {
 				STR2.Clear();
 			}
 
-			int32 id = (.) IDS.GetInt(STR1, 0);
+			// Read options
+			Json json = JSON[STR1];
 
-			STR1.Clear();
-			return id;
+			if (json.IsObject) {
+				blockState.id = (.) json.GetInt("id", 0);
+				blockState.luminance = (.) json.GetInt("luminance", 0);
+				blockState.emissive = json.GetBool("emissive");
+			}
+			else {
+				blockState.id = (.) json.AsNumber;
+			}
 		}
 
 		private static void LoopProperties(Block block, PropertyInfo[] properties, int[] values, int i) {
@@ -54,7 +63,7 @@ namespace Meteorite {
 					for (int k < properties.Count) props.Add(.(properties[k], values[k]));
 
 					BlockState blockState = new .(block, props);
-					blockState.id = GetId(blockState);
+					ReadOptions(blockState);
 
 					block.AddBlockState(blockState);
 					
@@ -69,9 +78,11 @@ namespace Meteorite {
 
 			if (properties.IsEmpty) {
 				BlockState blockState = new .(block, new .());
+				ReadOptions(blockState);
+				
 				block.AddBlockState(blockState);
 
-				BLOCKSTATES[GetId(blockState)] = blockState;
+				BLOCKSTATES[blockState.id] = blockState;
 			}
 			else {
 				int[] values = scope int[properties.Count];
