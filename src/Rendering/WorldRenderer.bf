@@ -66,7 +66,8 @@ namespace Meteorite {
 		}
 
 		private bool ShouldRenderSelf() {
-			return me.player.gamemode == .Spectator;
+			return false;
+			//return me.player.gamemode == .Spectator;
 		}
 
 		private void RenderBlockSelection(CommandBuffer cmds) {
