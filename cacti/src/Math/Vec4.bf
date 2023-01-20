@@ -6,6 +6,8 @@ namespace Cacti {
 	typealias Vec4i = Vec4<int>;
 	
 	struct Vec4<T> : IEquatable, IEquatable<Self>, IHashable where T : var, operator T + T, operator T * T, operator T / T, operator T % T, IHashable {
+		public static Self ZERO = .();
+
 		public T x, y, z, w;
 
 		public this(T x, T y, T z, T w) {

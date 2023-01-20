@@ -3,54 +3,38 @@ using System;
 using Cacti;
 
 namespace Meteorite {
-	interface PlayerInput {
-		bool IsForward();
-		bool IsBackward();
-		bool IsRight();
-		bool IsLeft();
+	abstract class PlayerInput {
+		public bool forward, backward;
+		public bool right, left;
 
-		bool IsSprint();
-		bool IsSneak();
-		bool IsJump();
+		public bool sprint, sneak;
+		public bool jump;
 
-		double GetForward() {
-			if (IsForward() == IsBackward()) return 0;
-			return IsForward() ? -1 : 1;
-		}
+		public Vec2d movement;
+		public double vertical;
 
-		double GetLeft() {
-			if (IsLeft() == IsRight()) return 0;
-			return IsLeft() ? 1 : -1;
+		public virtual void Tick() {
+			movement = .(
+				forward == backward ? 0 : (forward ? -1 : 1),
+				left == right ? 0 : (left ? 1 : -1)
+			);
+
+			vertical = jump == sneak ? 0 : (jump ? 1 : -1);
 		}
 	}
 
 	class PlayerKeyboardInput : PlayerInput {
-		public bool IsForward() {
-			return !Input.capturingCharacters && Input.IsKeyDown(.W);
-		}
+		public override void Tick() {
+			forward = !Input.capturingCharacters && Input.IsKeyDown(.W);
+			backward = !Input.capturingCharacters && Input.IsKeyDown(.S);
+			right = !Input.capturingCharacters && Input.IsKeyDown(.D);
+			left = !Input.capturingCharacters && Input.IsKeyDown(.A);
 
-		public bool IsBackward() {
-			return !Input.capturingCharacters && Input.IsKeyDown(.S);
-		}
+			sprint = !Input.capturingCharacters && Input.IsKeyDown(.LeftControl) || Input.IsKeyDown(.RightControl);
+			sneak = !Input.capturingCharacters && Input.IsKeyDown(.LeftShift) || Input.IsKeyDown(.RightShift);
+			jump = !Input.capturingCharacters && Input.IsKeyDown(.Space);
 
-		public bool IsRight() {
-			return !Input.capturingCharacters && Input.IsKeyDown(.D);
-		}
-
-		public bool IsLeft() {
-			return !Input.capturingCharacters && Input.IsKeyDown(.A);
-		}
-
-		public bool IsSprint() {
-			return !Input.capturingCharacters && Input.IsKeyDown(.LeftControl) || Input.IsKeyDown(.RightControl);
-		}
-
-		public bool IsSneak() {
-			return !Input.capturingCharacters && Input.IsKeyDown(.LeftShift) || Input.IsKeyDown(.RightShift);
-		}
-
-		public bool IsJump() {
-			return !Input.capturingCharacters && Input.IsKeyDown(.Space);
+			base.Tick();
 		}
 	}
 }

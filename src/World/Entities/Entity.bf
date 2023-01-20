@@ -15,7 +15,7 @@ namespace Meteorite {
 
 	class Entity {
 		public EntityType type;
-		public int id;
+		public int32 id;
 		public Vec3d pos;
 		public float yaw, pitch;
 
@@ -29,15 +29,15 @@ namespace Meteorite {
 
 		public bool noPhysics;
 
-		public this(EntityType type, int id, Vec3d pos) {
+		public this(EntityType type, int32 id, Vec3d pos) {
 			this.type = type;
 			this.id = id;
 			this.pos = pos;
 			this.trackedPos = pos;
 			this.lastPos = pos;
 		}
-
-		public AABB GetAABB() => .(pos, pos + .(type.width, type.height, type.width));
+		
+		public AABB AABB => .(.ZERO, .(type.width, type.height, type.width));
 
 		public virtual void Tick() {
 			lastPos = pos;

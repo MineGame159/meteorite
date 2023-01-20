@@ -7,7 +7,7 @@ namespace Meteorite {
 		private ClientConnection connection;
 
 		private bool firstPlayerInfo = true, firstPlayerPositionAndLook = true;
-		private int playerId;
+		private int32 playerId;
 		private Gamemode gamemode;
 		private PlayerAbilities abilities;
 
@@ -204,6 +204,14 @@ namespace Meteorite {
 			me.hud.chat.AddMessage(packet.text);
 		}
 
+		private void OnUpdateAttributes(UpdateAttributesS2CPacket packet) {
+			Entity entity = me.world.GetEntity(packet.entityId);
+			if (entity != me.player) return;
+
+			me.player.SetAttributes(packet.attributes);
+			packet.Consume();
+		}
+
 		private void OnDisconnect(DisconnectS2CPacket packet) {
 			me.Disconnect(packet.reason);
 		}
@@ -232,6 +240,7 @@ namespace Meteorite {
 			case ChangeGameStateS2CPacket.ID:			return new ChangeGameStateS2CPacket();
 			case SystemChatMessageS2CPacket.ID:			return new SystemChatMessageS2CPacket();
 			case PlayerCharMessageS2CPacket.ID:			return new PlayerCharMessageS2CPacket();
+			case UpdateAttributesS2CPacket.ID:			return new UpdateAttributesS2CPacket();
 			case DisconnectS2CPacket.ID:				return new DisconnectS2CPacket();
 			}
 
@@ -267,6 +276,7 @@ namespace Meteorite {
 			case ChangeGameStateS2CPacket.ID:			OnChangeGameState((.) packet);
 			case SystemChatMessageS2CPacket.ID:			OnSystemChatMessage((.) packet);
 			case PlayerCharMessageS2CPacket.ID:			OnPlayerChatMessage((.) packet);
+			case UpdateAttributesS2CPacket.ID:			OnUpdateAttributes((.) packet);
 			case DisconnectS2CPacket.ID:				OnDisconnect((.) packet);
 			}
 		}

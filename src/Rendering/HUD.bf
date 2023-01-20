@@ -52,6 +52,7 @@ namespace Meteorite {
 				ImGui.Text("Entities: {} (B: {})", me.world.EntityCount, me.world.BlockEntityCount);
 			}
 			ImGui.Text("Pos: {:0} {:0} {:0}", me.camera.pos.x, me.camera.pos.y, me.camera.pos.z);
+			if (me.player != null) ImGui.Text("Speed: {0:0.#}", me.player.Speed);
 			ImGui.Separator();
 
 			ImGui.Checkbox("Mipmaps", &me.options.mipmaps);

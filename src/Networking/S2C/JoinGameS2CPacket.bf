@@ -5,7 +5,7 @@ namespace Meteorite {
 	class JoinGameS2CPacket : S2CPacket {
 		public const int32 ID = 0x24;
 
-		public int playerId;
+		public int32 playerId;
 		public bool hardcore;
 		public Gamemode gamemode, previousGamemode;
 

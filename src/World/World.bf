@@ -5,7 +5,7 @@ using System.Diagnostics;
 using Cacti;
 
 namespace Meteorite {
-	class World {
+	class World : IBlockGetter {
 		public DimensionType dimension ~ delete _;
 		public int viewDistance;
 
@@ -66,7 +66,7 @@ namespace Meteorite {
 			Chunk chunk = GetChunk(x >> 4, z >> 4);
 			return chunk != null ? chunk.Get(x & 15, y, z & 15) : Blocks.AIR.defaultBlockState;
 		}
-		public BlockState GetBlock(Vec3i pos) => GetBlock(pos.x, pos.y, pos.z);
+		public BlockState GetBlock(Vec3i pos) => GetBlock(pos.x, pos.y, pos.z); // Bruh
 
 		public void SetBlock(int x, int y, int z, BlockState blockState) {
 			Chunk chunk = GetChunk(x >> 4, z >> 4);

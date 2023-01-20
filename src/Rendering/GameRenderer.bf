@@ -136,15 +136,15 @@ namespace Meteorite {
 		}
 		
 		private void SetupWorldRendering() {
-			if (me.player != null && me.player.gamemode == .Spectator) {
-				Vec3d pos = me.player.pos.Lerp(me.tickCounter.tickDelta, me.player.lastPos);
-				me.camera.pos = .((.) (pos.x + me.player.type.width / 2), (.) pos.y + 1.62f, (.) (pos.z + me.player.type.width / 2));
+			if (me.player != null/* && me.player.gamemode == .Spectator*/) {
+				Vec3d pos = me.player.lastPos.Lerp(me.tickCounter.tickDelta, me.player.pos);
+				me.camera.pos = .((.) (pos.x), (.) pos.y + 1.62f, (.) (pos.z));
 				me.camera.yaw = me.player.yaw;
 				me.camera.pitch = me.player.pitch;
 			}
-			else {
+			/*else {
 				if (!Input.capturingCharacters) me.camera.FlightMovement(delta);
-			}
+			}*/
 
 			me.camera.fov = Meteorite.INSTANCE.options.fov;
 			me.camera.Update(me.world.viewDistance * Section.SIZE * 4);
@@ -202,47 +202,5 @@ namespace Meteorite {
 			images.Add(image);
 			return image;
 		}
-
-		/*private void Begin() {
-			int screenWidth = me.window.width;
-			int screenHeight = me.window.height;
-
-			if (Screenshots.rendering) {
-				output = Screenshots.texture.CreateView();
-
-				screenWidth = Screenshots.width;
-				screenHeight = Screenshots.height;
-			}
-			else output = Gfx.swapChain.GetCurrentTextureView();
-
-			for (Texture texture in textures)
-				texture.Resize(screenWidth, screenHeight);
-
-			Wgpu.CommandEncoderDescriptor encoderDesc = .();
-			encoder = Gfx.device.CreateCommandEncoder(&encoderDesc);
-		}
-
-		private void End() {
-			if (afterScreenshot) {
-				Screenshots.AfterRender(encoder);
-			}
-
-			Wgpu.CommandBufferDescriptor cbDesc = .();
-			Wgpu.CommandBuffer cb = encoder.Finish(&cbDesc);
-			Gfx.queue.Submit(1, &cb);
-
-			if (!Screenshots.rendering) Gfx.swapChain.Present();
-			output.Drop();
-
-			if (afterScreenshot) {
-				afterScreenshot = false;
-				Screenshots.Save();
-			}
-
-			if (Screenshots.rendering) {
-				afterScreenshot = true;
-				Screenshots.rendering = false;
-			}
-		}*/
 	}
 }

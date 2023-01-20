@@ -12,6 +12,14 @@ namespace Meteorite {
 			this.max = max;
 		}
 
+		public double Width => max.x - min.x;
+		public double Height => max.y - min.y;
+		public double Depth => max.z - min.z;
+
+		public Vec3d Size => .(Width, Height, Depth);
+		public Vec3d Center => min + max / 2;
+
+		public AABB OffsetA(Vec3d pos) => .(pos + min, pos + max);
 		public AABB Offset(Vec3i pos) => .(.(pos.x, pos.y, pos.z) + min, .(pos.x, pos.y, pos.z) + max);
 
 		public AABB Expand(Vec3d vec) {

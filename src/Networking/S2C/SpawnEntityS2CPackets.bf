@@ -4,7 +4,7 @@ namespace Meteorite {
 	class SpawnEntityS2CPacket : S2CPacket {
 		public const int32 ID = 0x00;
 
-		public int entityId;
+		public int32 entityId;
 		// UUID
 		public EntityType type;
 		public double x, y, z;

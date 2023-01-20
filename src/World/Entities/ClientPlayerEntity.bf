@@ -10,21 +10,34 @@ namespace Meteorite {
 
 		public BlockHitResult selection ~ delete _;
 
-		private Vec3d lastSentPos;
+		private Dictionary<StringView, EntityAttribute> attributes = new .() ~ DeleteDictionaryAndValues!(_);
+
+		private Vec3d lastSentPos, prevPos;
 		private float lastSentYaw, lastSentPitch;
+		private bool lastSentOnGround, lastSentSprinting;
 		private int sendPositionTimer;
 
 		private PlayerInput input ~ delete _;
+		private Vec3d velocity;
+		private double flyingSpeed = 0.02;
 
-		public this(int id, Vec3d pos, float yaw, float pitch, Gamemode gamemode, PlayerAbilities abilities) : base(EntityTypes.PLAYER, id, pos) {
+		private bool sprinting;
+		private int jumpCooldown;
+		private int flyToggleCooldown;
+
+		public bool onGround;
+
+		public this(int32 id, Vec3d pos, float yaw, float pitch, Gamemode gamemode, PlayerAbilities abilities) : base(EntityTypes.PLAYER, id, pos) {
 			this.gamemode = gamemode;
 			this.abilities = abilities;
 
 			this.lastSentPos = pos;
+			this.prevPos = pos;
 			this.yaw = yaw;
 			this.pitch = pitch;
 			this.lastSentYaw = yaw;
 			this.lastSentPitch = pitch;
+			this.lastSentOnGround = onGround;
 
 			SetInput(new PlayerKeyboardInput());
 		}
@@ -40,22 +53,7 @@ namespace Meteorite {
 			pitch = Math.Clamp(pitch, -89.5f, 89.5f);
 		}
 
-		protected override void TickMovement() {
-			base.TickMovement();
-
-			if (gamemode == .Spectator) {
-				int i = 0;
-				if (input.IsSneak()) i--;
-				if (input.IsJump()) i++;
-	
-				if (i != 0) {
-					deltaMovement += .(0, i * abilities.flyingSpeed * 3, 0);
-				}
-			}
-
-			Move();
-			SendMovement();
-		}
+		public double Speed => (pos.XZ - prevPos.XZ).Length * 20;
 
 		public override void Tick() {
 			base.Tick();
@@ -71,168 +69,215 @@ namespace Meteorite {
 			selection = result;
 		}
 
-		private float GetFrictionInfluencedSpeed(float f) {
-			// TODO: On ground, idk if abilities.walkingSpeed is correct here
-			return false ? abilities.walkingSpeed * (0.21600002F / (f * f * f)) : (abilities.flyingSpeed * (input.IsSprint() ? 2 : 1));
-		}
+		protected override void TickMovement() {
+			prevPos = pos;
 
-		public bool OnClimbable() {
-			if (gamemode == .Spectator) {
-				return false;
+			Vec2d prevMovement = input.movement;
+			bool prevSprint = input.sprint;
+			bool prevJump = input.jump;
+
+			input.Tick();
+
+			// Start / stop sprinting if needed
+			if ((onGround || abilities.flying) && !prevSprint && input.sprint) {
+				sprinting = true;
+			}
+			else if (sprinting && !prevMovement.IsZero && input.movement.IsZero) {
+				sprinting = false;
+			}
+
+			// Start / stop flying if needed
+			if (abilities.canFly) {
+				if (gamemode == .Spectator) {
+					if (!abilities.flying) {
+						abilities.flying = true;
+						SendAbilities();
+					}
+				}
+				else {
+					if (!prevJump && input.jump) {
+						if (flyToggleCooldown == 0) {
+							flyToggleCooldown = 7;
+						}
+						else {
+							abilities.flying = !abilities.flying;
+							SendAbilities();
+
+							flyToggleCooldown = 0;
+						}
+					}
+				}
+			}
+
+			if (flyToggleCooldown > 0) {
+				flyToggleCooldown--;
+			}
+
+			// Get movement
+			Vec2d movement = input.movement;
+
+			// Sneaking
+			if (false) {
+				movement *= 0.3;
+			}
+
+			// Using item
+			if (false) {
+				movement *= 0.2;
 			}
 			
-			// TODO
-			return false;
-		}
-
-		private Vec3d HandleOnClimbable(Vec3d vec3) {
-			// TODO
-			if (OnClimbable()) {}
-
-			return vec3;
-		}
-
-		private static Vec3d GetInputVector(Vec3d relative, float motionScaler, float facing) {
-			double d = relative.LengthSquared;
-			if (d < 1.0E-7) return .();
-
-			Vec3d vec3 = (d > 1.0 ? relative.Normalize() : relative) * (motionScaler);
-			float f = Math.Sin(facing * (Math.PI_f / 180f));
-			float g = Math.Cos(facing * (Math.PI_f / 180f));
-			return .(vec3.x * g - vec3.z * f, vec3.y, vec3.z * g + vec3.x * f);
-		}
-
-		public void MoveRelative(float amount, Vec3d relative) {
-			deltaMovement += GetInputVector(relative, amount, yaw); // TODO: Hopefully yaw
-		}
-
-		private Vec3d Collide(Vec3d _vec) {
-			Vec3d vec = _vec;
-
-			/*Vec3d playerMin = this.pos + vec;
-			Vec3d playerMax = this.pos + vec + .(type.width, type.height, type.width);
-
-			mixin Calc() {
-				playerMin = this.pos + vec;
-				playerMax = this.pos + vec + .(type.width, type.height, type.width);
+			// Flying
+			if (jumpCooldown > 0) {
+				jumpCooldown--;
 			}
 
-			mixin Between(double value, double min, double max) {
-				value >= min && value <= max
+			if (abilities.flying) {
+				velocity.y += input.vertical * abilities.flyingSpeed * 3;
+			}
+			// Jumping
+			else {
+				if (input.jump && onGround && jumpCooldown == 0) {
+					velocity.y = 0.42;
+
+					if (sprinting) {
+						double yawRad = Math.DEG2RADd * yaw;
+						velocity += .(-(Math.Cos(yawRad) * 0.2), 0, -(Math.Sin(yawRad) * 0.2));
+					}
+
+					jumpCooldown = 10;
+				}
 			}
 
-			Meteorite.INSTANCE.world.GetPossibleCollisions(GetAABB().Expand(vec), scope [&](pos, shape) => {
-				for (let aabb in shape.[Friend]boxes) {
-					Vec3d shapeMin = pos + aabb.min;
-					Vec3d shapeMax = pos + aabb.max;
+			// Move
+			if (Math.Abs(velocity.x) < 0.003) velocity.x = 0;
+			if (Math.Abs(velocity.y) < 0.003) velocity.y = 0;
+			if (Math.Abs(velocity.z) < 0.003) velocity.z = 0;
 
-					bool x = Between!(playerMin.x, shapeMin.x, shapeMax.x) || Between!(playerMax.x, shapeMin.x, shapeMax.x);
-					bool y = Between!(playerMin.y, shapeMin.y, shapeMax.y) || Between!(playerMax.y, shapeMin.y, shapeMax.y);
-					bool z = Between!(playerMin.z, shapeMin.z, shapeMax.z) || Between!(playerMax.z, shapeMin.z, shapeMax.z);
-
-					if (Between!(playerMin.x, shapeMin.x, shapeMax.x) && y && z && vec.x < 0 && playerMin.x <= shapeMax.x) vec.x = vec.x + (shapeMax.x - playerMin.x); Calc!();
-					if (Between!(playerMax.x, shapeMin.x, shapeMax.x) && y && z && vec.x > 0 && playerMax.x >= shapeMin.x) vec.x = vec.x - (playerMax.x - shapeMin.x); Calc!();
-
-					if (Between!(playerMin.y, shapeMin.y, shapeMax.y) && x && z && vec.y < 0 && playerMin.y <= shapeMax.y) vec.y = vec.y + (shapeMax.y - playerMin.y); Calc!();
-					if (Between!(playerMax.y, shapeMin.y, shapeMax.y) && x && z && vec.y > 0 && playerMax.y >= shapeMin.y) vec.y = vec.y - (playerMax.y - shapeMin.y); Calc!();
-
-					if (Between!(playerMin.z, shapeMin.z, shapeMax.z) && x && y && vec.z < 0 && playerMin.z <= shapeMax.z) vec.z = vec.z + (shapeMax.z - playerMin.z); Calc!();
-					if (Between!(playerMax.z, shapeMin.z, shapeMax.z) && x && y && vec.z > 0 && playerMax.z >= shapeMin.z) vec.z = vec.z - (playerMax.z - shapeMin.z); Calc!();
-				}
-			});*/
-
-			//if (vec.y != 0) Log.Info("{}", vec.y);
-
-			/*Vec3d playerMin = pos + vec;
-			Vec3d playerMax = pos + vec + .(type.width, type.height, type.width);
-
-			Meteorite.INSTANCE.world.GetPossibleCollisions(GetAABB().Expand(vec), scope [&](shapePos, shape) => {
-				Vec3d shapeMin = shapePos + shape.min;
-				Vec3d shapeMax = shapePos + shape.max;
-
-				if (!(playerMax.x <= shapeMin.x || playerMax.z <= shapeMin.z || playerMin.x >= shapeMax.x || playerMin.z >= shapeMax.z)) {
-					if (vec.y > 0 && playerMax.y >= shapeMin.y && pos.y <= shapeMin.y) vec.y = shapeMin.y - (pos.y + type.height);
-					else if (vec.y < 0 && playerMin.y <= shapeMax.y && pos.y >= shapeMax.y) vec.y = shapeMax.y - pos.y;
-				}
-
-				/*if (!(playerMax.x <= shapeMin.x || playerMax.y <= shapeMin.y || playerMin.x >= shapeMax.x || playerMin.y >= shapeMax.y)) {
-					if (vec.z > 0 && playerMax.z >= shapeMin.z && pos.z <= shapeMin.z) vec.z = shapeMin.z - (pos.z + type.width);
-					else if (vec.z < 0 && playerMin.z <= shapeMax.z && pos.z >= shapeMax.z) vec.z = shapeMax.z - pos.z;
-				}
-
-				if (!(playerMax.z <= shapeMin.z || playerMax.y <= shapeMin.y || playerMin.z >= shapeMax.z || playerMin.y >= shapeMax.y)) {
-					if (vec.x > 0 && playerMax.x >= shapeMin.x && pos.x <= shapeMin.x) vec.x = shapeMin.x - (pos.x + type.width);
-					else if (vec.x < 0 && playerMin.x <= shapeMax.x && pos.x >= shapeMax.x) vec.x = shapeMax.x - pos.x;
-				}
-				*/
-				playerMin = pos + vec;
-				playerMax = pos + vec + .(type.width, type.height, type.width);
-			});*/
+			movement *= 0.98;
 			
-			return vec;
-		}
+			if (abilities.flying) {
+				// Flying
+				double prevFlyingSpeed = flyingSpeed;
+				flyingSpeed = abilities.flyingSpeed;
 
-		// TODO: Only implemented Self movement type
-		public void Move(Vec3d pos) {
-			if (noPhysics) {
-				this.pos += pos;
-				return;
+				if (sprinting) {
+					flyingSpeed *= 2;
+				}
+
+				Move(movement);
+				velocity.y *= 0.6;
+
+				flyingSpeed = prevFlyingSpeed;
+			}
+			else {
+				// Walking
+				Move(movement);
 			}
 
-			Vec3d vec = Collide(pos);
-
-			double d = vec.LengthSquared;
-			if (d > 1.0E-7) {
-				this.pos += vec;
-			}
-		}
-
-		private Vec3d HandleRelativeFrictionAndCalculateMovement(Vec3d vec3, float f) {
-			MoveRelative(GetFrictionInfluencedSpeed(f), vec3);
-			deltaMovement = HandleOnClimbable(deltaMovement);
-			Move(deltaMovement);
-			Vec3d vec32 = deltaMovement;
-			if ((false || input.IsJump()) // TODO: this.horizontalCollision || this.jumping
-				&& (OnClimbable())) {
-				vec32 = .(vec32.x, 0.2, vec32.z);
+			// Stop flying if touching ground
+			if (onGround && abilities.flying && gamemode != .Spectator) {
+				abilities.flying = false;
+				SendAbilities();
 			}
 
-			return vec32;
+			// Send position
+			SendMovement();
 		}
 
-		private void Move() {
-			if (gamemode != .Spectator) return;
-
-			Vec3d travelVector = .(input.GetForward() * 0.98, 0, input.GetLeft() * 0.98);
-
-
-
-			double deltaY = deltaMovement.y;
+		private void Move(Vec2d movement) {
 			double gravity = 0.08;
 
-
-
-			//BlockPos blockPos = this.getBlockPosBelowThatAffectsMyMovement();
-			//float p = this.level.getBlockState(blockPos).getBlock().getFriction();
-			float friction = 0.91f;
-			Vec3d pos = HandleRelativeFrictionAndCalculateMovement(travelVector, 0.6f);
-			double y = pos.y - gravity;
-
-			deltaMovement = .(pos.x * friction, y * 0.98, pos.z * friction);
-
-
+			double speedMultiplier = 0.91;
+			double friction = 0.6;
 			
-			deltaMovement.y = deltaY * 0.6;
+			// On ground
+			if (onGround) {
+				speedMultiplier *= friction;
+			}
+
+			Vec3d newVelocity = Move(movement, friction);
+
+			// Has gravity
+			if (!abilities.flying) {
+				newVelocity.y -= gravity;
+			}
+
+			velocity = newVelocity * .(speedMultiplier, 0.98, speedMultiplier);
+		}
+
+		private Vec3d Move(Vec2d movement, double friction) {
+			// Calculate velocity
+			velocity += CalculateVelocity(movement, FrictionToMovement(friction));
+
+			// Move
+			if (gamemode == .Adventure) { // TODO: Change to spectator when I implement proper freecam mode
+				pos += velocity;
+			}
+			else {
+				PhysicsResult result = scope .();
+				BlockCollision.HandlePhysics(AABB, velocity, pos, Meteorite.INSTANCE.world, result);
+
+				pos = result.newPosition;
+				velocity = result.newVelocity;
+				onGround = result.isOnGround;
+
+				// Stop sprinting if collided horizontally
+				if (result.collisionX || result.collisionZ) {
+					sprinting = false;
+				}
+			}
+
+			return velocity;
+		}
+
+		private double FrictionToMovement(double friction) {
+			if (onGround) {
+				return GetAttribute(EntityAttributes.GENERIC_MOVEMENT_SPEED, abilities.walkingSpeed) * (0.21600002 / Math.Pow(friction, 3));
+			}
+
+			return flyingSpeed;
+		}
+
+		private Vec3d CalculateVelocity(Vec2d movement, double speed) {
+			if (movement.IsZero) {
+				return .();
+			}
+
+			Vec3d velocity = .(movement.x, 0, movement.y);
+
+			if (velocity.Dot(velocity) > 1) {
+				velocity = velocity.Normalize();
+			}
+
+			velocity *= speed;
+
+			double yawRad = yaw * Math.DEG2RADd;
+			double sin = Math.Sin(yawRad);
+			double cos = Math.Cos(yawRad);
+
+			return .(velocity.x * cos - velocity.z * sin, velocity.y, velocity.z * cos + velocity.x * sin);
+		}
+
+		private void SendAbilities() {
+			Meteorite.INSTANCE.connection.Send(scope PlayerAbilitiesC2SPacket(abilities));
 		}
 
 		private void SendMovement() {
+			// Sprinting
+			if (sprinting != lastSentSprinting) {
+				Meteorite.INSTANCE.connection.Send(scope PlayerCommandC2SPacket(this, sprinting ? .StartSprinting : .StopSprinting));
+				lastSentSprinting = sprinting;
+			}
+
+			// Position
 			sendPositionTimer++;
 
 			bool positionChanged = (pos - lastSentPos).Length > 2.0E-4 || sendPositionTimer >= 20;
 			bool rotationChanged = (yaw - lastSentYaw) != 0 || (pitch - lastSentPitch) != 0;
+			bool onGroundChanged = onGround != lastSentOnGround;
 
 			// TODO: Figure out On Ground property
-			if (positionChanged || rotationChanged) {
+			if (positionChanged || rotationChanged || onGroundChanged) {
 				Meteorite.INSTANCE.connection.Send(scope PlayerPositionC2SPacket(this, positionChanged, rotationChanged));
 			}
 
@@ -245,6 +290,37 @@ namespace Meteorite {
 				lastSentYaw = yaw;
 				lastSentPitch = pitch;
 			}
+
+			lastSentOnGround = onGround;
+		}
+
+		public void SetAttributes(EntityAttribute[] attributes) {
+			for (EntityAttribute attribute in this.attributes.Values) {
+				delete attribute;
+			}
+
+			this.attributes.Clear();
+
+			for (EntityAttribute attribute in attributes) {
+				this.attributes[attribute.name] = attribute;
+			}
+		}
+
+		public double GetAttribute(StringView name, double defaultValue) {
+			EntityAttribute attribute;
+			if (!attributes.TryGetValue(name, out attribute)) return defaultValue;
+
+			double value = attribute.baseValue;
+
+			for (let modifier in attribute.modifiers) {
+				switch (modifier.operation) {
+				case .Add:				value += modifier.amount;
+				case .MultiplyBase:		value += attribute.baseValue * (modifier.amount + 1);
+				case .MultiplyTotal:	value *= modifier.amount + 1;
+				}
+			}
+
+			return value;
 		}
 	}
 }

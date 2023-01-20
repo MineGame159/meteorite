@@ -29,41 +29,6 @@ namespace Meteorite {
 		public void RenderPost(CommandBuffer cmds, float tickDelta, float delta) {
 			if (me.player != null && me.player.selection != null && !me.player.selection.missed) RenderBlockSelection(cmds);
 			if (me.options.chunkBoundaries) RenderChunkBoundaries(cmds);
-
-			if (me.player != null) {
-				cmds.Bind(Gfxa.LINES_PIPELINE);
-
-				Mat4 projectionView = me.camera.proj * me.camera.view;
-				cmds.SetPushConstants(projectionView);
-
-				MeshBuilder mb = scope .();
-
-				me.world.GetPossibleCollisions(me.player.GetAABB(), scope (pos, shape) => {
-					Color c = .(255, 255, 255);
-
-					float x = (.) pos.x + 0.5f;
-					float y = (.) pos.y + 0.5f;
-					float z = (.) pos.z + 0.5f;
-					float s = 0.05f;
-
-					mb.Line(
-						mb.Vertex<PosColorVertex>(.(.((.) x - s, (.) y, (.) z), c)),
-						mb.Vertex<PosColorVertex>(.(.((.) x + s, (.) y, (.) z), c))
-					);
-
-					mb.Line(
-						mb.Vertex<PosColorVertex>(.(.((.) x, (.) y - s, (.) z), c)),
-						mb.Vertex<PosColorVertex>(.(.((.) x, (.) y + s, (.) z), c))
-					);
-
-					mb.Line(
-						mb.Vertex<PosColorVertex>(.(.((.) x, (.) y, (.) z - s), c)),
-						mb.Vertex<PosColorVertex>(.(.((.) x, (.) y, (.) z + s), c))
-					);
-				});
-
-				cmds.Draw(mb.End());
-			}
 		}
 
 		private void RenderBlockEntities(CommandBuffer cmds, float tickDelta) {
@@ -90,7 +55,7 @@ namespace Meteorite {
 			Meteorite me = Meteorite.INSTANCE;
 
 			for (Entity entity in me.world.Entities) {
-				if (entity == me.player && me.player.gamemode != .Creative) continue;
+				if (entity == me.player && !ShouldRenderSelf()) continue;
 
 				entity.Render(mb, tickDelta);
 			}
@@ -100,7 +65,16 @@ namespace Meteorite {
 			cmds.PopDebugGroup();
 		}
 
+		private bool ShouldRenderSelf() {
+			return me.player.gamemode == .Spectator;
+		}
+
 		private void RenderBlockSelection(CommandBuffer cmds) {
+			Vec3i pos = me.player.selection.blockPos;
+			BlockState blockState = me.world.GetBlock(pos);
+
+			if (blockState == null) return;
+
 			cmds.Bind(Gfxa.LINES_PIPELINE);
 
 			Mat4 projectionView = me.camera.proj * me.camera.view;
@@ -109,8 +83,7 @@ namespace Meteorite {
 			Color color = .(255, 255, 255, 100);
 			MeshBuilder mb = scope .();
 
-			Vec3i pos = me.player.selection.blockPos;
-			AABB aabb = me.world.GetBlock(pos).Shape.GetBoundingBox();
+			AABB aabb = blockState.Shape.GetBoundingBox();
 			Vec3d min = .(pos.x, pos.y, pos.z) + aabb.min;
 			Vec3d max = .(pos.x, pos.y, pos.z) + aabb.max;
 

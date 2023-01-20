@@ -6,6 +6,8 @@ namespace Cacti {
 	typealias Vec2i = Vec2<int>;
 
 	struct Vec2<T> : IEquatable, IEquatable<Self>, IHashable where T : var, operator T + T, operator T * T, operator T / T, operator T % T, IHashable {
+		public static Self ZERO = .();
+
 		public T x, y;
 
 		public this(T x, T y) {
@@ -26,6 +28,11 @@ namespace Cacti {
 				else x = value;
 			}
 		}
+
+		public bool IsZero => x == 0 && y == 0;
+
+		public int IntX => (.) Math.Floor(x);
+		public int IntY => (.) Math.Floor(y);
 
 		public double Length => Math.Sqrt(x * x + y * y);
 		public double LengthSquared => x * x + y * y;

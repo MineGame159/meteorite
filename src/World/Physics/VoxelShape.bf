@@ -33,6 +33,21 @@ namespace Meteorite {
 			return bounding;
 		}
 
+		public bool IntersectBoxSwept(Vec3d rayStart, Vec3d rayDirection, Vec3d shapePos, AABB moving, SweepResult finalResult) {
+		    bool hitBlock = false;
+
+			for (AABB aabb in boxes) {
+			    // Update final result if the temp result collision is sooner than the current final result
+			    if (RayUtils.BoundingBoxIntersectionCheckNew(moving, rayStart, rayDirection, aabb, shapePos, finalResult)) {
+			        finalResult.collidedShapePosition = shapePos;
+			    }
+
+			    hitBlock = true;
+			}
+
+			return hitBlock;
+		}
+
 		public BlockHitResult Raycast(Vec3d start, Vec3d end, Vec3i pos) {
 			if (boxes.IsEmpty) return null;
 
