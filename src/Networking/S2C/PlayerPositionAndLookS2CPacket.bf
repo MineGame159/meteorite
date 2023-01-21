@@ -14,7 +14,7 @@ namespace Meteorite {
 
 		public override void Read(NetBuffer buf) {
 			x = buf.ReadDouble();
-			y = buf.ReadDouble() - me.world.dimension.minY + 2;
+			y = buf.ReadDouble() - me.world.dimension.minY;
 			z = buf.ReadDouble();
 
 			yaw = buf.ReadFloat();

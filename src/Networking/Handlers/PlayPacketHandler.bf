@@ -89,11 +89,6 @@ namespace Meteorite {
 			connection.Send(scope ConfirmTeleportC2SPacket(packet.teleportId));
 
 			if (firstPlayerPositionAndLook) {
-				Camera c = me.camera;
-				c.pos = .((.) packet.x, (.) packet.y - (2 - 1.62f), (.) packet.z);
-				c.yaw = (.) packet.yaw;
-				c.pitch = (.) packet.pitch;
-
 				connection.Send(scope ClientStatusC2SPacket(0));
 
 				if (abilities == null) {
