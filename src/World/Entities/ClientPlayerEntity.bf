@@ -73,13 +73,12 @@ namespace Meteorite {
 			prevPos = pos;
 
 			Vec2d prevMovement = input.movement;
-			bool prevSprint = input.sprint;
 			bool prevJump = input.jump;
 
 			input.Tick();
 
 			// Start / stop sprinting if needed
-			if ((onGround || abilities.flying) && !prevSprint && input.sprint) {
+			if ((onGround || abilities.flying) && input.sprint) {
 				sprinting = true;
 			}
 			else if (sprinting && !prevMovement.IsZero && input.movement.IsZero) {
