@@ -23,7 +23,16 @@ namespace Meteorite {
 		public this(StringView address, int32 port) {
 			this.address = address;
 			this.port = port;
+		}
 
+		public ~this() {
+			Log.Info("Disconnecting");
+
+			s.Close();
+			t?.Join();
+		}
+
+		protected void Start() {
 			Socket.Init();
 
 			s = new .();
@@ -44,13 +53,6 @@ namespace Meteorite {
 				Log.Error("Failed to connect to {}:{}", address, port);
 				closed = true;
 			}
-		}
-
-		public ~this() {
-			Log.Info("Disconnecting");
-
-			s.Close();
-			t?.Join();
 		}
 
 		protected abstract void OnReady();

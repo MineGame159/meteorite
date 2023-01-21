@@ -44,39 +44,40 @@ namespace Meteorite {
 			ImGui.Begin("Meteorite", null, .AlwaysAutoResize);
 			ImGui.Text("FPS: {:0}", fps.Get());
 			ImGui.Text("CPU: {:0.000} ms, GPU: {:0.000} ms", frameTime.Get(), gpuFrameTime.Get());
-			ImGui.Text("Memory: {} MB, GPU: {} MB", Utils.UsedMemory, Gfx.UsedMemory / (1024 * 1024));
-			ImGui.Separator();
+			ImGui.Text("CPU: {} MB, GPU: {} MB", Utils.UsedMemory, Gfx.UsedMemory / (1024 * 1024));
 
-			if (me.world != null && me.worldRenderer != null) {
+			ImGui.Separator();
+			if (me.worldRenderer != null) {
 				ImGui.Text("Chunks: {} / {}", me.worldRenderer.chunkRenderer.VisibleChunkCount, me.world.ChunkCount);
 				ImGui.Text("Entities: {} (B: {})", me.world.EntityCount, me.world.BlockEntityCount);
 			}
-			ImGui.Text("Pos: {:0} {:0} {:0}", me.camera.pos.x, me.camera.pos.y, me.camera.pos.z);
-			if (me.player != null) ImGui.Text("Speed: {0:0.#}", me.player.Speed);
 			ImGui.Separator();
 
-			ImGui.Checkbox("Mipmaps", &me.options.mipmaps);
-			ImGui.Checkbox("Sort Chunks", &me.options.sortChunks);
-			ImGui.Checkbox("Chunk Boundaries", &me.options.chunkBoundaries);
-			ImGui.PushItemWidth(150);
-			ImGui.SliderFloat("FOV", &me.options.fov, 10, 170, "%.0f");
-			ImGui.Separator();
+			Biome biome = me.world.GetBiome(me.player.pos.IntX, me.player.pos.IntY, me.player.pos.IntZ);
+			String biomeName = scope .("Unknown");
 
-			int32 ao = me.options.ao.Underlying;
-			if (ImGui.Combo("AO", &ao, &aos, aos.Count)) {
-				bool prevVanilla = me.options.ao.HasVanilla;
-				bool prevSsao = me.options.ao.HasSSAO;
+			if (biome != null) {
+				biomeName.Clear();
 
-				me.options.ao = (.) ao;
+				String str = scope .(biome.name);
+				str.Replace(':', '.');
 
-				if (prevVanilla != me.options.ao.HasVanilla) me.world.ReloadChunks();
-				if (prevSsao != me.options.ao.HasSSAO) {
-					Gfxa.POST_PIPELINE.Reload();
-					me.gameRenderer.[Friend]ssao?.pipeline.Reload();
-				}
+				I18N.Translate(scope $"biome.{str}", biomeName);
 			}
-			if (ImGui.Checkbox("FXAA", &me.options.fxaa)) Gfxa.POST_PIPELINE.Reload();
-			ImGui.PopItemWidth();
+
+			ImGui.Text("Pos: {:0.0} {:0.0} {:0.0}", me.camera.pos.x, me.camera.pos.y, me.camera.pos.z);
+			ImGui.Text("Biome: {}", biomeName);
+			if (me.player.selection != null && !me.player.selection.missed) {
+				Vec3i pos = me.player.selection.blockPos;
+				BlockState blockState = me.world.GetBlock(me.player.selection.blockPos);
+
+				String blockName = scope .();
+				I18N.Translate(scope $"block.minecraft.{blockState.block.id}", blockName);
+
+				ImGui.Text("Selection: {} ({}, {}, {})", blockName, pos.x, pos.y, pos.z);
+			}
+			else ImGui.Text("Selection:");
+			ImGui.Text("Speed: {:0.#}", me.player.Speed);
 
 			ImGui.End();
 		}

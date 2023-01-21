@@ -17,7 +17,6 @@ namespace Meteorite {
 		private GpuBuffer buffer ~ delete _;
 
 		private DescriptorSet textureSet ~ delete _;
-		private DescriptorSet textureMipmapSet ~ delete _;
 		private DescriptorSet bufferSet ~ delete _;
 
 		private Dictionary<String, BindableTexture> bindableTextures = new .() ~ DeleteDictionaryAndKeysAndValues!(_);
@@ -192,15 +191,12 @@ namespace Meteorite {
 			DeleteAndNullify!(textures);
 
 			// Bind groups
-			textureSet = Gfx.DescriptorSets.Create(Gfxa.IMAGE_SET_LAYOUT, .SampledImage(texture, .VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, Gfxa.NEAREST_SAMPLER));
-			textureMipmapSet = Gfx.DescriptorSets.Create(Gfxa.IMAGE_SET_LAYOUT, .SampledImage(texture, .VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, Gfxa.NEAREST_MIPMAP_SAMPLER));
+			textureSet = Gfx.DescriptorSets.Create(Gfxa.IMAGE_SET_LAYOUT, .SampledImage(texture, .VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, Gfxa.NEAREST_MIPMAP_SAMPLER));
 			bufferSet = Gfx.DescriptorSets.Create(Gfxa.UNIFORM_SET_LAYOUT, .Uniform(buffer));
 		}
 
-		public void Bind(CommandBuffer cmds, bool mipmaps) {
-			if (mipmaps) cmds.Bind(textureMipmapSet, 1);
-			else cmds.Bind(textureSet, 1);
-
+		public void Bind(CommandBuffer cmds) {
+			cmds.Bind(textureSet, 1);
 			cmds.Bind(bufferSet, 2);
 		}
 

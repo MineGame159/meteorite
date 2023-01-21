@@ -104,4 +104,12 @@ namespace System {
 			Value
 		}
 	}
+
+	extension StringView {
+		public Self TrimInline() {
+			Self string = this;
+			string.Trim();
+			return string;
+		}
+	}
 }

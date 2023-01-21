@@ -6,11 +6,16 @@ namespace Meteorite {
 	class ClientConnection : Connection {
 		private PacketHandler handler ~ DeleteAndNullify!(_);
 
+		private String username ~ delete _;
 		public int32 viewDistance;
 
-		public this(StringView address, int32 port, int32 viewDistance) : base(address, port) {
+		public this(StringView address, int32 port, StringView username, int32 viewDistance) : base(address, port) {
 			this.handler = new LoginPacketHandler(this);
+
+			this.username = new .(username);
 			this.viewDistance = viewDistance;
+
+			Start();
 		}
 
 		public void SetHandler(PacketHandler handler) {
@@ -20,7 +25,7 @@ namespace Meteorite {
 
 		protected override void OnReady() {
 			Send(scope HandshakeC2SPacket(address, (.) port));
-			Send(scope LoginStartC2SPacket("Meteorite"));
+			Send(scope LoginStartC2SPacket(username));
 		}
 
 		protected override void OnConnectionLost() {

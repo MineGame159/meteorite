@@ -37,6 +37,16 @@ namespace Cacti {
 		public static CommandBuffer Render(GpuImage target, ImGui.DrawData* drawData) {
 			Data data = GetData();
 
+			ImGui.Vec2 prevSize = drawData.DisplaySize;
+
+			if (ImGuiCacti.customSize) {
+				drawData.DisplaySize = .(ImGuiCacti.size.x, ImGuiCacti.size.y);
+			}
+
+			defer {
+				drawData.DisplaySize = prevSize;
+			}
+
 			// Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
 			int fbWidth = (int)(drawData.DisplaySize.x * drawData.FramebufferScale.x);
 			int fbHeight = (int)(drawData.DisplaySize.y * drawData.FramebufferScale.y);

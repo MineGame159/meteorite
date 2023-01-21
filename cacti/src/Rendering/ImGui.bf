@@ -9,6 +9,9 @@ static class ImGuiCacti {
 	private static bool firstFrame = true;
 	private static bool newFrameCalled;
 
+	public static bool customSize = false;
+	public static Vec2i size;
+
 	public static void Init(Window window) {
 		ImGui.CHECKVERSION();
 		ImGui.CreateContext();
@@ -58,5 +61,40 @@ static class ImGuiCacti {
 
 		ImGui.Render();
 		return ImGuiImplCacti.Render(target, ImGui.GetDrawData());
+	}
+
+	public static bool Combo<T>(StringView label, ref T value) where T : enum {
+		String str = scope .();
+		value.ToString(str);
+
+		if (!ImGui.BeginCombo(label.ToScopeCStr!(), str)) {
+			return false;
+		}
+
+		bool valueChanged = false;
+
+		for (T item in Enum.GetValues<T>()) {
+			bool selected = item == value;
+
+			str.Clear();
+			item.ToString(str);
+
+			if (ImGui.Selectable(str, selected)) {
+				value = item;
+				valueChanged = true;
+			}
+
+			if (selected) {
+				ImGui.SetItemDefaultFocus();
+			}
+		}
+
+		ImGui.EndCombo();
+
+		if (valueChanged) {
+			ImGui.MarkItemEdited(ImGui.GetCurrentContext().LastItemData.ID);
+		}
+
+		return valueChanged;
 	}
 }

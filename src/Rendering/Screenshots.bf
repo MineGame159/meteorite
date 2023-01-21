@@ -5,79 +5,89 @@ using ImGui;
 
 namespace Meteorite;
 
+enum ScreenshotResolution {
+	case Current,
+		 _720,
+		_1080,
+		_2k,
+		 _1440,
+		_4k,
+		_8k;
+
+	public override void ToString(String str) {
+		switch (this) {
+		case .Current:	str.Append("Current");
+		case ._720:		str.Append("(720p) 1280x720");
+		case ._1080:	str.Append("(1080p) 1920x1080");
+		case ._2k:		str.Append("(2k) 2048x1080");
+		case ._1440:	str.Append("(1440p) 2560x1440");
+		case ._4k:		str.Append("(4k) 4096x2160");
+		case ._8k:		str.Append("(8k) 7680x4320");
+		}
+	}
+}
+
+struct ScreenshotOptions {
+	public ScreenshotResolution resolution = .Current;
+	public float scale = 1;
+	public bool includeGui = false;
+}
+
 static class Screenshots {
 	public static bool rendering;
 	public static int width, height;
 	public static GpuImage texture;
 
+	public static ScreenshotOptions options;
+
 	public static GpuBuffer buffer;
-	private static bool windowOpen, take, wasMouseHidden;
+	private static bool take, wasMouseHidden;
 
-	private static char8*[?] resolutions = .("Current", "(720p) 1280x720", "(1080p) 1920x1080", "(2k) 2048x1080", "(1440p) 2560x1440", "(4k) 4096x2160", "(8k) 7680x4320");
-
-	private static int32 resolution;
-	private static float scale;
-	public static bool includeGui;
-
-	public static void Init() {
-		Input.keyEvent.Add(new => OnKey);
-	}
-
-	private static bool OnKey(Key key, InputAction action) {
-		if (action != .Press) return false;
-
-		if (windowOpen && key == .Escape) {
-			windowOpen = false;
-			Meteorite.INSTANCE.window.MouseHidden = wasMouseHidden;
-			return true;
-		}
-
-		return false;
-	}
+	private static Vec2i prevSize;
 
 	public static void Update() {
-		Window window = Meteorite.INSTANCE.window;
-
 		if (take) {
-			Take(window);
+			TakeActually();
 			take = false;
 
 			return;
 		}
 
 		if (Input.IsKeyPressed(.F2)) {
-			resolution = 0;
-			scale = 1;
-			includeGui = false;
-
 			if (Input.IsKeyDown(.LeftControl) || Input.IsKeyDown(.RightControl)) {
-				windowOpen = true;
-				wasMouseHidden = window.MouseHidden;
+				if (Meteorite.INSTANCE.Screen is ScreenshotScreen) Meteorite.INSTANCE.Screen = null;
+				else Meteorite.INSTANCE.Screen = new ScreenshotScreen();
 			}
-			else Take(window);
+			else Take();
 		}
 	}
 
-	private static void Take(Window window) {
+	public static void Take(ScreenshotOptions options = .()) {
+		Screenshots.options = options;
+		take = true;
+	}
+
+	private static void TakeActually() {
+		Window window = Meteorite.INSTANCE.window;
 		rendering = true;
 
-		switch (resolution) {
-		case 1:
+		switch (options.resolution) {
+		case ._720:
 			width = 1280;
 			height = 720;
-		case 2:
+		case ._1080:
 			width = 1920;
 			height = 1080;
-		case 3:
+		case ._2k:
 			width = 2048;
 			height = 1080;
-		case 4:
+		case ._1440:
 			width = 2560;
 			height = 1440;
-		case 5:
+		case ._4k:
 			width = 4096;
 			height = 2160;
-		case 6:
+		case ._8k:
 			width = 7680;
 			height = 4320;
 		default:
@@ -85,15 +95,20 @@ static class Screenshots {
 			height = window.Height;
 		}
 
-		width = (.) (width * scale);
-		height = (.) (height * scale);
+		width = (.) (width * options.scale);
+		height = (.) (height * options.scale);
 
 		texture = Gfx.Images.Create(.BGRA, .ColorAttachment, .(width, height), "Screenshot");
 		buffer = Gfx.Buffers.Create(.None, .TransferDst | .Mappable, texture.Bytes, "Screenshot");
+
+		ImGuiCacti.customSize = true;
+		ImGuiCacti.size = .(width, height);
 	}
 
 	public static void Save() {
 		rendering = false;
+		
+		ImGuiCacti.customSize = false;
 
 		if (buffer.Map() case .Ok(let data)) {
 			Image image = scope .(texture.size, 4, (.) data, false);
@@ -107,28 +122,5 @@ static class Screenshots {
 
 		delete buffer;
 		delete texture;
-	}
-
-	public static void Render() {
-		Window window = Meteorite.INSTANCE.window;
-
-		if (!windowOpen) return;
-		if (window.MouseHidden) window.MouseHidden = false;
-
-		ImGui.IO* io = ImGui.GetIO();
-		ImGui.SetNextWindowPos(.(io.DisplaySize.x / 2, io.DisplaySize.y / 2), .Appearing, .(0.5f, 0.5f));
-		ImGui.Begin("Screenshot", null, .AlwaysAutoResize);
-
-		ImGui.Combo("Resolution", &resolution, &resolutions, resolutions.Count);
-		ImGui.DragFloat("Scale", &scale, 0.1f, 1, 2);
-		ImGui.Checkbox("Include GUI", &includeGui);
-
-		if (ImGui.Button("Take", .NOneZero)) {
-			take = true;
-			windowOpen = false;
-			window.MouseHidden = wasMouseHidden;
-		}
-
-		ImGui.End();
 	}
 }

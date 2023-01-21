@@ -132,7 +132,7 @@ class ChunkRenderer : IEnumerable<Chunk> {
 		cmds.PushDebugGroup(scope $"Chunks - {layer}");
 		cmds.Bind(layer == .Solid ? Gfxa.CHUNK_PIPELINE : Gfxa.CHUNK_TRANSPARENT_PIPELINE);
 		FrameUniforms.Bind(cmds);
-		me.textures.Bind(cmds, me.options.mipmaps);
+		me.textures.Bind(cmds);
 		me.lightmapManager.Bind(cmds);
 
 		cmds.Bind(Buffers.QUAD_INDICES);

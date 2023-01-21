@@ -28,6 +28,7 @@ namespace Meteorite {
 		public World world;
 		public ClientPlayerEntity player;
 
+		private Screen screen;
 		private List<delegate void()> tasks = new .() ~ DeleteContainerAndItems!(_);
 
 		private GpuImage swapchainTarget;
@@ -69,13 +70,26 @@ namespace Meteorite {
 			Buffers.CreateGlobalIndices();
 			SkyRenderer.Init();
 			BlockColors.Init();
-			Screenshots.Init();
 			FrameUniforms.Init();
 
 			Input.mousePosEvent.Add(new () => {
 				ClientPlayerEntity player = Meteorite.INSTANCE.player;
 				if (player != null && window.MouseHidden) player.Turn(Input.mouseDelta);
 			});
+
+			Input.keyEvent.Add(new (key, action) => {
+				if (action == .Release && key == .O && world != null && player != null) {
+					if (Screen is OptionsScreen) Screen = null;
+					else Screen = new OptionsScreen();
+
+					return true;
+				}
+
+				return false;
+			});
+
+			window.MouseHidden = true;
+			Screen = new MainMenuScreen();
 		}
 
 		public ~this() {
@@ -98,9 +112,9 @@ namespace Meteorite {
 			delete world;
 		}
 
-		public void Join(StringView address, int32 port, int32 viewDistance) {
-			connection = new .(address, port, viewDistance);
-			window.MouseHidden = true;
+		public void Join(StringView address, int32 port, StringView username, int32 viewDistance) {
+			connection = new .(address, port, username, viewDistance);
+			Screen = null;
 		}
 
 		public void Disconnect(Text reason) {
@@ -111,9 +125,20 @@ namespace Meteorite {
 			player = null;
 			DeleteAndNullify!(connection);
 
-			window.MouseHidden = false;
+			Screen = new MainMenuScreen();
 
 			Log.Info("Disconnected: {}", reason);
+		}
+
+		public Screen Screen {
+			get => screen;
+			set {
+				screen?.Close();
+				delete screen;
+
+				screen = value;
+				screen?.Open();
+			}
 		}
 
 		public void Execute(delegate void() task) {

@@ -14,8 +14,6 @@ namespace Meteorite {
 	}
 
 	class Options {
-		public bool mipmaps = true;
-		public bool sortChunks = true;
 		public bool chunkBoundaries;
 		public float fov = 75;
 
@@ -31,8 +29,8 @@ namespace Meteorite {
 			for (StringView line in reader.Lines) {
 				var split = line.Split(':');
 
-				StringView name = split.GetNext();
-				StringView value = split.GetNext();
+				StringView name = split.GetNext().Value.TrimInline();
+				StringView value = split.GetNext().Value.TrimInline();
 
 				switch (name) {
 				case "resourcePacks": ReadStringList(value, resourcePacks);
@@ -44,6 +42,8 @@ namespace Meteorite {
 			let split = value[1...value.Length - 2].Split(',');
 
 			for (StringView pack in split) {
+				pack.Trim();
+
 				let name = pack[1...pack.Length - 2];
 				if (!name.StartsWith("file/")) continue;
 

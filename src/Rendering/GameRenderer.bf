@@ -36,7 +36,9 @@ namespace Meteorite {
 			if (action != .Press) return false;
 
 			if (key == .Escape) {
-				me.window.MouseHidden = !me.window.MouseHidden;
+				if (me.Screen != null) me.Screen = null;
+				else me.window.MouseHidden = !me.window.MouseHidden;
+
 				return true;
 			}
 
@@ -119,7 +121,7 @@ namespace Meteorite {
 			}
 
 			// 2D
-			if (!Screenshots.rendering || Screenshots.includeGui) {
+			if (!Screenshots.rendering || Screenshots.options.includeGui) {
 				Color? clear = null;
 				if (!world) clear = clearColor;
 			
@@ -184,10 +186,9 @@ namespace Meteorite {
 
 		private void Render2D(CommandBuffer cmds) {
 			if (ImGuiCacti.NewFrame()) {
-				if (me.connection == null) MainMenu.Render();
-				else me.hud.Render(cmds, delta);
+				if (me.world != null && me.player != null) me.hud.Render(cmds, delta);
 
-				Screenshots.Render();
+				me.Screen?.Render();
 			}
 		}
 
