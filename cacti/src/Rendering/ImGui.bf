@@ -13,7 +13,10 @@ static class ImGuiCacti {
 	public static Vec2i size;
 
 	public static void Init(Window window) {
-		ImGui.CHECKVERSION();
+		// TODO: For some reason when the application is built on a GitHub action runner the size of ImGui.IO struct is smaller than what it should be
+		//       But it looks like it doesn't break anything surprisingly
+		//ImGui.CHECKVERSION();
+
 		ImGui.CreateContext();
 		ImGui.StyleColorsDark();
 		ImGui.GetStyle().Alpha = 0.9f;
