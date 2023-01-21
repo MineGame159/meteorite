@@ -212,8 +212,9 @@ namespace Meteorite {
 			velocity += CalculateVelocity(movement, FrictionToMovement(friction));
 
 			// Move
-			if (gamemode == .Spectator) { // TODO: Change to spectator when I implement proper freecam mode
+			if (gamemode == .Spectator) {
 				pos += velocity;
+				onGround = false;
 			}
 			else {
 				PhysicsResult result = scope .();
