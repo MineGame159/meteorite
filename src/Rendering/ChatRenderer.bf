@@ -13,12 +13,14 @@ namespace Meteorite {
 		private List<Message> visibleMessages = new .() ~ DeleteContainerAndItems!(_);
 
 		private bool typing, showCursor, wasMouseHidden, firstChar;
+		private int cursor;
+
 		private String toSend = new .() ~ delete _;
-		private float cursorTimer;
+		private float cursorTimer, textEndX;
 		private int renderFrom;
 
 		private List<String> sentMessages = new .(16) ~ DeleteContainerAndItems!(_);
-		private int idk;
+		private int previousMessageI;
 
 		public this() {
 			Input.keyEvent.Add(new => OnKey);
@@ -40,13 +42,21 @@ namespace Meteorite {
 			MeshBuilder mb = scope .(false);
 
 			RenderMessages(cmds, mb, delta);
-			if (typing) RenderTyping(cmds, mb, delta);
+			if (typing) RenderTyping(cmds, mb, delta, true);
 
 			cmds.Bind(Gfxa.PIXEL_SET, 0);
 			cmds.Draw(mb.End(.Frame, Buffers.QUAD_INDICES));
 
 			me.textRenderer.BindTexture(cmds);
 			me.textRenderer.End(cmds);
+
+			if (typing) {
+				mb = scope .(false);
+				RenderTyping(cmds, mb, delta, false);
+
+				cmds.Bind(Gfxa.PIXEL_SET, 0);
+				cmds.Draw(mb.End(.Frame, Buffers.QUAD_INDICES));
+			}
 		}
 
 		private void RenderMessages(CommandBuffer cmds, MeshBuilder mb, float delta) {
@@ -89,17 +99,27 @@ namespace Meteorite {
 			}
 		}
 
-		private void RenderTyping(CommandBuffer cmds, MeshBuilder mb, float delta) {
-			cursorTimer += delta * 2;
-			if (cursorTimer >= 1) {
-				showCursor = !showCursor;
-				cursorTimer = 0;
+		private void RenderTyping(CommandBuffer cmds, MeshBuilder mb, float delta, bool first) {
+			if (first) {
+				cursorTimer += delta * 2;
+				if (cursorTimer >= 1) {
+					showCursor = !showCursor;
+					cursorTimer = 0;
+				}
+	
+				Quad(mb, 2, 2, me.window.Width / 2 - 4, me.textRenderer.Height * 1.75f, BACKGROUND);
+				textEndX = me.textRenderer.Render(4, 2, toSend, .WHITE);
+				
+				if (showCursor && cursor == toSend.Length) {
+					me.textRenderer.Render(textEndX, 2, "_", .WHITE);
+				}
 			}
-
-			float x = me.textRenderer.Render(4, 2, toSend, .WHITE);
-			if (showCursor) me.textRenderer.Render(x, 2, "_", .WHITE);
-
-			Quad(mb, 2, 2, me.window.Width / 2 - 4, me.textRenderer.Height * 1.75f, BACKGROUND);
+			else {
+				if (showCursor && cursor != toSend.Length) {
+					float x = 3 + me.textRenderer.GetWidth(toSend.Substring(0, cursor));
+					Quad(mb, x, 4, 1, me.textRenderer.Height + 2, .WHITE);
+				}
+			}
 		}
 
 		private void Quad(MeshBuilder mb, float x, float y, float width, float height, Color color) {
@@ -131,18 +151,53 @@ namespace Meteorite {
 					return true;
 				}
 				if (key == .Up) {
-					if (sentMessages.Count > idk + 1) toSend.Set(sentMessages[++idk]);
+					if (sentMessages.Count > previousMessageI + 1) {
+						toSend.Set(sentMessages[++previousMessageI]);
+						cursor = toSend.Length;
+					}
+
 					return true;
 				}
 				if (key == .Down) {
-					idk--;
-					if (idk < -1) idk = -1;
-					if (sentMessages.Count > idk) toSend.Set(idk < 0 ? "" : sentMessages[idk]);
+					previousMessageI--;
+					if (previousMessageI < -1) previousMessageI = -1;
+
+					if (sentMessages.Count > previousMessageI) {
+						toSend.Set(previousMessageI < 0 ? "" : sentMessages[previousMessageI]);
+						cursor = toSend.Length;
+					}
+
 					return true;
 				}
 				if (key == .Backspace) {
-					if (!toSend.IsEmpty) toSend.RemoveFromEnd(1);
-					idk = -1;
+					if (!toSend.IsEmpty && cursor > 0) {
+						if (cursor == toSend.Length) toSend.RemoveFromEnd(1);
+						else toSend.Remove(cursor - 1);
+
+						cursor--;
+					}
+
+					previousMessageI = -1;
+					return true;
+				}
+				if (key == .Delete) {
+					if (!toSend.IsEmpty && cursor < toSend.Length) {
+						toSend.Remove(cursor);
+					}
+
+					previousMessageI = -1;
+					return true;
+				}
+				if (key == .Left) {
+					cursor--;
+					if (cursor < 0) cursor = 0;
+
+					return true;
+				}
+				if (key == .Right) {
+					cursor++;
+					if (cursor > toSend.Length) cursor = toSend.Length;
+
 					return true;
 				}
 			}
@@ -151,10 +206,11 @@ namespace Meteorite {
 					typing = true;
 					showCursor = false;
 					firstChar = true;
+					cursor = 0;
 					toSend.Clear();
 					cursorTimer = 0;
 					renderFrom = 0;
-					idk = -1;
+					previousMessageI = -1;
 
 					wasMouseHidden = me.window.MouseHidden;
 					me.window.MouseHidden = false;
@@ -176,8 +232,10 @@ namespace Meteorite {
 					return false;
 				}
 
-				toSend.Append(char);
-				idk = -1;
+				toSend.Insert(cursor, char);
+				cursor++;
+
+				previousMessageI = -1;
 				return true;
 			}
 

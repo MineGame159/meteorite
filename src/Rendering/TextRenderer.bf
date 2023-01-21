@@ -47,6 +47,23 @@ namespace Meteorite {
 			return Math.Max(x2, RenderInternal(mb, x, y, text, color));
 		}
 
+		public float GetWidth(StringView text) {
+			float width = 0;
+
+			for (let char in text.DecodedChars) {
+				Glyph glyph = font.GetGlyph(char);
+
+				if (glyph != null) {
+					width += glyph.Advance * (char == ' ' ? 4 : 1);
+				}
+				else {
+					width += font.GetGlyph(' ').Advance * 4;
+				}
+			}
+
+			return width;
+		}
+
 		private float RenderInternal(MeshBuilder mb, float x, float y, StringView text, Color color) {
 			var x;
 
