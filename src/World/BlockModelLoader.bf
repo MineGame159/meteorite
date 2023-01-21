@@ -206,15 +206,28 @@ namespace Meteorite{
 					}
 				}
 
-				// Rotate direction
+				// Get cull face
+				QuadCullFace cullFace = .None;
+
+				if (pair.value.Contains("cullface")) {
+					if (Enum.Parse<QuadCullFace>(pair.value["cullface"].AsString, true) case .Ok(let val)) {
+						cullFace = val;
+					}
+				}
+
+				// Rotate direction and cull face
 				if (blockStateRotation.x > 0) {
 					int o = (.) blockStateRotation.x/ 90;
+
 					finalDirection = RotateDirection(finalDirection, o, FACE_ROTATION_X, scope .(.East, .West));
+					cullFace = RotateCullFace(cullFace, o, CULL_FACE_ROTATION_X, scope .(.None, .East, .West));
 				}
 
 				if (blockStateRotation.y > 0) {
 					int o = (.) blockStateRotation.y / 90;
+
 					finalDirection = RotateDirection(finalDirection, o, FACE_ROTATION, scope .(.Up, .Down));
+					cullFace = RotateCullFace(cullFace, o, CULL_FACE_ROTATION, scope .(.None, .Up, .Down));
 				}
 
 				let tw = 16;
@@ -413,15 +426,6 @@ namespace Meteorite{
 					else if (v.y > 15.9999) v.y = 16;
 				}
 
-				// Get cull face
-				QuadCullFace cullFace = .None;
-
-				if (pair.value.Contains("cullface")) {
-					if (Enum.Parse<QuadCullFace>(pair.value["cullface"].AsString, true) case .Ok(let val)) {
-						cullFace = val;
-					}
-				}
-
 				// Create quad
 				mixin ToVertexUv(float u, float v) {
 					Vec2<uint16>((.) (u / 16f * uint16.MaxValue), (.) (v / 16f * uint16.MaxValue))
@@ -448,10 +452,29 @@ namespace Meteorite{
 		private static Direction[] FACE_ROTATION = new .(.North, .East, .South, .West) ~ delete _;
 		private static Direction[] FACE_ROTATION_X = new .(.North, .Down, .South, .Up) ~ delete _;
 
+		private static QuadCullFace[] CULL_FACE_ROTATION = new .(.North, .East, .South, .West) ~ delete _;
+		private static QuadCullFace[] CULL_FACE_ROTATION_X = new .(.North, .Down, .South, .Up) ~ delete _;
+
 		private static Direction RotateDirection(Direction val, int offset, Direction[] rots, Direction[] invalid) {
 		    for (let d in invalid) {
 		        if (d == val) return val;
 		    }
+
+			int pos = 0;
+			for (int i < rots.Count) {
+				if (rots[i] == val) {
+					pos = i;
+					break;
+				}
+			}
+
+			return rots[(rots.Count + pos + offset) % rots.Count];
+		}
+
+		private static QuadCullFace RotateCullFace(QuadCullFace val, int offset, QuadCullFace[] rots, QuadCullFace[] invalid) {
+			for (let d in invalid) {
+			    if (d == val) return val;
+			}
 
 			int pos = 0;
 			for (int i < rots.Count) {
