@@ -131,6 +131,20 @@ namespace Cacti {
 			return json.IsNumber ? (.) json.AsNumber : defaultValue;
 		}
 
+		public double GetDouble(String key, double defaultValue) {
+			if (!IsObject) return defaultValue;
+
+			let json = this[key];
+			return json.IsNumber ? (.) json.AsNumber : defaultValue;
+		}
+
+		public StringView GetString(String key, StringView defaultValue) {
+			if (!IsObject) return defaultValue;
+
+			let json = this[key];
+			return json.IsString ? json.AsString : defaultValue;
+		}
+
 		public void Remove(StringView key) {
 			if (AsObject.GetAndRemoveAlt(key) case .Ok(let pair)) {
 				delete pair.key;

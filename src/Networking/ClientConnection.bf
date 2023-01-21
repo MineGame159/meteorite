@@ -7,13 +7,10 @@ namespace Meteorite {
 		private PacketHandler handler ~ DeleteAndNullify!(_);
 
 		private String username ~ delete _;
-		public int32 viewDistance;
 
-		public this(StringView address, int32 port, StringView username, int32 viewDistance) : base(address, port) {
+		public this(StringView address, int32 port, StringView username) : base(address, port) {
 			this.handler = new LoginPacketHandler(this);
-
 			this.username = new .(username);
-			this.viewDistance = viewDistance;
 
 			Start();
 		}

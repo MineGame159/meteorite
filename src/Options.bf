@@ -2,6 +2,8 @@ using System;
 using System.IO;
 using System.Collections;
 
+using Cacti;
+
 namespace Meteorite {
 	enum AO {
 		case None;
@@ -14,8 +16,11 @@ namespace Meteorite {
 	}
 
 	class Options {
-		public bool chunkBoundaries;
+		public bool chunkBoundaries = false;
+
+		public int32 renderDistance = 6;
 		public float fov = 75;
+		public float mouseSensitivity = 1;
 
 		public AO ao = .Vanilla;
 		public bool fxaa = false;
@@ -23,32 +28,54 @@ namespace Meteorite {
 		public List<String> resourcePacks = new .() ~ DeleteContainerAndItems!(_);
 
 		public this() {
-			StreamReader reader = scope .();
-			if (reader.Open("run/options.txt") case .Err) return;
+			if (!File.Exists("run/options.json")) {
+				Write();
+				return;
+			}
 
-			for (StringView line in reader.Lines) {
-				var split = line.Split(':');
+			FileStream s = scope .();
+			if (s.Open("run/options.json") case .Err) {
+				Log.Error("Failed to read options.json file");
+				return;
+			}
 
-				StringView name = split.GetNext().Value.TrimInline();
-				StringView value = split.GetNext().Value.TrimInline();
+			Json json = JsonParser.Parse(s);
 
-				switch (name) {
-				case "resourcePacks": ReadStringList(value, resourcePacks);
+			renderDistance = (.) json.GetInt("render_distance", 6);
+			fov = (.) json.GetDouble("fov", 75);
+			mouseSensitivity = (.) json.GetDouble("mouse_sensitivity", 1);
+
+			ao = Enum.Parse<AO>(json.GetString("ao", "vanilla"), true);
+			fxaa = json.GetBool("fxaa", false);
+
+			if (json.Contains("resource_packs")) {
+				for (let j in json["resource_packs"].AsArray) {
+					resourcePacks.Add(new .(j.AsString));
 				}
 			}
+
+			json.Dispose();
 		}
 
-		private void ReadStringList(StringView value, List<String> list) {
-			let split = value[1...value.Length - 2].Split(',');
+		public void Write() {
+			Json json = .Object();
 
-			for (StringView pack in split) {
-				pack.Trim();
+			json["render_distance"] = .Number(renderDistance);
+			json["fov"] = .Number(fov);
+			json["mouse_sensitivity"] = .Number(mouseSensitivity);
 
-				let name = pack[1...pack.Length - 2];
-				if (!name.StartsWith("file/")) continue;
+			json["ao"] = .String(ao.ToString(.. scope .()));
+			json["fxaa"] = .Bool(fxaa);
 
-				list.Add(new .(name[5...]));
+			Json resourcePacksJson = json["resource_packs"] =.Array();
+			for (let resourcePack in resourcePacks) {
+				resourcePacksJson.Add(.String(resourcePack));
 			}
+
+			String str = JsonWriter.Write(json, .. scope .());
+			File.WriteAllText("run/options.json", str);
+
+			json.Dispose();
 		}
 	}
 }

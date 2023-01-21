@@ -78,7 +78,7 @@ namespace Meteorite {
 			});
 
 			Input.keyEvent.Add(new (key, action) => {
-				if (action == .Release && key == .O && world != null && player != null) {
+				if (action == .Release && key == .O && !Input.capturingCharacters && world != null && player != null) {
 					if (Screen is OptionsScreen) Screen = null;
 					else Screen = new OptionsScreen();
 
@@ -94,6 +94,7 @@ namespace Meteorite {
 
 		public ~this() {
 			// Rendering needs to be deleted before Gfx is shut down
+			delete screen;
 			delete hud;
 			delete textRenderer;
 			delete entityRenderDispatcher;
@@ -112,8 +113,8 @@ namespace Meteorite {
 			delete world;
 		}
 
-		public void Join(StringView address, int32 port, StringView username, int32 viewDistance) {
-			connection = new .(address, port, username, viewDistance);
+		public void Join(StringView address, int32 port, StringView username) {
+			connection = new .(address, port, username);
 			Screen = null;
 		}
 

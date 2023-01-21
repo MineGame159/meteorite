@@ -4,15 +4,11 @@ namespace Meteorite {
 	class ClientSettingsC2SPacket : C2SPacket {
 		public const int32 ID = 0x07;
 
-		public int viewDistance;
-
-		public this(int viewDistance) : base(ID) {
-			this.viewDistance = viewDistance;
-		}
+		public this() : base(ID) {}
 
 		public override void Write(NetBuffer buf) {
 			buf.WriteString("en_GB"); // Locale
-			buf.WriteByte((.) viewDistance); // View Distance
+			buf.WriteByte((.) me.options.renderDistance); // Render Distance
 			buf.WriteVarInt(0); // Chat Mode (0 - enabled)
 			buf.WriteBool(true); // Chat Colors
 			buf.WriteUByte(0); // Displayed Skin Parts

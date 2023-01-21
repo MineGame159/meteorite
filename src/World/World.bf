@@ -7,7 +7,6 @@ using Cacti;
 namespace Meteorite {
 	class World : IBlockGetter {
 		public DimensionType dimension ~ delete _;
-		public int viewDistance;
 
 		private Dictionary<ChunkPos, Chunk> chunks;
 
@@ -15,9 +14,8 @@ namespace Meteorite {
 
 		public int64 worldAge, timeOfDay;
 
-		public this(DimensionType dimension, int viewDistance) {
+		public this(DimensionType dimension) {
 			this.dimension = dimension;
-			this.viewDistance = viewDistance;
 			this.chunks = new Dictionary<ChunkPos, Chunk>();
 		}
 
@@ -130,7 +128,8 @@ namespace Meteorite {
 		}
 
 		public bool IsChunkInRange(int x1, int z1, int x2, int z2) {
-			return Math.Abs(x1 - x2) <= viewDistance + 1 && Math.Abs(z1 - z2) <= viewDistance + 1;
+			int renderDistance = Meteorite.INSTANCE.options.renderDistance;
+			return Math.Abs(x1 - x2) <= renderDistance + 1 && Math.Abs(z1 - z2) <= renderDistance + 1;
 		}
 
 		public BlockHitResult Raycast(Vec3d start, Vec3d end) {
@@ -350,7 +349,7 @@ namespace Meteorite {
 			float fogBlue;
 
 			{
-				float r = 0.25F + 0.75F * (float)viewDistance / 32.0F;
+				float r = 0.25F + 0.75F * (float) Meteorite.INSTANCE.options.renderDistance / 32.0F;
 				r = 1.0F - (float)Math.Pow((double)r, 0.25);
 				Vec3f vec3 = GetSkyColor(camera.pos, tickDelta);
 				float s = (float)vec3.x;
@@ -362,7 +361,7 @@ namespace Meteorite {
 				fogRed = (float)vec33.x;
 				fogGreen = (float)vec33.y;
 				fogBlue = (float)vec33.z;
-				if (viewDistance >= 4) {
+				if (Meteorite.INSTANCE.options.renderDistance >= 4) {
 					float f = Math.Sin(GetSkyAngle()) > 0.0F ? -1.0F : 1.0F;
 					Vec3f vector3f = .(f, 0.0F, 0.0F);
 					float h = camera.GetDirection(true).Dot(vector3f);

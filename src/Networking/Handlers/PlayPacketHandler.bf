@@ -35,7 +35,7 @@ namespace Meteorite {
 			firstPlayerInfo = false;
 
 			connection.Send(scope PluginMessageC2SPacket("minecraft:brand", "meteorite"));
-			connection.Send(scope ClientSettingsC2SPacket(connection.viewDistance));
+			connection.Send(scope ClientSettingsC2SPacket());
 		}
 
 		private void OnJoinGame(JoinGameS2CPacket packet) {
@@ -61,7 +61,7 @@ namespace Meteorite {
 
 			Runtime.Assert(dimensionType != null, "Failed to find dimenstion type");
 
-			me.world = new .(dimensionType, connection.viewDistance);
+			me.world = new .(dimensionType);
 			me.worldRenderer = new .();
 		}
 

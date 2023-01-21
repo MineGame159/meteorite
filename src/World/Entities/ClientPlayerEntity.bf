@@ -48,8 +48,11 @@ namespace Meteorite {
 		}
 
 		public void Turn(Vec2f vec) {
-			yaw += vec.x / 7;
-			pitch -= vec.y / 7;
+			float sensitivity = Meteorite.INSTANCE.options.mouseSensitivity;
+
+			yaw += vec.x / 7 * sensitivity;
+			pitch -= vec.y / 7 * sensitivity;
+
 			pitch = Math.Clamp(pitch, -89.5f, 89.5f);
 		}
 

@@ -316,7 +316,7 @@ namespace Meteorite {
 
 		private static void SetupFog(World world, ref PushConstaints2 pc) {
 			pc.fogStart = 0;
-			pc.fogEnd = world.viewDistance;
+			pc.fogEnd = Meteorite.INSTANCE.options.renderDistance;
 		}
 	}
 }
