@@ -50,6 +50,7 @@ namespace Meteorite {
 			cmds.Bind(Gfxa.ENTITY_PIPELINE);
 			FrameUniforms.Bind(cmds);
 			cmds.Bind(Gfxa.PIXEL_SET, 1);
+			Meteorite.INSTANCE.lightmapManager.Bind(cmds, 2);
 
 			MeshBuilder mb = scope .(false);
 			Meteorite me = Meteorite.INSTANCE;

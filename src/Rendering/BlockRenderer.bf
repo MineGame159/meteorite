@@ -16,6 +16,8 @@ namespace Meteorite {
 	}
 
 	static class BlockRenderer {
+		public const uint32 FULL_BRIGHT_UV = 0xF000F0;
+
 		private static bool IsFilledWithWater(Block block) {
 			return block == Blocks.SEAGRASS || block == Blocks.TALL_SEAGRASS || block == Blocks.KELP || block == Blocks.KELP_PLANT;
 		}
@@ -216,7 +218,7 @@ namespace Meteorite {
 		}
 
 		private static uint32 GetLightmapUv(World world, Chunk chunk, BlockState blockState, int x, int y, int z) {
-		    if (blockState.emissive) return 0xF000F0;
+		    if (blockState.emissive) return FULL_BRIGHT_UV;
 
 			var x, z;
 			Chunk c;
@@ -235,13 +237,15 @@ namespace Meteorite {
 				z = bz & 15;
 			}
 
-			uint32 i = (.) c.GetLight(.Sky, x, y, z);
-			uint32 j = (.) c.GetLight(.Block, x, y, z);
+			uint32 sky = (.) c.GetLight(.Sky, x, y, z);
+			uint32 block = (.) c.GetLight(.Block, x, y, z);
 
-			if (j < blockState.luminance) j = blockState.luminance;
+			if (block < blockState.luminance) block = blockState.luminance;
 
-		    return i << 20 | j << 4;
+		    return PackLightmapUv(sky, block);
 		}
+
+		public static uint32 PackLightmapUv(uint32 sky, uint32 block) => sky << 20 | block << 4;
 		
 		private static bool ShouldRender(ref Foo foo, Quad quad, Direction direction) {
 			if (foo.y < 0 || foo.y + direction.GetOffset().y < 0) return false;

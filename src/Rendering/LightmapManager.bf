@@ -17,8 +17,8 @@ class LightmapManager {
 		set = Gfx.DescriptorSets.Create(Gfxa.IMAGE_SET_LAYOUT, .SampledImage(image, .VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, Gfxa.LINEAR_SAMPLER));
 	}
 
-	public void Bind(CommandBuffer cmds) {
-		cmds.Bind(set, 3);
+	public void Bind(CommandBuffer cmds, uint32 index) {
+		cmds.Bind(set, index);
 	}
 
 	public void Tick() {

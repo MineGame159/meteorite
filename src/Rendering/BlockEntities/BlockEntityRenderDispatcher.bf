@@ -36,6 +36,7 @@ namespace Meteorite {
 		public void End(CommandBuffer cmds, Camera camera) {
 			cmds.Bind(Gfxa.ENTITY_PIPELINE);
 			FrameUniforms.Bind(cmds);
+			Meteorite.INSTANCE.lightmapManager.Bind(cmds, 2);
 
 			for (let pair in provider.Meshes) {
 				Meteorite.INSTANCE.textures.Bind(cmds, pair.key);

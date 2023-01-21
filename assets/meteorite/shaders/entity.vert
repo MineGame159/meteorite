@@ -4,6 +4,7 @@ layout(location = 0) in vec3 position;
 layout(location = 1) in vec4 normal;
 layout(location = 2) in vec2 texCoord;
 layout(location = 3) in vec4 color;
+layout(location = 4) in uvec2 lightTexCoords;
 
 layout(location = 0) out vec2 v_TexCoord;
 layout(location = 1) out float v_Diffuse;
@@ -11,6 +12,12 @@ layout(location = 2) out vec4 v_Normal;
 layout(location = 3) out vec4 v_Color;
 
 #include <lib/api.glsl>
+
+layout(set = 2, binding = 0) uniform sampler2D u_Lightmap;
+
+vec4 sampleLightmap() {
+    return texture(u_Lightmap, clamp(lightTexCoords / 256.0, vec2(0.5 / 16.0), vec2(15.5 / 16.0)));
+}
 
 const vec3 LIGHT1      = vec3( 0.104196384,  0.947239857, -0.303116754);
 const vec3 LIGHT2      = vec3(-0.104196384,  0.947239857,  0.303116754);
@@ -28,5 +35,5 @@ void main() {
     v_TexCoord = texCoord;
     v_Diffuse = diffuse(normal.xyz);
     v_Normal = api_InverseView * normal;
-    v_Color = color;
+    v_Color = color * sampleLightmap();
 }

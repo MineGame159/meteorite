@@ -4,12 +4,13 @@ using Cacti;
 
 namespace Meteorite {
 	[CRepr]
-	struct EntityVertex : this(Vec3f pos, Vec4<int8> normal, Vec2<uint16> uv, Color color) {
+	struct EntityVertex : this(Vec3f pos, Vec4<int8> normal, Vec2<uint16> uv, Color color, uint32 lightUv) {
 		public static VertexFormat FORMAT = new VertexFormat()
 			.Attribute(.Float, 3)
 			.Attribute(.I8, 4, true)
 			.Attribute(.U16, 2, true)
 			.Attribute(.U8, 4, true)
+			.Attribute(.U16, 2, false)
 			~ delete _;
 	}
 
@@ -52,8 +53,20 @@ namespace Meteorite {
 		}
 
 		public void Render(MeshBuilder mb, double tickDelta) {
-			Color color = type.GetColor();
+			Chunk chunk = Meteorite.INSTANCE.world.GetChunk(pos.IntX >> 4, pos.IntZ >> 4);
+			uint32 lightUv = BlockRenderer.FULL_BRIGHT_UV;
 
+			if (chunk != null) {
+				int x = pos.IntX & 15;
+				int z = pos.IntZ & 15;
+
+				uint32 sky = (.) chunk.GetLight(.Sky, x, pos.IntY, z);
+				uint32 block = (.) chunk.GetLight(.Block, x, pos.IntY, z);
+
+				lightUv = BlockRenderer.PackLightmapUv(sky, block);
+			}
+
+			Color color = type.GetColor();
 			Vec3d pos = this.pos.Lerp(tickDelta, lastPos);
 
 			double x1 = pos.x - type.width / 2;
@@ -66,59 +79,60 @@ namespace Meteorite {
 
 			Vec3f normal = .(0, 127, 0);
 			mb.Quad(
-				Vertex!(mb, x1, y2, z1, normal, color),
-				Vertex!(mb, x2, y2, z1, normal, color),
-				Vertex!(mb, x2, y2, z2, normal, color),
-				Vertex!(mb, x1, y2, z2, normal, color)
+				Vertex!(mb, x1, y2, z1, normal, color, lightUv),
+				Vertex!(mb, x2, y2, z1, normal, color, lightUv),
+				Vertex!(mb, x2, y2, z2, normal, color, lightUv),
+				Vertex!(mb, x1, y2, z2, normal, color, lightUv)
 			);
 
 			normal = .(0, -127, 0);
 			mb.Quad(
-				Vertex!(mb, x1, y1, z1, normal, color),
-				Vertex!(mb, x1, y1, z2, normal, color),
-				Vertex!(mb, x2, y1, z2, normal, color),
-				Vertex!(mb, x2, y1, z1, normal, color)
+				Vertex!(mb, x1, y1, z1, normal, color, lightUv),
+				Vertex!(mb, x1, y1, z2, normal, color, lightUv),
+				Vertex!(mb, x2, y1, z2, normal, color, lightUv),
+				Vertex!(mb, x2, y1, z1, normal, color, lightUv)
 			);
 
 			normal = .(127, 0, 0);
 			mb.Quad(
-				Vertex!(mb, x2, y1, z1, normal, color),
-				Vertex!(mb, x2, y1, z2, normal, color),
-				Vertex!(mb, x2, y2, z2, normal, color),
-				Vertex!(mb, x2, y2, z1, normal, color)
+				Vertex!(mb, x2, y1, z1, normal, color, lightUv),
+				Vertex!(mb, x2, y1, z2, normal, color, lightUv),
+				Vertex!(mb, x2, y2, z2, normal, color, lightUv),
+				Vertex!(mb, x2, y2, z1, normal, color, lightUv)
 			);
 
 			normal = .(-127, 0, 0);
 			mb.Quad(
-				Vertex!(mb, x1, y1, z1, normal, color),
-				Vertex!(mb, x1, y2, z1, normal, color),
-				Vertex!(mb, x1, y2, z2, normal, color),
-				Vertex!(mb, x1, y1, z2, normal, color)
+				Vertex!(mb, x1, y1, z1, normal, color, lightUv),
+				Vertex!(mb, x1, y2, z1, normal, color, lightUv),
+				Vertex!(mb, x1, y2, z2, normal, color, lightUv),
+				Vertex!(mb, x1, y1, z2, normal, color, lightUv)
 			);
 
 			normal = .(0, 0, -127);
 			mb.Quad(
-				Vertex!(mb, x1, y1, z1, normal, color),
-				Vertex!(mb, x2, y1, z1, normal, color),
-				Vertex!(mb, x2, y2, z1, normal, color),
-				Vertex!(mb, x1, y2, z1, normal, color)
+				Vertex!(mb, x1, y1, z1, normal, color, lightUv),
+				Vertex!(mb, x2, y1, z1, normal, color, lightUv),
+				Vertex!(mb, x2, y2, z1, normal, color, lightUv),
+				Vertex!(mb, x1, y2, z1, normal, color, lightUv)
 			);
 
 			normal = .(0, 0, 127);
 			mb.Quad(
-				Vertex!(mb, x1, y1, z2, normal, color),
-				Vertex!(mb, x1, y2, z2, normal, color),
-				Vertex!(mb, x2, y2, z2, normal, color),
-				Vertex!(mb, x2, y1, z2, normal, color)
+				Vertex!(mb, x1, y1, z2, normal, color, lightUv),
+				Vertex!(mb, x1, y2, z2, normal, color, lightUv),
+				Vertex!(mb, x2, y2, z2, normal, color, lightUv),
+				Vertex!(mb, x2, y1, z2, normal, color, lightUv)
 			);
 		}
 
-		private static mixin Vertex(MeshBuilder mb, double x, double y, double z, Vec3f normal, Color color) {
+		private static mixin Vertex(MeshBuilder mb, double x, double y, double z, Vec3f normal, Color color, uint32 lightUv) {
 			mb.Vertex<EntityVertex>(.(
 				.((.) x, (.) y, (.) z),
 				.((.) normal.x, (.) normal.y, (.) normal.z, 0),
 				.(0, 0),
-				color
+				color,
+				lightUv
 			))
 		}
 

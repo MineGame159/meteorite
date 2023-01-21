@@ -47,23 +47,25 @@ namespace Meteorite {
 			}
 
 			if (type == .Single) {
-				Render(matrices, provider.Get(scope $"entity/chest/{material}.png"), bottom, lid, lock, lidAngle);
+				Render(matrices, provider.Get(scope $"entity/chest/{material}.png"), blockState, _, bottom, lid, lock, lidAngle);
 			}
 			else {
-				if (type == .Left) Render(matrices, provider.Get(scope $"entity/chest/{material}_left.png"), leftBottom, leftLid, leftLock, lidAngle);
-				else Render(matrices, provider.Get(scope $"entity/chest/{material}_right.png"), rightBottom, rightLid, rightLock, lidAngle);
+				if (type == .Left) Render(matrices, provider.Get(scope $"entity/chest/{material}_left.png"), blockState, _, leftBottom, leftLid, leftLock, lidAngle);
+				else Render(matrices, provider.Get(scope $"entity/chest/{material}_right.png"), blockState, _, rightBottom, rightLid, rightLock, lidAngle);
 			}
 
 			matrices.Pop();
 		}
 
-		private void Render(MatrixStack matrices, MeshBuilder mb, ModelPart bottom, ModelPart lid, ModelPart lock, float lidAngle) {
+		private void Render(MatrixStack matrices, MeshBuilder mb, BlockState blockState, BlockEntity blockEntity, ModelPart bottom, ModelPart lid, ModelPart lock, float lidAngle) {
 			lid.rot.x = -(lidAngle * (Math.PI_f / 2f));
 			lock.rot.x = lid.rot.x;
 
-			bottom.Render(matrices, mb);
-			lid.Render(matrices, mb);
-			lock.Render(matrices, mb);
+			uint32 lightUv = GetLightUv(blockState, blockEntity);
+
+			bottom.Render(matrices, mb, lightUv);
+			lid.Render(matrices, mb, lightUv);
+			lock.Render(matrices, mb, lightUv);
 		}
 
 		private Direction GetDirection(int i) {

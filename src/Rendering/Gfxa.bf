@@ -117,7 +117,7 @@ namespace Meteorite {
 			);
 			ENTITY_PIPELINE = Gfx.Pipelines.Get(scope PipelineInfo("Entities")
 				.VertexFormat(EntityVertex.FORMAT)
-				.Sets(UNIFORM_SET_LAYOUT, IMAGE_SET_LAYOUT)
+				.Sets(UNIFORM_SET_LAYOUT, IMAGE_SET_LAYOUT, IMAGE_SET_LAYOUT)
 				.Shader("entity", "entity")
 				.Depth(true, true, true)
 				.Targets(

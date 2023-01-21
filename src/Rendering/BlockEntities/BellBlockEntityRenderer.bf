@@ -11,7 +11,7 @@ namespace Meteorite {
 		}
 
 		public override void Render(MatrixStack matrices, BlockState blockState, BlockEntity _, NamedMeshBuilderProvider provider, float tickDelta) {
-			body.Render(matrices, provider.Get("entity/bell/bell_body.png"));
+			body.Render(matrices, provider.Get("entity/bell/bell_body.png"), GetLightUv(blockState, _));
 		}
 	}
 }
