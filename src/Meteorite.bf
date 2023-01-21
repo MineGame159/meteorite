@@ -72,11 +72,6 @@ namespace Meteorite {
 			BlockColors.Init();
 			FrameUniforms.Init();
 
-			Input.mousePosEvent.Add(new () => {
-				ClientPlayerEntity player = Meteorite.INSTANCE.player;
-				if (player != null && window.MouseHidden) player.Turn(Input.mouseDelta);
-			});
-
 			Input.keyEvent.Add(new (key, action) => {
 				if (action == .Release && key == .O && !Input.capturingCharacters && world != null && player != null) {
 					if (Screen is OptionsScreen) Screen = null;
@@ -169,6 +164,8 @@ namespace Meteorite {
 
 		protected override void Update(double delta) {
 			Screenshots.Update();
+
+			if (player != null && window.MouseHidden) player.Turn(Input.mouseDelta);
 
 			int tickCount = tickCounter.BeginRenderTick();
 			for (int i < Math.Min(10, tickCount)) Tick(tickCounter.tickDelta);

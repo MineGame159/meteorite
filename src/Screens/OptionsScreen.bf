@@ -6,21 +6,30 @@ using ImGui;
 namespace Meteorite;
 
 class OptionsScreen : Screen {
+	private bool vsync;
 	private int32 renderDistance;
 
 	public this() : base("Options") {
+		vsync = Meteorite.INSTANCE.options.vsync;
 		renderDistance = Meteorite.INSTANCE.options.renderDistance;
 	}
 
 	public ~this() {
-		Meteorite.INSTANCE.options.renderDistance = renderDistance;
-		Meteorite.INSTANCE.options.Write();
+		Options options = Meteorite.INSTANCE.options;
+
+		options.vsync = vsync;
+		options.renderDistance = renderDistance;
+		options.Write();
 		
 		Meteorite.INSTANCE.connection?.Send(scope ClientSettingsC2SPacket());
 	}
 
 	protected override void RenderImpl() {
 		Meteorite me = Meteorite.INSTANCE;
+
+		ImGui.Checkbox("VSync", &vsync);
+
+		ImGui.Separator();
 
 		ImGui.SliderInt("Render Distance", &renderDistance, 2, 32);
 		ImGui.SliderFloat("FOV", &me.options.fov, 10, 170, "%.0f");

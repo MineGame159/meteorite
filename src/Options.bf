@@ -18,6 +18,8 @@ namespace Meteorite {
 	class Options {
 		public bool chunkBoundaries = false;
 
+		private bool vsync_ = true;
+
 		public int32 renderDistance = 6;
 		public float fov = 75;
 		public float mouseSensitivity = 1;
@@ -26,6 +28,18 @@ namespace Meteorite {
 		public bool fxaa = false;
 
 		public List<String> resourcePacks = new .() ~ DeleteContainerAndItems!(_);
+
+		public bool vsync {
+			get => vsync_;
+			set {
+				if (vsync_ != value && Gfx.Swapchain != null) {
+					Gfx.Swapchain.vsync = value;
+					Meteorite.INSTANCE.Execute(new () => Gfx.Swapchain.Recreate(Meteorite.INSTANCE.window.size)); // This callback ensures it runs outside of any rendering
+				}
+
+				vsync_ = value;
+			}
+		}
 
 		public this() {
 			if (!File.Exists("run/options.json")) {
@@ -40,6 +54,8 @@ namespace Meteorite {
 			}
 
 			Json json = JsonParser.Parse(s);
+
+			vsync = json.GetBool("vsync", true);
 
 			renderDistance = (.) json.GetInt("render_distance", 6);
 			fov = (.) json.GetDouble("fov", 75);
@@ -59,6 +75,8 @@ namespace Meteorite {
 
 		public void Write() {
 			Json json = .Object();
+
+			json["vsync"] = .Bool(vsync);
 
 			json["render_distance"] = .Number(renderDistance);
 			json["fov"] = .Number(fov);

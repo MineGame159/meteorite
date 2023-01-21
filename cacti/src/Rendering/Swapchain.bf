@@ -10,7 +10,10 @@ class Swapchain {
 	private VkSwapchainKHR handle = .Null ~ vkDestroySwapchainKHR(Gfx.Device, _, null);
 	private List<GpuImage> images = new .() ~ DeleteContainerAndItems!(_);
 
+	public bool vsync = true;
 	public uint32 index;
+
+	private bool supportsMailbox;
 
 	public Result<void> Recreate(Vec2i size) {
 		ImageFormat format = .BGRA;
@@ -18,6 +21,20 @@ class Swapchain {
 		if (handle != .Null) {
 			vkDeviceWaitIdle(Gfx.Device);
 			vkDestroySwapchainKHR(Gfx.Device, handle, null);
+		}
+		else {
+			uint32 count = ?;
+			vkGetPhysicalDeviceSurfacePresentModesKHR(Gfx.PhysicalDevice, Gfx.Surface, &count, null);
+
+			VkPresentModeKHR[] presentModes = scope .[count];
+			vkGetPhysicalDeviceSurfacePresentModesKHR(Gfx.PhysicalDevice, Gfx.Surface, &count, presentModes.Ptr);
+
+			for (VkPresentModeKHR presentMode in presentModes) {
+				if (presentMode == .VK_PRESENT_MODE_MAILBOX_KHR) {
+					supportsMailbox = true;
+					break;
+				}
+			}
 		}
 
 		VkSurfaceCapabilitiesKHR capabilities = ?;
@@ -37,7 +54,7 @@ class Swapchain {
 			imageSharingMode = .VK_SHARING_MODE_EXCLUSIVE,
 			preTransform = capabilities.currentTransform,
 			compositeAlpha = .VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
-			presentMode = .VK_PRESENT_MODE_FIFO_KHR,
+			presentMode = vsync ? .VK_PRESENT_MODE_FIFO_KHR : (supportsMailbox ? .VK_PRESENT_MODE_MAILBOX_KHR : .VK_PRESENT_MODE_IMMEDIATE_KHR),
 			clipped = true
 		};
 
