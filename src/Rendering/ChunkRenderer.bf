@@ -40,6 +40,8 @@ class ChunkRenderer : IEnumerable<Chunk> {
 	public void Setup() {
 		visibleChunks.Clear();
 
+		Vec3d cameraPos = me.camera.pos.ToFloat;
+
 		// Frustum cull and schedule rebuilds
 		for (Chunk chunk in me.world.Chunks) {
 			ChunkData data = Data!(chunk);
@@ -108,7 +110,7 @@ class ChunkRenderer : IEnumerable<Chunk> {
 			}
 
 			// Frustum cull
-			if (me.camera.IsBoxVisible(chunk.min, chunk.max)) {
+			if (me.camera.IsBoxVisible(chunk.min - cameraPos, chunk.max - cameraPos)) {
 				visibleChunks.Add(chunk);
 			}
 		}
@@ -144,7 +146,7 @@ class ChunkRenderer : IEnumerable<Chunk> {
 		}
 
 		// Loop over all visible chunks
-		Vec3f cameraPos = me.camera.pos;
+		Vec3d cameraPos = me.camera.pos;
 
 		for (Chunk chunk in visibleChunks) {
 			// Check if the chunks has data for this layer
@@ -155,7 +157,7 @@ class ChunkRenderer : IEnumerable<Chunk> {
 
 			// Bind chunk specific state
 			cmds.Bind(data.gpuBuffer);
-			cmds.SetPushConstants(Vec3f(chunk.pos.x * Section.SIZE, 0, chunk.pos.z * Section.SIZE));
+			cmds.SetPushConstants((Vec3d(chunk.pos.x * Section.SIZE, 0, chunk.pos.z * Section.SIZE) - cameraPos).ToFloat);
 			
 			// Render sides
 			Draw!(layerData, QuadCullFace.None);

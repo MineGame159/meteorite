@@ -27,7 +27,7 @@ class Camera {
 	public Mat4 proj2d;
 	public Mat4 proj, view, viewRotationOnly;
 
-	public Vec3f pos;
+	public Vec3d pos;
 	public float yaw, pitch;
 	public float fov;
 
@@ -42,21 +42,23 @@ class Camera {
 		this.window = window;
 	}
 
-	public Vec3f GetDirection(bool applyPitch) {
+	private Vec3<T> GetDirection<T>(bool applyPitch) where T : var {
 		if (applyPitch) {
-			return Vec3f(
+			return Vec3<T>(
 				Math.Cos(Math.DEG2RADf * yaw) * Math.Cos(Math.DEG2RADf * pitch),
 				Math.Sin(Math.DEG2RADf * pitch),
 				Math.Sin(Math.DEG2RADf * yaw) * Math.Cos(Math.DEG2RADf * pitch)
 			).Normalize();
 		}
 
-		return Vec3f(
+		return Vec3<T>(
 			Math.Cos(Math.DEG2RADf * yaw),
 			0,
 			Math.Sin(Math.DEG2RADf * yaw)
 		).Normalize();
 	}
+
+	public Vec3f GetDirection(bool applyPitch) => GetDirection<float>(applyPitch);
 
 	public void Update(float far) {
 		farClip = far;
@@ -64,20 +66,16 @@ class Camera {
 		int width = window.Width;
 		int height = window.Height;
 
-		// TODO: Screenshots
-		/*if (Screenshots.rendering) {
-			width = Screenshots.width;
-			height = Screenshots.height;
-		}*/
-
 		// Update matrices
+		Vec3f posF = .((.) pos.x, (.) pos.y, (.) pos.z);
+
 		proj2d = .Ortho(0, width / 2, 0, height / 2);
 		proj = .Perspective(fov, (float) width / height, nearClip, farClip);
-		view = .LookAt(pos, pos + GetDirection(true), .(0, 1, 0));
-		viewRotationOnly = .LookAt(.(), GetDirection(true), .(0, 1, 0));
+		view = .LookAt(posF, posF + GetDirection(true), .(0, 1, 0));
+		viewRotationOnly = .LookAt(.ZERO, GetDirection(true), .(0, 1, 0));
 
 		// Calculate frustum
-		Mat4 clip = proj * view;
+		Mat4 clip = proj * viewRotationOnly;
 
 		planes[(.) Planes.Left].normal.x = clip[0][3] + clip[0][0];
 		planes[(.) Planes.Left].normal.y = clip[1][3] + clip[1][0];
@@ -129,8 +127,8 @@ class Camera {
 		float speed = 10 * delta;
 		if (Input.IsKeyDown(.LeftControl)) speed *= 10;
 
-		Vec3f forward = GetDirection(false);
-		Vec3f right = forward.Cross(.(0, -1, 0)).Normalize();
+		Vec3d forward = GetDirection<double>(false);
+		Vec3d right = forward.Cross(.(0, -1, 0)).Normalize();
 
 		forward *= speed;
 		right *= speed;
@@ -144,10 +142,12 @@ class Camera {
 	}
 
 	public bool IsBoxVisible(Vec3f min, Vec3f max) {
-		for (Plane plane in planes) {
+		for (let plane in planes) {
 		    if (plane.DistanceToPoint(min, max) < 0) return false;
 		}
 
 		return true;
 	}
+
+	public bool IsBoxVisible(Vec3d min, Vec3d max) => IsBoxVisible(min.ToFloat, max.ToFloat);
 }

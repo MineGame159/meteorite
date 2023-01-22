@@ -351,12 +351,12 @@ namespace Meteorite {
 			{
 				float r = 0.25F + 0.75F * (float) Meteorite.INSTANCE.options.renderDistance / 32.0F;
 				r = 1.0F - (float)Math.Pow((double)r, 0.25);
-				Vec3f vec3 = GetSkyColor(camera.pos, tickDelta);
+				Vec3f vec3 = GetSkyColor(camera.pos.ToFloat, tickDelta);
 				float s = (float)vec3.x;
 				float t = (float)vec3.y;
 				float u = (float)vec3.z;
 				float v = Math.Clamp(Math.Cos(GetSkyAngle() * (float) (Math.PI_f * 2)) * 2.0F + 0.5F, 0.0F, 1.0F);
-				Vec3f vec32 = (camera.pos - Vec3f(2, 2, 2)) * Vec3f(0.25f, 0.25f, 0.25f);
+				Vec3f vec32 = (camera.pos.ToFloat - Vec3f(2, 2, 2)) * Vec3f(0.25f, 0.25f, 0.25f);
 				Vec3f vec33 = CubicSampler.SampleColor(vec32, scope (x, y, z) => GetBrightnessDependentFogColor(GetBiome(x, y, z).fogColor.ToVec3f, v));
 				fogRed = (float)vec33.x;
 				fogGreen = (float)vec33.y;

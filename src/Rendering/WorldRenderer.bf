@@ -73,31 +73,36 @@ namespace Meteorite {
 
 		private void RenderBlockSelection(CommandBuffer cmds) {
 			Vec3i pos = me.player.selection.blockPos;
-			BlockState blockState = me.world.GetBlock(pos);
 
+			BlockState blockState = me.world.GetBlock(pos);
 			if (blockState == null) return;
+
+			VoxelShape shape = blockState.Shape;
+			if (shape == null) return;
 
 			cmds.Bind(Gfxa.LINES_PIPELINE);
 
-			Mat4 projectionView = me.camera.proj * me.camera.view;
+			Mat4 projectionView = me.camera.proj * me.camera.viewRotationOnly;
 			cmds.SetPushConstants(projectionView);
 
 			Color color = .(255, 255, 255, 100);
 			MeshBuilder mb = scope .();
 
-			AABB aabb = blockState.Shape.GetBoundingBox();
+			AABB aabb = shape.GetBoundingBox();
 			Vec3d min = .(pos.x, pos.y, pos.z) + aabb.min;
 			Vec3d max = .(pos.x, pos.y, pos.z) + aabb.max;
 
-			uint32 ib1 = mb.Vertex<PosColorVertex>(.(.((.) min.x, (.) min.y, (.) min.z), color));
-			uint32 ib2 = mb.Vertex<PosColorVertex>(.(.((.) min.x, (.) min.y, (.) max.z), color));
-			uint32 ib3 = mb.Vertex<PosColorVertex>(.(.((.) max.x, (.) min.y, (.) max.z), color));
-			uint32 ib4 = mb.Vertex<PosColorVertex>(.(.((.) max.x, (.) min.y, (.) min.z), color));
+			Vec3f cameraPos = me.camera.pos.ToFloat;
 
-			uint32 it1 = mb.Vertex<PosColorVertex>(.(.((.) min.x, (.) max.y, (.) min.z), color));
-			uint32 it2 = mb.Vertex<PosColorVertex>(.(.((.) min.x, (.) max.y, (.) max.z), color));
-			uint32 it3 = mb.Vertex<PosColorVertex>(.(.((.) max.x, (.) max.y, (.) max.z), color));
-			uint32 it4 = mb.Vertex<PosColorVertex>(.(.((.) max.x, (.) max.y, (.) min.z), color));
+			uint32 ib1 = mb.Vertex<PosColorVertex>(.(.((.) min.x, (.) min.y, (.) min.z) - cameraPos, color));
+			uint32 ib2 = mb.Vertex<PosColorVertex>(.(.((.) min.x, (.) min.y, (.) max.z) - cameraPos, color));
+			uint32 ib3 = mb.Vertex<PosColorVertex>(.(.((.) max.x, (.) min.y, (.) max.z) - cameraPos, color));
+			uint32 ib4 = mb.Vertex<PosColorVertex>(.(.((.) max.x, (.) min.y, (.) min.z) - cameraPos, color));
+
+			uint32 it1 = mb.Vertex<PosColorVertex>(.(.((.) min.x, (.) max.y, (.) min.z) - cameraPos, color));
+			uint32 it2 = mb.Vertex<PosColorVertex>(.(.((.) min.x, (.) max.y, (.) max.z) - cameraPos, color));
+			uint32 it3 = mb.Vertex<PosColorVertex>(.(.((.) max.x, (.) max.y, (.) max.z) - cameraPos, color));
+			uint32 it4 = mb.Vertex<PosColorVertex>(.(.((.) max.x, (.) max.y, (.) min.z) - cameraPos, color));
 
 			mb.Line(ib1, ib2);
 			mb.Line(ib2, ib3);
@@ -121,7 +126,7 @@ namespace Meteorite {
 			cmds.PushDebugGroup("Chunk Boundaries");
 			cmds.Bind(Gfxa.LINES_PIPELINE);
 
-			Mat4 projectionView = me.camera.proj * me.camera.view;
+			Mat4 projectionView = me.camera.proj * me.camera.viewRotationOnly;
 			cmds.SetPushConstants(projectionView);
 
 			MeshBuilder mb = scope .();
@@ -167,9 +172,11 @@ namespace Meteorite {
 		}
 
 		private void Line(MeshBuilder mb, int x, int z, Color color) {
+			Vec3f cameraPos = me.camera.pos.ToFloat;
+
 			mb.Line(
-				mb.Vertex<PosColorVertex>(.(.(x, 0, z), color)),
-				mb.Vertex<PosColorVertex>(.(.(x, me.world.dimension.height, z), color))
+				mb.Vertex<PosColorVertex>(.(.(x, 0, z) - cameraPos, color)),
+				mb.Vertex<PosColorVertex>(.(.(x, me.world.dimension.height, z) - cameraPos, color))
 			);
 		}
 	}

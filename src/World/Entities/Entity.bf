@@ -67,7 +67,9 @@ namespace Meteorite {
 			}
 
 			Color color = type.GetColor();
-			Vec3d pos = lastPos.Lerp(tickDelta, pos);
+
+			Vec3d cameraPos = Meteorite.INSTANCE.camera.pos;
+			Vec3d pos = lastPos.Lerp(tickDelta, pos) - cameraPos;
 
 			double x1 = pos.x - type.width / 2;
 			double y1 = pos.y;

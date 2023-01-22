@@ -65,7 +65,7 @@ namespace Meteorite {
 
 		public bool dirty;
 
-		public Vec3f min, max;
+		public Vec3d min, max;
 
 		public this(World world, ChunkPos pos, Section[] sections, SectionLightData[] sectionLightDatas, Dictionary<Vec3i, BlockEntity> blockEntities) {
 			this.world = world;

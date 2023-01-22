@@ -34,14 +34,14 @@ static class RayUtils {
 	}
 
 	public static bool BoundingBoxIntersectionCheckNew(AABB moving, Vec3d rayStart, Vec3d rayDirection, AABB collidableStatic, Vec3d staticCollidableOffset, SweepResult finalResult) {
-		Vec3d originalMovMin = moving.min + rayStart - .(moving.Width / 2, 0, moving.Depth / 2);
-		Vec3d originalMovMax = moving.max + rayStart - .(moving.Width / 2, 0, moving.Depth / 2);
+		Vec3d originalMovMin = moving.min - .(moving.Width / 2, 0, moving.Depth / 2);
+		Vec3d originalMovMax = moving.max - .(moving.Width / 2, 0, moving.Depth / 2);
 
 		Vec3d newMovMin = originalMovMin + rayDirection;
 		Vec3d newMovMax = originalMovMax + rayDirection;
 
-		Vec3d boxMin = collidableStatic.min + staticCollidableOffset;
-		Vec3d boxMax = collidableStatic.max + staticCollidableOffset;
+		Vec3d boxMin = collidableStatic.min + staticCollidableOffset - rayStart;
+		Vec3d boxMax = collidableStatic.max + staticCollidableOffset - rayStart;
 
 		Collision collision = .X;
 		double progress = double.MaxValue;

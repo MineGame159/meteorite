@@ -87,4 +87,10 @@ namespace Cacti {
 	extension Vec3<T> where T : Float {
 		public static Self operator-(Self rhs) => .(-rhs.x, -rhs.y, -rhs.z);
 	}
+
+	extension Vec3<T> where T : Double {
+		public Vec3f ToFloat => .((.) x, (.) y, (.) z);
+
+		public static operator Self(Vec3f v) => .(v.x, v.y, v.z);
+	}
 }

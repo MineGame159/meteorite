@@ -34,9 +34,9 @@ namespace Meteorite {
 			Camera camera = Meteorite.INSTANCE.camera;
 			data.projection = camera.proj;
 			data.inverseProjection = camera.proj.InverseTranspose();
-			data.view = camera.view;
-			data.inverseView = camera.view.InverseTranspose();
-			data.projectionView = camera.proj * camera.view;
+			data.view = camera.viewRotationOnly;
+			data.inverseView = camera.viewRotationOnly.InverseTranspose();
+			data.projectionView = camera.proj * camera.viewRotationOnly;
 
 			float nearClipDistance = camera.nearClip;
 			float farClipDistance = camera.farClip;
