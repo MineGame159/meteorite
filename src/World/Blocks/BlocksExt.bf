@@ -46,6 +46,10 @@ namespace Meteorite {
 				blockState.id = (.) json.GetInt("id", 0);
 				blockState.luminance = (.) json.GetInt("luminance", 0);
 				blockState.emissive = json.GetBool("emissive");
+
+				if (json.Contains("offset_type")) {
+					blockState.offsetType = Enum.Parse<BlockOffsetType>(json["offset_type"].AsString, true);
+				}
 			}
 			else {
 				blockState.id = (.) json.AsNumber;

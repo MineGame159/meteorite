@@ -1,77 +1,102 @@
 using System;
 using System.Collections;
 
-namespace Meteorite {
-	class Block : IEnumerable<BlockState> {
-		public String id ~ delete _;
-		public bool transparent;
+using Cacti;
 
-		private List<BlockState> blockStates ~ DeleteContainerAndItems!(_);
-		public BlockState defaultBlockState;
+namespace Meteorite;
 
-		public this(StringView id, BlockSettings settings) {
-			this.id = new .(id);
-			this.transparent = settings.transparent;
+enum BlockOffsetType {
+	None,
+	XZ,
+	XYZ
+}
 
-			this.blockStates = new .();
-		}
+class Block : IEnumerable<BlockState> {
+	public String id ~ delete _;
+	public bool transparent;
 
-		public void AddBlockState(BlockState blockState) {
-			blockStates.Add(blockState);
-			if (defaultBlockState == null) defaultBlockState = blockState;
-		}
+	private List<BlockState> blockStates ~ DeleteContainerAndItems!(_);
+	public BlockState defaultBlockState;
 
-		public List<BlockState>.Enumerator GetEnumerator() => blockStates.GetEnumerator();
+	public this(StringView id, BlockSettings settings) {
+		this.id = new .(id);
+		this.transparent = settings.transparent;
 
-		public virtual VoxelShape GetShape(BlockState blockState) => blockState.[Friend]shapes.shape;
-		public virtual VoxelShape GetCollisionShape(BlockState blockState) => blockState.[Friend]shapes.collision;
-		public virtual VoxelShape GetRaycastShape(BlockState blockState) => blockState.[Friend]shapes.raycast;
+		this.blockStates = new .();
 	}
 
-	class BlockState : IID {
-		public Block block;
-		public int32 id { get; set; };
-
-		public uint8 luminance;
-		public bool emissive;
-
-		public Model model ~ delete _;
-
-		public List<Property> properties ~ delete _;
-
-		private VoxelShapes.Shapes shapes;
-
-		public this(Block block, List<Property> properties) {
-			this.block = block;
-			this.properties = properties;
-			this.shapes = VoxelShapes.Get(this);
-		}
-
-		public VoxelShape Shape => block.GetShape(this);
-		public VoxelShape CollisionShape => block.GetCollisionShape(this);
-		public VoxelShape RaycastShape => block.GetRaycastShape(this);
-
-		public Property GetProperty(StringView name) {
-			for (let property in properties) {
-				if (property.info.name == name) return property;
-			}
-
-			return default;
-		}
+	public void AddBlockState(BlockState blockState) {
+		blockStates.Add(blockState);
+		if (defaultBlockState == null) defaultBlockState = blockState;
 	}
 
-	class BlockSettings {
-		public bool transparent;
-		public bool hasCollision = true;
+	public List<BlockState>.Enumerator GetEnumerator() => blockStates.GetEnumerator();
 
-		public Self Transparent() {
-			transparent = true;
-			return this;
+	public virtual VoxelShape GetShape(BlockState blockState) => blockState.[Friend]shapes.shape;
+	public virtual VoxelShape GetCollisionShape(BlockState blockState) => blockState.[Friend]shapes.collision;
+	public virtual VoxelShape GetRaycastShape(BlockState blockState) => blockState.[Friend]shapes.raycast;
+}
+
+class BlockState : IID {
+	public Block block;
+	public int32 id { get; set; };
+
+	public uint8 luminance;
+	public bool emissive;
+	public BlockOffsetType offsetType;
+
+	public Model model ~ delete _;
+
+	public List<Property> properties ~ delete _;
+
+	private VoxelShapes.Shapes shapes;
+
+	public this(Block block, List<Property> properties) {
+		this.block = block;
+		this.properties = properties;
+		this.shapes = VoxelShapes.Get(this);
+	}
+
+	public VoxelShape Shape => block.GetShape(this);
+	public VoxelShape CollisionShape => block.GetCollisionShape(this);
+	public VoxelShape RaycastShape => block.GetRaycastShape(this);
+
+	public Vec3f GetOffset(int x, int z) {
+		if (offsetType == .None) return .ZERO;
+
+		// TODO: There are like 2 blocks which have these 2 values changed
+		float maxHorizontalOffset = 0.25f;
+		float maxVerticalOffset = 0.2f;
+
+		int64 seed = Utils.GetSeed(x, 0, z);
+
+		return .(
+			Math.Clamp((((seed & 15L) / 15f) - 0.5f) * 0.5f, -maxHorizontalOffset, maxHorizontalOffset),
+			offsetType == .XYZ ? (((seed >> 4 & 15L) / 15.0f) - 1f) * maxVerticalOffset : 0f,
+			Math.Clamp((((seed >> 8 & 15L) / 15f) - 0.5f) * 0.5f, -maxHorizontalOffset, maxHorizontalOffset)
+		);
+	}
+
+	public Property GetProperty(StringView name) {
+		for (let property in properties) {
+			if (property.info.name == name) return property;
 		}
 
-		public Self NoCollision() {
-			hasCollision = false;
-			return this;
-		}
+		return default;
+	}
+}
+
+class BlockSettings {
+	public bool transparent;
+	public bool hasCollision = true;
+
+	public Self Transparent() {
+		transparent = true;
+		return this;
+	}
+
+	public Self NoCollision() {
+		hasCollision = false;
+		return this;
 	}
 }

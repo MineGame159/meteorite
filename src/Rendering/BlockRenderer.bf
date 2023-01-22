@@ -36,16 +36,17 @@ namespace Meteorite {
 			float yOffset = (p.value == 0 ? 15 : 15 - p.value) / 16f;
 
 			Vec3f normal = .(0, 127, 0);
+			Vec3f offset = .ZERO;
 
 			uint32 lightUv = GetLightmapUv(world, chunk, blockState, x, y, z, quad);
 
 			Buffer buffer = buffers[(.) QuadCullFace.Up];
 			buffer.EnsureCapacity<BlockVertex>(4);
 
-			Vertex!(buffer, x, y, z, Vertex(.(0, yOffset, 0), quad.vertices[0].uv), quad.texture, lightUv, c, normal);
-			Vertex!(buffer, x, y, z, Vertex(.(1, yOffset, 0), quad.vertices[1].uv), quad.texture, lightUv, c, normal);
-			Vertex!(buffer, x, y, z, Vertex(.(1, yOffset, 1), quad.vertices[2].uv), quad.texture, lightUv, c, normal);
-			Vertex!(buffer, x, y, z, Vertex(.(0, yOffset, 1), quad.vertices[3].uv), quad.texture, lightUv, c, normal);
+			Vertex!(buffer, x, y, z, Vertex(.(0, yOffset, 0), quad.vertices[0].uv), offset, quad.texture, lightUv, c, normal);
+			Vertex!(buffer, x, y, z, Vertex(.(1, yOffset, 0), quad.vertices[1].uv), offset, quad.texture, lightUv, c, normal);
+			Vertex!(buffer, x, y, z, Vertex(.(1, yOffset, 1), quad.vertices[2].uv), offset, quad.texture, lightUv, c, normal);
+			Vertex!(buffer, x, y, z, Vertex(.(0, yOffset, 1), quad.vertices[3].uv), offset, quad.texture, lightUv, c, normal);
 		}
 		
 		public static void Render(World world, Chunk chunk, int x, int y, int z, BlockState blockState, Buffer[Enum.GetCount<QuadCullFace>()] buffers) {
@@ -56,6 +57,8 @@ namespace Meteorite {
 				return;
 			}
 			else if (IsFilledWithWater(blockState.block)) RenderFluid(world, chunk, x, y, z, Blocks.WATER.defaultBlockState, buffers);
+
+			Vec3f offset = blockState.GetOffset(x, z);
 
 			Foo foo = .(world, chunk, x, y, z);
 			bool ao = Meteorite.INSTANCE.options.ao.HasVanilla;
@@ -132,16 +135,16 @@ namespace Meteorite {
 				Buffer buffer = buffers[(.) quad.cullFace];
 				buffer.EnsureCapacity<BlockVertex>(4);
 
-				Vertex!(buffer, x, y, z, quad.vertices[0], quad.texture, lightUv, c.MulWithoutA(quad.light * ao1), normal);
-				Vertex!(buffer, x, y, z, quad.vertices[1], quad.texture, lightUv, c.MulWithoutA(quad.light * ao2), normal);
-				Vertex!(buffer, x, y, z, quad.vertices[2], quad.texture, lightUv, c.MulWithoutA(quad.light * ao3), normal);
-				Vertex!(buffer, x, y, z, quad.vertices[3], quad.texture, lightUv, c.MulWithoutA(quad.light * ao4), normal);
+				Vertex!(buffer, x, y, z, quad.vertices[0], offset, quad.texture, lightUv, c.MulWithoutA(quad.light * ao1), normal);
+				Vertex!(buffer, x, y, z, quad.vertices[1], offset, quad.texture, lightUv, c.MulWithoutA(quad.light * ao2), normal);
+				Vertex!(buffer, x, y, z, quad.vertices[2], offset, quad.texture, lightUv, c.MulWithoutA(quad.light * ao3), normal);
+				Vertex!(buffer, x, y, z, quad.vertices[3], offset, quad.texture, lightUv, c.MulWithoutA(quad.light * ao4), normal);
 			}
 		}
 
-		private static mixin Vertex(Buffer buffer, int x, int y, int z, Vertex v, uint16 texture, uint32 lightUv, Color color, Vec3f normal) {
+		private static mixin Vertex(Buffer buffer, int x, int y, int z, Vertex v, Vec3f offset, uint16 texture, uint32 lightUv, Color color, Vec3f normal) {
 			buffer.Add(BlockVertex(
-				.(x + v.pos.x, y + v.pos.y, z + v.pos.z),
+				.(x + v.pos.x + offset.x, y + v.pos.y + offset.y, z + v.pos.z + offset.z),
 				v.uv,
 				lightUv,
 				color,

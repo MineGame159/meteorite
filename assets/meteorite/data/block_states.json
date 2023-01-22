@@ -35,46 +35,166 @@
   "acacia_sapling;stage:1": 33,
   "dark_oak_sapling;stage:0": 34,
   "dark_oak_sapling;stage:1": 35,
-  "mangrove_propagule;stage:0,age:0,waterlogged:true,hanging:true": 36,
-  "mangrove_propagule;stage:0,age:0,waterlogged:false,hanging:true": 37,
-  "mangrove_propagule;stage:1,age:0,waterlogged:true,hanging:true": 38,
-  "mangrove_propagule;stage:1,age:0,waterlogged:false,hanging:true": 39,
-  "mangrove_propagule;stage:0,age:0,waterlogged:true,hanging:false": 40,
-  "mangrove_propagule;stage:0,age:0,waterlogged:false,hanging:false": 41,
-  "mangrove_propagule;stage:1,age:0,waterlogged:true,hanging:false": 42,
-  "mangrove_propagule;stage:1,age:0,waterlogged:false,hanging:false": 43,
-  "mangrove_propagule;stage:0,age:1,waterlogged:true,hanging:true": 44,
-  "mangrove_propagule;stage:0,age:1,waterlogged:false,hanging:true": 45,
-  "mangrove_propagule;stage:1,age:1,waterlogged:true,hanging:true": 46,
-  "mangrove_propagule;stage:1,age:1,waterlogged:false,hanging:true": 47,
-  "mangrove_propagule;stage:0,age:1,waterlogged:true,hanging:false": 48,
-  "mangrove_propagule;stage:0,age:1,waterlogged:false,hanging:false": 49,
-  "mangrove_propagule;stage:1,age:1,waterlogged:true,hanging:false": 50,
-  "mangrove_propagule;stage:1,age:1,waterlogged:false,hanging:false": 51,
-  "mangrove_propagule;stage:0,age:2,waterlogged:true,hanging:true": 52,
-  "mangrove_propagule;stage:0,age:2,waterlogged:false,hanging:true": 53,
-  "mangrove_propagule;stage:1,age:2,waterlogged:true,hanging:true": 54,
-  "mangrove_propagule;stage:1,age:2,waterlogged:false,hanging:true": 55,
-  "mangrove_propagule;stage:0,age:2,waterlogged:true,hanging:false": 56,
-  "mangrove_propagule;stage:0,age:2,waterlogged:false,hanging:false": 57,
-  "mangrove_propagule;stage:1,age:2,waterlogged:true,hanging:false": 58,
-  "mangrove_propagule;stage:1,age:2,waterlogged:false,hanging:false": 59,
-  "mangrove_propagule;stage:0,age:3,waterlogged:true,hanging:true": 60,
-  "mangrove_propagule;stage:0,age:3,waterlogged:false,hanging:true": 61,
-  "mangrove_propagule;stage:1,age:3,waterlogged:true,hanging:true": 62,
-  "mangrove_propagule;stage:1,age:3,waterlogged:false,hanging:true": 63,
-  "mangrove_propagule;stage:0,age:3,waterlogged:true,hanging:false": 64,
-  "mangrove_propagule;stage:0,age:3,waterlogged:false,hanging:false": 65,
-  "mangrove_propagule;stage:1,age:3,waterlogged:true,hanging:false": 66,
-  "mangrove_propagule;stage:1,age:3,waterlogged:false,hanging:false": 67,
-  "mangrove_propagule;stage:0,age:4,waterlogged:true,hanging:true": 68,
-  "mangrove_propagule;stage:0,age:4,waterlogged:false,hanging:true": 69,
-  "mangrove_propagule;stage:1,age:4,waterlogged:true,hanging:true": 70,
-  "mangrove_propagule;stage:1,age:4,waterlogged:false,hanging:true": 71,
-  "mangrove_propagule;stage:0,age:4,waterlogged:true,hanging:false": 72,
-  "mangrove_propagule;stage:0,age:4,waterlogged:false,hanging:false": 73,
-  "mangrove_propagule;stage:1,age:4,waterlogged:true,hanging:false": 74,
-  "mangrove_propagule;stage:1,age:4,waterlogged:false,hanging:false": 75,
+  "mangrove_propagule;stage:0,age:0,waterlogged:true,hanging:true": {
+    "id": 36,
+    "offset_type": "XZ"
+  },
+  "mangrove_propagule;stage:0,age:0,waterlogged:false,hanging:true": {
+    "id": 37,
+    "offset_type": "XZ"
+  },
+  "mangrove_propagule;stage:1,age:0,waterlogged:true,hanging:true": {
+    "id": 38,
+    "offset_type": "XZ"
+  },
+  "mangrove_propagule;stage:1,age:0,waterlogged:false,hanging:true": {
+    "id": 39,
+    "offset_type": "XZ"
+  },
+  "mangrove_propagule;stage:0,age:0,waterlogged:true,hanging:false": {
+    "id": 40,
+    "offset_type": "XZ"
+  },
+  "mangrove_propagule;stage:0,age:0,waterlogged:false,hanging:false": {
+    "id": 41,
+    "offset_type": "XZ"
+  },
+  "mangrove_propagule;stage:1,age:0,waterlogged:true,hanging:false": {
+    "id": 42,
+    "offset_type": "XZ"
+  },
+  "mangrove_propagule;stage:1,age:0,waterlogged:false,hanging:false": {
+    "id": 43,
+    "offset_type": "XZ"
+  },
+  "mangrove_propagule;stage:0,age:1,waterlogged:true,hanging:true": {
+    "id": 44,
+    "offset_type": "XZ"
+  },
+  "mangrove_propagule;stage:0,age:1,waterlogged:false,hanging:true": {
+    "id": 45,
+    "offset_type": "XZ"
+  },
+  "mangrove_propagule;stage:1,age:1,waterlogged:true,hanging:true": {
+    "id": 46,
+    "offset_type": "XZ"
+  },
+  "mangrove_propagule;stage:1,age:1,waterlogged:false,hanging:true": {
+    "id": 47,
+    "offset_type": "XZ"
+  },
+  "mangrove_propagule;stage:0,age:1,waterlogged:true,hanging:false": {
+    "id": 48,
+    "offset_type": "XZ"
+  },
+  "mangrove_propagule;stage:0,age:1,waterlogged:false,hanging:false": {
+    "id": 49,
+    "offset_type": "XZ"
+  },
+  "mangrove_propagule;stage:1,age:1,waterlogged:true,hanging:false": {
+    "id": 50,
+    "offset_type": "XZ"
+  },
+  "mangrove_propagule;stage:1,age:1,waterlogged:false,hanging:false": {
+    "id": 51,
+    "offset_type": "XZ"
+  },
+  "mangrove_propagule;stage:0,age:2,waterlogged:true,hanging:true": {
+    "id": 52,
+    "offset_type": "XZ"
+  },
+  "mangrove_propagule;stage:0,age:2,waterlogged:false,hanging:true": {
+    "id": 53,
+    "offset_type": "XZ"
+  },
+  "mangrove_propagule;stage:1,age:2,waterlogged:true,hanging:true": {
+    "id": 54,
+    "offset_type": "XZ"
+  },
+  "mangrove_propagule;stage:1,age:2,waterlogged:false,hanging:true": {
+    "id": 55,
+    "offset_type": "XZ"
+  },
+  "mangrove_propagule;stage:0,age:2,waterlogged:true,hanging:false": {
+    "id": 56,
+    "offset_type": "XZ"
+  },
+  "mangrove_propagule;stage:0,age:2,waterlogged:false,hanging:false": {
+    "id": 57,
+    "offset_type": "XZ"
+  },
+  "mangrove_propagule;stage:1,age:2,waterlogged:true,hanging:false": {
+    "id": 58,
+    "offset_type": "XZ"
+  },
+  "mangrove_propagule;stage:1,age:2,waterlogged:false,hanging:false": {
+    "id": 59,
+    "offset_type": "XZ"
+  },
+  "mangrove_propagule;stage:0,age:3,waterlogged:true,hanging:true": {
+    "id": 60,
+    "offset_type": "XZ"
+  },
+  "mangrove_propagule;stage:0,age:3,waterlogged:false,hanging:true": {
+    "id": 61,
+    "offset_type": "XZ"
+  },
+  "mangrove_propagule;stage:1,age:3,waterlogged:true,hanging:true": {
+    "id": 62,
+    "offset_type": "XZ"
+  },
+  "mangrove_propagule;stage:1,age:3,waterlogged:false,hanging:true": {
+    "id": 63,
+    "offset_type": "XZ"
+  },
+  "mangrove_propagule;stage:0,age:3,waterlogged:true,hanging:false": {
+    "id": 64,
+    "offset_type": "XZ"
+  },
+  "mangrove_propagule;stage:0,age:3,waterlogged:false,hanging:false": {
+    "id": 65,
+    "offset_type": "XZ"
+  },
+  "mangrove_propagule;stage:1,age:3,waterlogged:true,hanging:false": {
+    "id": 66,
+    "offset_type": "XZ"
+  },
+  "mangrove_propagule;stage:1,age:3,waterlogged:false,hanging:false": {
+    "id": 67,
+    "offset_type": "XZ"
+  },
+  "mangrove_propagule;stage:0,age:4,waterlogged:true,hanging:true": {
+    "id": 68,
+    "offset_type": "XZ"
+  },
+  "mangrove_propagule;stage:0,age:4,waterlogged:false,hanging:true": {
+    "id": 69,
+    "offset_type": "XZ"
+  },
+  "mangrove_propagule;stage:1,age:4,waterlogged:true,hanging:true": {
+    "id": 70,
+    "offset_type": "XZ"
+  },
+  "mangrove_propagule;stage:1,age:4,waterlogged:false,hanging:true": {
+    "id": 71,
+    "offset_type": "XZ"
+  },
+  "mangrove_propagule;stage:0,age:4,waterlogged:true,hanging:false": {
+    "id": 72,
+    "offset_type": "XZ"
+  },
+  "mangrove_propagule;stage:0,age:4,waterlogged:false,hanging:false": {
+    "id": 73,
+    "offset_type": "XZ"
+  },
+  "mangrove_propagule;stage:1,age:4,waterlogged:true,hanging:false": {
+    "id": 74,
+    "offset_type": "XZ"
+  },
+  "mangrove_propagule;stage:1,age:4,waterlogged:false,hanging:false": {
+    "id": 75,
+    "offset_type": "XZ"
+  },
   "bedrock": 76,
   "water;level:0": 77,
   "water;level:1": 78,
@@ -2001,12 +2121,24 @@
   "sticky_piston;facing:up,extended:false": 1951,
   "sticky_piston;facing:down,extended:false": 1952,
   "cobweb": 1953,
-  "grass": 1954,
-  "fern": 1955,
+  "grass": {
+    "id": 1954,
+    "offset_type": "XYZ"
+  },
+  "fern": {
+    "id": 1955,
+    "offset_type": "XYZ"
+  },
   "dead_bush": 1956,
   "seagrass": 1957,
-  "tall_seagrass;half:upper": 1958,
-  "tall_seagrass;half:lower": 1959,
+  "tall_seagrass;half:upper": {
+    "id": 1958,
+    "offset_type": "XZ"
+  },
+  "tall_seagrass;half:lower": {
+    "id": 1959,
+    "offset_type": "XZ"
+  },
   "piston;facing:north,extended:true": 1960,
   "piston;facing:east,extended:true": 1961,
   "piston;facing:south,extended:true": 1962,
@@ -2071,19 +2203,58 @@
   "moving_piston;facing:up,type:sticky": 2021,
   "moving_piston;facing:down,type:normal": 2022,
   "moving_piston;facing:down,type:sticky": 2023,
-  "dandelion": 2024,
-  "poppy": 2025,
-  "blue_orchid": 2026,
-  "allium": 2027,
-  "azure_bluet": 2028,
-  "red_tulip": 2029,
-  "orange_tulip": 2030,
-  "white_tulip": 2031,
-  "pink_tulip": 2032,
-  "oxeye_daisy": 2033,
-  "cornflower": 2034,
-  "wither_rose": 2035,
-  "lily_of_the_valley": 2036,
+  "dandelion": {
+    "id": 2024,
+    "offset_type": "XZ"
+  },
+  "poppy": {
+    "id": 2025,
+    "offset_type": "XZ"
+  },
+  "blue_orchid": {
+    "id": 2026,
+    "offset_type": "XZ"
+  },
+  "allium": {
+    "id": 2027,
+    "offset_type": "XZ"
+  },
+  "azure_bluet": {
+    "id": 2028,
+    "offset_type": "XZ"
+  },
+  "red_tulip": {
+    "id": 2029,
+    "offset_type": "XZ"
+  },
+  "orange_tulip": {
+    "id": 2030,
+    "offset_type": "XZ"
+  },
+  "white_tulip": {
+    "id": 2031,
+    "offset_type": "XZ"
+  },
+  "pink_tulip": {
+    "id": 2032,
+    "offset_type": "XZ"
+  },
+  "oxeye_daisy": {
+    "id": 2033,
+    "offset_type": "XZ"
+  },
+  "cornflower": {
+    "id": 2034,
+    "offset_type": "XZ"
+  },
+  "wither_rose": {
+    "id": 2035,
+    "offset_type": "XZ"
+  },
+  "lily_of_the_valley": {
+    "id": 2036,
+    "offset_type": "XZ"
+  },
   "brown_mushroom": {
     "id": 2037,
     "luminance": 1
@@ -12504,18 +12675,54 @@
   "terracotta": 10267,
   "coal_block": 10268,
   "packed_ice": 10269,
-  "sunflower;half:upper": 10270,
-  "sunflower;half:lower": 10271,
-  "lilac;half:upper": 10272,
-  "lilac;half:lower": 10273,
-  "rose_bush;half:upper": 10274,
-  "rose_bush;half:lower": 10275,
-  "peony;half:upper": 10276,
-  "peony;half:lower": 10277,
-  "tall_grass;half:upper": 10278,
-  "tall_grass;half:lower": 10279,
-  "large_fern;half:upper": 10280,
-  "large_fern;half:lower": 10281,
+  "sunflower;half:upper": {
+    "id": 10270,
+    "offset_type": "XZ"
+  },
+  "sunflower;half:lower": {
+    "id": 10271,
+    "offset_type": "XZ"
+  },
+  "lilac;half:upper": {
+    "id": 10272,
+    "offset_type": "XZ"
+  },
+  "lilac;half:lower": {
+    "id": 10273,
+    "offset_type": "XZ"
+  },
+  "rose_bush;half:upper": {
+    "id": 10274,
+    "offset_type": "XZ"
+  },
+  "rose_bush;half:lower": {
+    "id": 10275,
+    "offset_type": "XZ"
+  },
+  "peony;half:upper": {
+    "id": 10276,
+    "offset_type": "XZ"
+  },
+  "peony;half:lower": {
+    "id": 10277,
+    "offset_type": "XZ"
+  },
+  "tall_grass;half:upper": {
+    "id": 10278,
+    "offset_type": "XZ"
+  },
+  "tall_grass;half:lower": {
+    "id": 10279,
+    "offset_type": "XZ"
+  },
+  "large_fern;half:upper": {
+    "id": 10280,
+    "offset_type": "XZ"
+  },
+  "large_fern;half:lower": {
+    "id": 10281,
+    "offset_type": "XZ"
+  },
   "white_banner;rotation:0": 10282,
   "white_banner;rotation:1": 10283,
   "white_banner;rotation:2": 10284,
@@ -14593,19 +14800,58 @@
     "id": 12315,
     "luminance": 15
   },
-  "bamboo_sapling": 12316,
-  "bamboo;age:0,leaves:none,stage:0": 12317,
-  "bamboo;age:0,leaves:none,stage:1": 12318,
-  "bamboo;age:0,leaves:small,stage:0": 12319,
-  "bamboo;age:0,leaves:small,stage:1": 12320,
-  "bamboo;age:0,leaves:large,stage:0": 12321,
-  "bamboo;age:0,leaves:large,stage:1": 12322,
-  "bamboo;age:1,leaves:none,stage:0": 12323,
-  "bamboo;age:1,leaves:none,stage:1": 12324,
-  "bamboo;age:1,leaves:small,stage:0": 12325,
-  "bamboo;age:1,leaves:small,stage:1": 12326,
-  "bamboo;age:1,leaves:large,stage:0": 12327,
-  "bamboo;age:1,leaves:large,stage:1": 12328,
+  "bamboo_sapling": {
+    "id": 12316,
+    "offset_type": "XZ"
+  },
+  "bamboo;age:0,leaves:none,stage:0": {
+    "id": 12317,
+    "offset_type": "XZ"
+  },
+  "bamboo;age:0,leaves:none,stage:1": {
+    "id": 12318,
+    "offset_type": "XZ"
+  },
+  "bamboo;age:0,leaves:small,stage:0": {
+    "id": 12319,
+    "offset_type": "XZ"
+  },
+  "bamboo;age:0,leaves:small,stage:1": {
+    "id": 12320,
+    "offset_type": "XZ"
+  },
+  "bamboo;age:0,leaves:large,stage:0": {
+    "id": 12321,
+    "offset_type": "XZ"
+  },
+  "bamboo;age:0,leaves:large,stage:1": {
+    "id": 12322,
+    "offset_type": "XZ"
+  },
+  "bamboo;age:1,leaves:none,stage:0": {
+    "id": 12323,
+    "offset_type": "XZ"
+  },
+  "bamboo;age:1,leaves:none,stage:1": {
+    "id": 12324,
+    "offset_type": "XZ"
+  },
+  "bamboo;age:1,leaves:small,stage:0": {
+    "id": 12325,
+    "offset_type": "XZ"
+  },
+  "bamboo;age:1,leaves:small,stage:1": {
+    "id": 12326,
+    "offset_type": "XZ"
+  },
+  "bamboo;age:1,leaves:large,stage:0": {
+    "id": 12327,
+    "offset_type": "XZ"
+  },
+  "bamboo;age:1,leaves:large,stage:1": {
+    "id": 12328,
+    "offset_type": "XZ"
+  },
   "potted_bamboo": 12329,
   "void_air": 12330,
   "cave_air": 12331,
@@ -20387,8 +20633,14 @@
   "warped_nylium": 17963,
   "warped_fungus": 17964,
   "warped_wart_block": 17965,
-  "warped_roots": 17966,
-  "nether_sprouts": 17967,
+  "warped_roots": {
+    "id": 17966,
+    "offset_type": "XZ"
+  },
+  "nether_sprouts": {
+    "id": 17967,
+    "offset_type": "XZ"
+  },
   "crimson_stem;axis:x": 17968,
   "crimson_stem;axis:y": 17969,
   "crimson_stem;axis:z": 17970,
@@ -20461,7 +20713,10 @@
   "twisting_vines;age:24": 18034,
   "twisting_vines;age:25": 18035,
   "twisting_vines_plant": 18036,
-  "crimson_roots": 18037,
+  "crimson_roots": {
+    "id": 18037,
+    "offset_type": "XZ"
+  },
   "crimson_planks": 18038,
   "warped_planks": 18039,
   "crimson_slab;type:top,waterlogged:true": 18040,
@@ -24790,26 +25045,86 @@
   "lightning_rod;facing:down,powered:true,waterlogged:false": 21419,
   "lightning_rod;facing:down,powered:false,waterlogged:true": 21420,
   "lightning_rod;facing:down,powered:false,waterlogged:false": 21421,
-  "pointed_dripstone;vertical_direction:up,thickness:tip_merge,waterlogged:true": 21422,
-  "pointed_dripstone;vertical_direction:up,thickness:tip_merge,waterlogged:false": 21423,
-  "pointed_dripstone;vertical_direction:down,thickness:tip_merge,waterlogged:true": 21424,
-  "pointed_dripstone;vertical_direction:down,thickness:tip_merge,waterlogged:false": 21425,
-  "pointed_dripstone;vertical_direction:up,thickness:tip,waterlogged:true": 21426,
-  "pointed_dripstone;vertical_direction:up,thickness:tip,waterlogged:false": 21427,
-  "pointed_dripstone;vertical_direction:down,thickness:tip,waterlogged:true": 21428,
-  "pointed_dripstone;vertical_direction:down,thickness:tip,waterlogged:false": 21429,
-  "pointed_dripstone;vertical_direction:up,thickness:frustum,waterlogged:true": 21430,
-  "pointed_dripstone;vertical_direction:up,thickness:frustum,waterlogged:false": 21431,
-  "pointed_dripstone;vertical_direction:down,thickness:frustum,waterlogged:true": 21432,
-  "pointed_dripstone;vertical_direction:down,thickness:frustum,waterlogged:false": 21433,
-  "pointed_dripstone;vertical_direction:up,thickness:middle,waterlogged:true": 21434,
-  "pointed_dripstone;vertical_direction:up,thickness:middle,waterlogged:false": 21435,
-  "pointed_dripstone;vertical_direction:down,thickness:middle,waterlogged:true": 21436,
-  "pointed_dripstone;vertical_direction:down,thickness:middle,waterlogged:false": 21437,
-  "pointed_dripstone;vertical_direction:up,thickness:base,waterlogged:true": 21438,
-  "pointed_dripstone;vertical_direction:up,thickness:base,waterlogged:false": 21439,
-  "pointed_dripstone;vertical_direction:down,thickness:base,waterlogged:true": 21440,
-  "pointed_dripstone;vertical_direction:down,thickness:base,waterlogged:false": 21441,
+  "pointed_dripstone;vertical_direction:up,thickness:tip_merge,waterlogged:true": {
+    "id": 21422,
+    "offset_type": "XZ"
+  },
+  "pointed_dripstone;vertical_direction:up,thickness:tip_merge,waterlogged:false": {
+    "id": 21423,
+    "offset_type": "XZ"
+  },
+  "pointed_dripstone;vertical_direction:down,thickness:tip_merge,waterlogged:true": {
+    "id": 21424,
+    "offset_type": "XZ"
+  },
+  "pointed_dripstone;vertical_direction:down,thickness:tip_merge,waterlogged:false": {
+    "id": 21425,
+    "offset_type": "XZ"
+  },
+  "pointed_dripstone;vertical_direction:up,thickness:tip,waterlogged:true": {
+    "id": 21426,
+    "offset_type": "XZ"
+  },
+  "pointed_dripstone;vertical_direction:up,thickness:tip,waterlogged:false": {
+    "id": 21427,
+    "offset_type": "XZ"
+  },
+  "pointed_dripstone;vertical_direction:down,thickness:tip,waterlogged:true": {
+    "id": 21428,
+    "offset_type": "XZ"
+  },
+  "pointed_dripstone;vertical_direction:down,thickness:tip,waterlogged:false": {
+    "id": 21429,
+    "offset_type": "XZ"
+  },
+  "pointed_dripstone;vertical_direction:up,thickness:frustum,waterlogged:true": {
+    "id": 21430,
+    "offset_type": "XZ"
+  },
+  "pointed_dripstone;vertical_direction:up,thickness:frustum,waterlogged:false": {
+    "id": 21431,
+    "offset_type": "XZ"
+  },
+  "pointed_dripstone;vertical_direction:down,thickness:frustum,waterlogged:true": {
+    "id": 21432,
+    "offset_type": "XZ"
+  },
+  "pointed_dripstone;vertical_direction:down,thickness:frustum,waterlogged:false": {
+    "id": 21433,
+    "offset_type": "XZ"
+  },
+  "pointed_dripstone;vertical_direction:up,thickness:middle,waterlogged:true": {
+    "id": 21434,
+    "offset_type": "XZ"
+  },
+  "pointed_dripstone;vertical_direction:up,thickness:middle,waterlogged:false": {
+    "id": 21435,
+    "offset_type": "XZ"
+  },
+  "pointed_dripstone;vertical_direction:down,thickness:middle,waterlogged:true": {
+    "id": 21436,
+    "offset_type": "XZ"
+  },
+  "pointed_dripstone;vertical_direction:down,thickness:middle,waterlogged:false": {
+    "id": 21437,
+    "offset_type": "XZ"
+  },
+  "pointed_dripstone;vertical_direction:up,thickness:base,waterlogged:true": {
+    "id": 21438,
+    "offset_type": "XZ"
+  },
+  "pointed_dripstone;vertical_direction:up,thickness:base,waterlogged:false": {
+    "id": 21439,
+    "offset_type": "XZ"
+  },
+  "pointed_dripstone;vertical_direction:down,thickness:base,waterlogged:true": {
+    "id": 21440,
+    "offset_type": "XZ"
+  },
+  "pointed_dripstone;vertical_direction:down,thickness:base,waterlogged:false": {
+    "id": 21441,
+    "offset_type": "XZ"
+  },
   "dripstone_block": 21442,
   "cave_vines;age:0,berries:true": {
     "id": 21443,
@@ -24991,24 +25306,78 @@
   "big_dripleaf_stem;waterlogged:false,facing:west": 21539,
   "big_dripleaf_stem;waterlogged:true,facing:east": 21540,
   "big_dripleaf_stem;waterlogged:false,facing:east": 21541,
-  "small_dripleaf;half:upper,waterlogged:true,facing:north": 21542,
-  "small_dripleaf;half:upper,waterlogged:false,facing:north": 21543,
-  "small_dripleaf;half:lower,waterlogged:true,facing:north": 21544,
-  "small_dripleaf;half:lower,waterlogged:false,facing:north": 21545,
-  "small_dripleaf;half:upper,waterlogged:true,facing:south": 21546,
-  "small_dripleaf;half:upper,waterlogged:false,facing:south": 21547,
-  "small_dripleaf;half:lower,waterlogged:true,facing:south": 21548,
-  "small_dripleaf;half:lower,waterlogged:false,facing:south": 21549,
-  "small_dripleaf;half:upper,waterlogged:true,facing:west": 21550,
-  "small_dripleaf;half:upper,waterlogged:false,facing:west": 21551,
-  "small_dripleaf;half:lower,waterlogged:true,facing:west": 21552,
-  "small_dripleaf;half:lower,waterlogged:false,facing:west": 21553,
-  "small_dripleaf;half:upper,waterlogged:true,facing:east": 21554,
-  "small_dripleaf;half:upper,waterlogged:false,facing:east": 21555,
-  "small_dripleaf;half:lower,waterlogged:true,facing:east": 21556,
-  "small_dripleaf;half:lower,waterlogged:false,facing:east": 21557,
-  "hanging_roots;waterlogged:true": 21558,
-  "hanging_roots;waterlogged:false": 21559,
+  "small_dripleaf;half:upper,waterlogged:true,facing:north": {
+    "id": 21542,
+    "offset_type": "XYZ"
+  },
+  "small_dripleaf;half:upper,waterlogged:false,facing:north": {
+    "id": 21543,
+    "offset_type": "XYZ"
+  },
+  "small_dripleaf;half:lower,waterlogged:true,facing:north": {
+    "id": 21544,
+    "offset_type": "XYZ"
+  },
+  "small_dripleaf;half:lower,waterlogged:false,facing:north": {
+    "id": 21545,
+    "offset_type": "XYZ"
+  },
+  "small_dripleaf;half:upper,waterlogged:true,facing:south": {
+    "id": 21546,
+    "offset_type": "XYZ"
+  },
+  "small_dripleaf;half:upper,waterlogged:false,facing:south": {
+    "id": 21547,
+    "offset_type": "XYZ"
+  },
+  "small_dripleaf;half:lower,waterlogged:true,facing:south": {
+    "id": 21548,
+    "offset_type": "XYZ"
+  },
+  "small_dripleaf;half:lower,waterlogged:false,facing:south": {
+    "id": 21549,
+    "offset_type": "XYZ"
+  },
+  "small_dripleaf;half:upper,waterlogged:true,facing:west": {
+    "id": 21550,
+    "offset_type": "XYZ"
+  },
+  "small_dripleaf;half:upper,waterlogged:false,facing:west": {
+    "id": 21551,
+    "offset_type": "XYZ"
+  },
+  "small_dripleaf;half:lower,waterlogged:true,facing:west": {
+    "id": 21552,
+    "offset_type": "XYZ"
+  },
+  "small_dripleaf;half:lower,waterlogged:false,facing:west": {
+    "id": 21553,
+    "offset_type": "XYZ"
+  },
+  "small_dripleaf;half:upper,waterlogged:true,facing:east": {
+    "id": 21554,
+    "offset_type": "XYZ"
+  },
+  "small_dripleaf;half:upper,waterlogged:false,facing:east": {
+    "id": 21555,
+    "offset_type": "XYZ"
+  },
+  "small_dripleaf;half:lower,waterlogged:true,facing:east": {
+    "id": 21556,
+    "offset_type": "XYZ"
+  },
+  "small_dripleaf;half:lower,waterlogged:false,facing:east": {
+    "id": 21557,
+    "offset_type": "XYZ"
+  },
+  "hanging_roots;waterlogged:true": {
+    "id": 21558,
+    "offset_type": "XZ"
+  },
+  "hanging_roots;waterlogged:false": {
+    "id": 21559,
+    "offset_type": "XZ"
+  },
   "rooted_dirt": 21560,
   "mud": 21561,
   "deepslate;axis:x": 21562,

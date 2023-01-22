@@ -35,6 +35,12 @@ namespace Cacti {
 			return -FloorDiv(-x, y);
 		}
 
+		public static int64 GetSeed(int x, int y, int z) {
+			int64 l = (.) (x * 3129871) ^ (.) z * 116129781L ^ (.) y;
+			l = l * l * 42317861L + l * 11L;
+			return l >> 16;
+		}
+
 		public static int64 UnixTimeEpoch { get {
 			TimeSpan time = DateTime.Now.Subtract(DateTime(1970, 1, 1));
 			return ((int64) time / TimeSpan.TicksPerSecond) % 60;
