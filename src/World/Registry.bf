@@ -21,6 +21,7 @@ namespace Meteorite {
 
 	static class Registry {
 		public static MyRegistry<Block> BLOCKS = new .() ~ delete _;
+		public static MyRegistry<Item> ITEMS = new .() ~ delete _;
 		public static MyRegistry<EntityType> ENTITY_TYPES = new .() ~ delete _;
 	}
 }

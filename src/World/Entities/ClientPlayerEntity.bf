@@ -8,6 +8,7 @@ namespace Meteorite {
 		public Gamemode gamemode;
 		public PlayerAbilities abilities ~ delete _;
 
+		public Inventory inventory = new .() ~ delete _;
 		public BlockHitResult selection ~ delete _;
 
 		private Dictionary<StringView, EntityAttribute> attributes = new .() ~ DeleteDictionaryAndValues!(_);

@@ -63,6 +63,7 @@ namespace Meteorite {
 			I18N.Load();
 			VoxelShapes.Init();
 			Blocks.Register();
+			Items.Register();
 			BlockModelLoader.LoadModels();
 			Biomes.Register();
 			ChatTypes.Register();

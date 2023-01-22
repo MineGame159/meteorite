@@ -10,6 +10,7 @@ namespace Meteorite {
 		private int32 playerId;
 		private Gamemode gamemode;
 		private PlayerAbilities abilities;
+		private int selectedSlot;
 
 		public this(ClientConnection connection) {
 			this.connection = connection;
@@ -97,6 +98,7 @@ namespace Meteorite {
 				}
 
 				me.world.AddEntity(new ClientPlayerEntity(playerId, .(), 0, 0, gamemode, abilities));
+				me.player.inventory.selectedSlot = selectedSlot;
 
 				firstPlayerPositionAndLook = false;
 			}
@@ -207,6 +209,35 @@ namespace Meteorite {
 			packet.Consume();
 		}
 
+		private void OnSetContainerItems(SetContainerItemsS2CPacket packet) {
+			if (packet.windowId != 0) return;
+
+			int i = 0;
+			
+			for (ItemStack itemStack in packet.items) {
+				ItemStack inventoryItemStack = me.player.inventory.items[i];
+
+				if (itemStack == null) inventoryItemStack.Clear();
+				else itemStack?.TransferTo(inventoryItemStack);
+
+				i++;
+			}
+		}
+
+		private void OnSetContainerItem(SetContainerItemS2CPacket packet) {
+			if (packet.windowId != 0) return;
+			
+			ItemStack inventoryItemStack = me.player.inventory.items[packet.slot];
+
+			if (packet.itemStack == null) inventoryItemStack.Clear();
+			else packet.itemStack.TransferTo(inventoryItemStack);
+		}
+
+		private void OnSetSelectedSlot(SetSelectedSlotS2CPacket packet) {
+			if (me.player == null) selectedSlot = packet.slot;
+			else me.player.inventory.selectedSlot = packet.slot;
+		}
+
 		private void OnDisconnect(DisconnectS2CPacket packet) {
 			me.Disconnect(packet.reason);
 		}
@@ -236,6 +267,9 @@ namespace Meteorite {
 			case SystemChatMessageS2CPacket.ID:			return new SystemChatMessageS2CPacket();
 			case PlayerCharMessageS2CPacket.ID:			return new PlayerCharMessageS2CPacket();
 			case UpdateAttributesS2CPacket.ID:			return new UpdateAttributesS2CPacket();
+			case SetContainerItemsS2CPacket.ID:			return new SetContainerItemsS2CPacket();
+			case SetContainerItemS2CPacket.ID:			return new SetContainerItemS2CPacket();
+			case SetSelectedSlotS2CPacket.ID:			return new SetSelectedSlotS2CPacket();
 			case DisconnectS2CPacket.ID:				return new DisconnectS2CPacket();
 			}
 
@@ -272,6 +306,9 @@ namespace Meteorite {
 			case SystemChatMessageS2CPacket.ID:			OnSystemChatMessage((.) packet);
 			case PlayerCharMessageS2CPacket.ID:			OnPlayerChatMessage((.) packet);
 			case UpdateAttributesS2CPacket.ID:			OnUpdateAttributes((.) packet);
+			case SetContainerItemsS2CPacket.ID:			OnSetContainerItems((.) packet);
+			case SetContainerItemS2CPacket.ID:			OnSetContainerItem((.) packet);
+			case SetSelectedSlotS2CPacket.ID:			OnSetSelectedSlot((.) packet);
 			case DisconnectS2CPacket.ID:				OnDisconnect((.) packet);
 			}
 		}
