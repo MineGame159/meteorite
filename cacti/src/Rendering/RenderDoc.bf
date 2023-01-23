@@ -45,6 +45,7 @@ namespace Cacti {
 		public static RenderDocApi* Api;
 
 		public static void Init() {
+#if BF_PLATFORM_WINDOWS
 			Internal.LoadSharedLibrary("renderdoc");
 
 			Windows.HModule module = Windows.GetModuleHandleA("renderdoc.dll");
@@ -54,6 +55,7 @@ namespace Cacti {
 			getApi(10500, (.) &Api);
 
 			Loaded = true;
+#endif
 		}
 	}
 }
