@@ -199,10 +199,10 @@ namespace Cacti {
 		private static void UpdateKeyModifiers() {
 			ImGui.IO* io = ImGui.GetIO();
 
-			io.AddKeyEvent(.ModCtrl, Input.IsKeyDown(.LeftControl) || Input.IsKeyDown(.RightControl));
-			io.AddKeyEvent(.ModShift, Input.IsKeyDown(.LeftShift) || Input.IsKeyDown(.RightShift));
-			io.AddKeyEvent(.ModAlt, Input.IsKeyDown(.LeftAlt) || Input.IsKeyDown(.RightAlt));
-			io.AddKeyEvent(.ModSuper, Input.IsKeyDown(.LeftSuper) || Input.IsKeyDown(.RightSuper));
+			io.AddKeyEvent(.Mod_Ctrl, Input.IsKeyDown(.LeftControl) || Input.IsKeyDown(.RightControl));
+			io.AddKeyEvent(.Mod_Shift, Input.IsKeyDown(.LeftShift) || Input.IsKeyDown(.RightShift));
+			io.AddKeyEvent(.Mod_Alt, Input.IsKeyDown(.LeftAlt) || Input.IsKeyDown(.RightAlt));
+			io.AddKeyEvent(.Mod_Super, Input.IsKeyDown(.LeftSuper) || Input.IsKeyDown(.RightSuper));
 		}
 
 		// Renderer
@@ -489,16 +489,16 @@ namespace Cacti {
 				case .RightAlt:		return .RightAlt;
 				case .RightSuper:	return .RightSuper;
 				case .Menu:			return .Menu;
-				case .Num0:			return .Number0;
-				case .Num1:			return .Number1;
-				case .Num2:			return .Number2;
-				case .Num3:			return .Number3;
-				case .Num4:			return .Number4;
-				case .Num5:			return .Number5;
-				case .Num6:			return .Number6;
-				case .Num7:			return .Number7;
-				case .Num8:			return .Number8;
-				case .Num9:			return .Number9;
+				case .Num0:			return .N0;
+				case .Num1:			return .N1;
+				case .Num2:			return .N2;
+				case .Num3:			return .N3;
+				case .Num4:			return .N4;
+				case .Num5:			return .N5;
+				case .Num6:			return .N6;
+				case .Num7:			return .N7;
+				case .Num8:			return .N8;
+				case .Num9:			return .N9;
 				case .A:			return .A;
 				case .B:			return .B;
 				case .C:			return .C;
