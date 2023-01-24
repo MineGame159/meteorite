@@ -80,10 +80,13 @@ class BumpGpuBufferAllocator {
 		}
 
 		public void FreeAll() {
-			// Free first block if there is only one
-			if (blocks.Count <= 1) {
-				for (let block in blocks) vmaClearVirtualBlock(block.block);
+			// Clear allocations from all blocks
+			for (let block in blocks) {
+				vmaClearVirtualBlock(block.block);
+			}
 
+			// Return if there is only one block
+			if (blocks.Count <= 1) {
 				return;
 			}
 
