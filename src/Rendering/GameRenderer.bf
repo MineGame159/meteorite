@@ -32,7 +32,7 @@ namespace Meteorite {
 			Input.keyEvent.Add(new => OnKey, -10);
 		}
 
-		private bool OnKey(Key key, InputAction action) {
+		private bool OnKey(Key key, int scancode, InputAction action) {
 			if (action != .Press) return false;
 
 			if (key == .Escape) {

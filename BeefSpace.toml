@@ -1,5 +1,5 @@
 FileVersion = 1
-Projects = {Meteorite = {Path = "."}, GLFW = "*", ImGui = "*", ImGuiImplGlfw = "*", MiniZ = "*", stb_beef = "*", Cacti = {Path = "cacti"}}
+Projects = {Meteorite = {Path = "."}, GLFW = "*", ImGui = "*", MiniZ = "*", stb_beef = "*", Cacti = {Path = "cacti"}}
 Unlocked = ["Shaderc"]
 
 [Workspace]

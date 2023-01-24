@@ -131,7 +131,7 @@ namespace Meteorite {
 			);
 		}
 
-		private bool OnKey(Key key, InputAction action) {
+		private bool OnKey(Key key, int scancode, InputAction action) {
 			if (action == .Release) return false;
 
 			if (typing) {

@@ -39,6 +39,12 @@ namespace Cacti {
 				Gfx.Swapchain.Recreate(size);
 			});
 
+			Glfw.SetMouseButtonCallback(handle, new (window, button, action, mods) => {
+				for (let callback in Input.buttonEvent) {
+					callback(button, action);
+				}
+			});
+
 			Glfw.SetCursorPosCallback(handle, new (window, x, y) => {
 				Input.mouse = .((.) x, (.) (Height - y));
 
@@ -56,7 +62,7 @@ namespace Cacti {
 				Input.[Friend]keys[(.) key] = action != .Release;
 
 				for (let callback in Input.keyEvent) {
-					if (callback(key, action)) break;
+					if (callback(key, scancode, action)) break;
 				}
 			});
 

@@ -73,7 +73,7 @@ namespace Meteorite {
 			BlockColors.Init();
 			FrameUniforms.Init();
 
-			Input.keyEvent.Add(new (key, action) => {
+			Input.keyEvent.Add(new (key, scancode, action) => {
 				if (action == .Release && key == .O && !Input.capturingCharacters && world != null && player != null) {
 					if (Screen is OptionsScreen) Screen = null;
 					else Screen = new OptionsScreen();

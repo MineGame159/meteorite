@@ -1,5 +1,5 @@
 FileVersion = 1
-Dependencies = {corlib = "*", Bulkan = "*", "Bulkan.Utilities" = "*", GLFW = "*", Shaderc = "*", stb_beef = "*", ImGui = "*", ImGuiImplGlfw = "*", MiniZ = "*"}
+Dependencies = {corlib = "*", Bulkan = "*", "Bulkan.Utilities" = "*", GLFW = "*", Shaderc = "*", stb_beef = "*", ImGui = "*", MiniZ = "*"}
 
 [Project]
 Name = "Cacti"

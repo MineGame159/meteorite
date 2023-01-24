@@ -4,17 +4,20 @@ using System.Collections;
 using GLFW;
 
 namespace Cacti {
+	typealias Button = GlfwInput.MouseButton;
 	typealias Key = GlfwInput.Key;
 	typealias InputAction = GlfwInput.Action;
 
 	static class Input {
-		public typealias KeyCallback = delegate bool(Key key, InputAction action);
+		public typealias ButtonCallback = delegate bool(Button button, InputAction action);
+		public typealias KeyCallback = delegate bool(Key key, int scancode, InputAction action);
 		public typealias CharCallback = delegate bool(char32 char);
 		public typealias ScrollCallback = delegate bool(float scroll);
 		public typealias MousePosCallback = delegate void();
 
 		public static Vec2f mouse, mouseLast, mouseDelta;
 
+		public static PriorityList<ButtonCallback> buttonEvent = new .() ~ DeleteContainerAndItems!(_);
 		public static PriorityList<KeyCallback> keyEvent = new .() ~ DeleteContainerAndItems!(_);
 		public static PriorityList<CharCallback> charEvent = new .() ~ DeleteContainerAndItems!(_);
 		public static PriorityList<ScrollCallback> scrollEvent = new .() ~ DeleteContainerAndItems!(_);

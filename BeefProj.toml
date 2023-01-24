@@ -1,5 +1,5 @@
 FileVersion = 1
-Dependencies = {corlib = "*", GLFW = "*", ImGui = "*", ImGuiImplGlfw = "*", MiniZ = "*", stb_beef = "*", Bulkan = "*", "Bulkan.Utilities" = "*", Cacti = "*"}
+Dependencies = {corlib = "*", GLFW = "*", ImGui = "*", MiniZ = "*", stb_beef = "*", Bulkan = "*", "Bulkan.Utilities" = "*", Cacti = "*"}
 
 [Project]
 Name = "Meteorite"

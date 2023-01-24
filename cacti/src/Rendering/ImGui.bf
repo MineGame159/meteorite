@@ -21,8 +21,7 @@ static class ImGuiCacti {
 		ImGui.StyleColorsDark();
 		ImGui.GetStyle().Alpha = 0.9f;
 
-		ImGuiImplGlfw.InitForOther(window.[Friend]handle, true);
-		ImGuiImplCacti.Init();
+		ImGuiImplCacti.Init(window);
 
 		initialized = true;
 	}
@@ -31,7 +30,6 @@ static class ImGuiCacti {
 		if (!initialized) return;
 
 		ImGuiImplCacti.Shutdown();
-		ImGuiImplGlfw.Shutdown();
 		ImGui.DestroyContext();
 	}
 
@@ -44,7 +42,6 @@ static class ImGuiCacti {
 		}
 
 		ImGuiImplCacti.NewFrame();
-		ImGuiImplGlfw.NewFrame();
 		ImGui.NewFrame();
 
 		newFrameCalled = true;
