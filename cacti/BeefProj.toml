@@ -5,3 +5,15 @@ Dependencies = {corlib = "*", Bulkan = "*", "Bulkan.Utilities" = "*", GLFW = "*"
 Name = "Cacti"
 TargetType = "BeefLib"
 StartupObject = "Cacti.Program"
+
+[Configs.Debug.Win64]
+LibPaths = ["$(ProjectDir)/wolfssl_d.lib"]
+
+[Configs.Release.Win64]
+LibPaths = ["$(ProjectDir)/wolfssl.lib"]
+
+[Configs.Paranoid.Win64]
+LibPaths = ["$(ProjectDir)/wolfssl.lib"]
+
+[Configs.Test.Win64]
+LibPaths = ["$(ProjectDir)/wolfssl.lib"]

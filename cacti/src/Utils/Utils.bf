@@ -46,6 +46,10 @@ namespace Cacti {
 			return ((int64) time / TimeSpan.TicksPerSecond) % 60;
 		} }
 
+		public static LineEnumerator Lines(StringView string) {
+			return .(string.Split('\n', .RemoveEmptyEntries));
+		}
+
 #if BF_PLATFORM_WINDOWS
 		[CRepr]
 		struct ProcessMemoryCounters {

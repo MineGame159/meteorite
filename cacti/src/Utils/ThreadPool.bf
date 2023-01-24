@@ -4,12 +4,10 @@ using System.Collections;
 
 namespace Cacti {
 	class ThreadPool {
-		public delegate void Task();
-
 		private List<Thread> threads ~ DeleteContainerAndItems!(_);
 		private WaitEvent wait ~ delete _;
 
-		private List<Task> tasks ~ delete _;
+		private List<delegate void()> tasks ~ delete _;
 		private Monitor monitor ~ delete _;
 
 		private bool shuttingDown;
@@ -48,7 +46,7 @@ namespace Cacti {
 			}
 		};
 
-		public void Add(Task task) {
+		public void Add(delegate void() task) {
 			using (monitor.Enter()) {
 				tasks.Add(task);
 				wait.Set();
@@ -57,7 +55,7 @@ namespace Cacti {
 
 		private void Run() {
 			for (;;) {
-				Task task = null;
+				delegate void() task = null;
 
 				using (monitor.Enter()) {
 					if (tasks.Count > 0) task = tasks.PopFront();
