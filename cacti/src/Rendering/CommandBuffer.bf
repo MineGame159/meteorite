@@ -212,7 +212,7 @@ class CommandBuffer {
 	}
 
 	public void Draw(BuiltMesh mesh) {
-		if (mesh.indexCount == 0) return;
+		if (mesh.indexCount == 0 || !mesh.vbo.Valid || !mesh.ibo.Valid) return;
 
 		Bind(mesh.vbo);
 		Bind(mesh.ibo);

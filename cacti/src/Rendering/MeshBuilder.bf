@@ -18,8 +18,8 @@ struct BuiltMesh : IDisposable {
 	}
 
 	public void Dispose() {
-		if (deleteVbo) delete vbo.buffer;
-		if (deleteIbo) delete ibo.buffer;
+		if (deleteVbo && vbo.Valid) delete vbo.buffer;
+		if (deleteIbo && ibo.Valid) delete ibo.buffer;
 	}
 }
 
@@ -127,18 +127,22 @@ class MeshBuilder {
 			return default;
 		}
 
-		switch (vbo) {
-		case .Frame:						this.vbo = Gfx.FrameAllocator.Allocate(.Vertex, vertices.Size);
-		case .Provided(let view):			this.vbo = view;
-		case .ProvidedResize(let buffer):	buffer.EnsureCapacity(vertices.Size); this.vbo = buffer;
-		case .Create(let name):				this.vbo = Gfx.Buffers.Create(.Vertex, .Mappable, vertices.Size, name);
+		if ((vbo case .Provided || vbo case .ProvidedResize) || vertices.Size > 0) {
+			switch (vbo) {
+			case .Frame:						this.vbo = Gfx.FrameAllocator.Allocate(.Vertex, vertices.Size);
+			case .Provided(let view):			this.vbo = view;
+			case .ProvidedResize(let buffer):	buffer.EnsureCapacity(vertices.Size); this.vbo = buffer;
+			case .Create(let name):				this.vbo = Gfx.Buffers.Create(.Vertex, .Mappable, vertices.Size, name);
+			}
 		}
 
-		switch (ibo) {
-		case .Frame:						this.ibo = Gfx.FrameAllocator.Allocate(.Index, indices.Size);
-		case .Provided(let view):			this.ibo = view;
-		case .ProvidedResize(let buffer):	buffer.EnsureCapacity(indices.Size); this.ibo = buffer;
-		case .Create(let name):				this.ibo = Gfx.Buffers.Create(.Index, .Mappable, indices.Size, name);
+		if ((ibo case .Provided || ibo case .ProvidedResize) || indices.Size > 0) {
+			switch (ibo) {
+			case .Frame:						this.ibo = Gfx.FrameAllocator.Allocate(.Index, indices.Size);
+			case .Provided(let view):			this.ibo = view;
+			case .ProvidedResize(let buffer):	buffer.EnsureCapacity(indices.Size); this.ibo = buffer;
+			case .Create(let name):				this.ibo = Gfx.Buffers.Create(.Index, .Mappable, indices.Size, name);
+			}
 		}
 
 		if (uploadCallback != null) {

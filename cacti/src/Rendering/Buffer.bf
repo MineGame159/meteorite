@@ -133,6 +133,8 @@ struct GpuBufferView : this(GpuBuffer buffer, uint64 offset, uint64 size) {
 
 		return .Ok;
 	}
+
+	public bool Valid => buffer != null && offset >= 0 && size > 0;
 }
 
 class GpuBufferManager {
