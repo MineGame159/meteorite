@@ -1,73 +1,66 @@
 using System;
-using System.Collections;
 
 namespace Cacti.Http;
 
 enum HttpMethod {
-	Get,
-	Post,
-	Put,
-	Delete
+	case Get,
+		 Post,
+		 Put,
+		 Delete;
+
+	public override void ToString(String str) {
+		switch (this) {
+		case .Get:		str.Append("GET");
+		case .Post:		str.Append("POST");
+		case .Put:		str.Append("PUT");
+		case .Delete:	str.Append("DELETE");
+		}
+	}
 }
 
-class HttpRequest {
-	public HttpMethod method;
-	
-	private append String urlString = .(64);
-	public HttpUrl url;
+class HttpRequest : HttpMessage {
+	private String urlString ~ delete _;
 
-	public append Dictionary<String, String> headers = .(16);
-	public String body ~ delete _;
+	public HttpMethod Method { get; private set; }
+	public HttpUrl Url { get; private set; };
 
 	public this(HttpMethod method) {
-		this.method = method;
+		this.Method = method;
 	}
 
-	public ~this() {
-		for (let header in headers) {
-			delete header.key;
-			delete header.value;
-		}
-	}
+	public Result<Self> SetUrl(StringView url) {
+		if (this.urlString == null) this.urlString = new .(url.Length);
 
-	public Result<Self> Url(StringView url) {
 		this.urlString.Set(url);
-		this.url = HttpUrl.Parse(urlString).GetOrPropagate!();
-
+		this.Url = HttpUrl.Parse(urlString).GetOrPropagate!();
+		
 		return this;
 	}
 
-	public Self Header(StringView name, StringView value, bool replace = true) {
-		String outKey;
-		String outValue;
+	protected override Result<void> ParseStatus(StringView string) {
+		var string;
 
-		if (headers.TryGetAlt(name, out outKey, out outValue)) {
-			if (replace) {
-				delete outKey;
-				delete outValue;
-			}
-			else {
-				return this;
-			}
+		// Method
+		int spaceI = string.IndexOf(' ');
+		if (spaceI == -1) return .Err;
+
+		switch (Enum.Parse<HttpMethod>(string[...(spaceI - 1)], true)) {
+		case .Ok(let val):	Method = val;
+		case .Err:			return .Err;
 		}
 
-		headers[new .(name)] = new .(value);
-		return this;
+		string = string[(spaceI + 1)...];
+
+		// Path
+		spaceI = string.IndexOf(' ');
+		if (spaceI == -1) return .Err;
+
+		Url = .(false, "", string[...(spaceI - 1)]);
+
+		return .Ok;
 	}
+	
+	protected override int GetPayloadStatusSize() => 4 + Url.path.Length + 9 + 2;
 
-	public Self Body(StringView body) {
-		if (this.body == null) this.body = new .();
-
-		this.body.Set(body);
-		return this;
-	}
-
-	public Self Body(Json json) {
-		if (this.body == null) this.body = new .();
-
-		this.body.Clear();
-		JsonWriter.Write(json, this.body);
-
-		return this;
-	}
+	protected override void GetPayloadStatus(String string) => string.AppendF("{} {} HTTP/1.1", Method, Url.path);
 }

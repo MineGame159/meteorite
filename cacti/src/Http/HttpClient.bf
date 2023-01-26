@@ -3,40 +3,36 @@ using System.Net;
 using System.Collections;
 using System.Diagnostics;
 
+using Cacti.Crypto;
+
 namespace Cacti.Http;
 
 class HttpClient {
-	private WolfSSL.Ctx* sslCtx;
+	private Crypto crypto ~ delete _;
 	private uint8[] payload ~ delete _;
 
 	public this() {
 		Socket.Init();
 	}
 
-	public ~this() {
-		if (sslCtx != null) {
-			WolfSSL.CtxFree(sslCtx);
-		}
-	}
-
 	public Result<HttpResponse> Send(HttpRequest request) {
 		// Setup headers
-		request.Header("Host", request.url.hostname);
-		request.Header("Connection", "close");
-		request.Header("User-Agent", "Cacti", false);
+		request.SetHeader("Host", request.Url.hostname);
+		request.SetHeader("Connection", "close");
+		request.SetHeader("User-Agent", "Cacti", false);
 
 		// Get payload
-		int size = GetRequestPayloadSize(request);
+		int size = request.GetPayloadSize();
 
 		if (payload == null || payload.Count < size) {
 			delete payload;
 			payload = new .[size];
 		}
 
-		GetRequestPayload(request, payload);
+		request.GetPayload(payload);
 
 		// Execute
-		return Execute(request.url, .(payload, 0, size));
+		return Execute(request.Url, .(payload, 0, size));
 	}
 	
 	private Result<HttpResponse> Execute(HttpUrl url, Span<uint8> payload) {
@@ -60,9 +56,10 @@ class HttpClient {
 		connection.Read(data).GetOrPropagate!();
 
 		// Parse response
-		HttpResponse response = new .();
+		String responseString = new .((char8*) data.Ptr, data.Count);
+		HttpResponse response = new .(.OK);
 
-		if (response.Parse(new .((char8*) data.Ptr, data.Count)) == .Err) {
+		if (response.Parse(.Owned(responseString)) == .Err) {
 			delete response;
 			return .Err;
 		}
@@ -70,82 +67,17 @@ class HttpClient {
 		return response;
 	}
 
-	private WolfSSL.SSL* GetSSL(Socket socket, HttpUrl url) {
-		if (sslCtx == null) {
-			int result = WolfSSL.Init();
-			Runtime.Assert(result == 1);
-
-			sslCtx = WolfSSL.CtxNew(WolfSSL.ClientMethod());
-			Runtime.Assert(sslCtx != null);
-
-			WolfSSL.CtxSetVerify(sslCtx, .None, null);
+	private SSL GetSSL(Socket socket, HttpUrl url) {
+		if (crypto == null) {
+			crypto = new .();
+			crypto.SetVerify(.None, null);
 		}
 
-		WolfSSL.SSL* ssl = WolfSSL.New(sslCtx);
-		Runtime.Assert(ssl != null);
+		SSL ssl = new .(crypto);
 
-		int result = WolfSSL.UseSNI(ssl, 0, url.hostname.Ptr, (.) url.hostname.Length);
-		Runtime.Assert(result == 1);
-
-		result = WolfSSL.SetFd(ssl, (.) socket.NativeSocket);
-		Runtime.Assert(result == 1);
+		ssl.UseSNI(0, .((uint8*) url.hostname.Ptr, url.hostname.Length));
+		ssl.SetSocket(socket);
 
 		return ssl;
-	}
-
-	private static int32 VerifyAll(int32 preverfiy, void* store) => 1;
-
-	private static int GetRequestPayloadSize(HttpRequest request) {
-		int size = 0;
-
-		// Status
-		size += 4 + request.url.path.Length + 9 + 2;
-
-		// Headers
-		for (let header in request.headers) {
-			size += header.key.Length + 2 + header.value.Length + 2;
-		}
-
-		// Empty line
-		size += 2;
-
-		// Body
-		if (request.body != null) {
-			size += request.body.Length;
-		}
-
-		return size;
-	}
-
-	private static void GetRequestPayload(HttpRequest request, uint8[] payload) {
-		// Utility functions
-		int offset = 0;
-
-		void Append(StringView str) {
-			Debug.Assert(offset + str.Length <= payload.Count);
-
-			Internal.MemCpy(&payload[offset], str.Ptr, str.Length);
-			offset += str.Length;
-		}
-
-		void AppendF(StringView str, params Object[] args) {
-			Append(scope String()..AppendF(str, params args));
-		}
-
-		// Status
-		AppendF("GET {} HTTP/1.1\r\n", request.url.path);
-
-		// Headers
-		for (let header in request.headers) {
-			AppendF("{}: {}\r\n", header.key, header.value);
-		}
-
-		// Empty line
-		Append("\r\n");
-
-		// Body
-		if (request.body != null) {
-			Append(request.body);
-		}
 	}
 }

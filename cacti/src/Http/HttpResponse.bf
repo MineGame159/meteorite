@@ -1,60 +1,38 @@
 using System;
-using System.Collections;
 
 namespace Cacti.Http;
 
-class HttpResponse {
-	private String string ~ delete _;
+class HttpResponse : HttpMessage {
+	public HttpStatus Status;
 
-	public HttpStatus status;
-	public Dictionary<StringView, StringView> headers = new .() ~ delete _;
-	public StringView body;
-
-	public StringView GetHeader(StringView name) => headers.GetValueOrDefault(name);
+	public this(HttpStatus status) {
+		this.Status = status;
+	}
 
 	public Result<Json> GetJson() => JsonParser.ParseString(body);
 
-	public Result<void> Parse(String string) {
-		this.string = string;
+	protected override Result<void> ParseStatus(StringView string) {
+		int spaceI = string.IndexOf(' ');
+		if (spaceI == -1) return .Err;
 
-		for (let line in Utils.Lines(string)) {
-			// Status
-			if (@line.Index == 0) {
-				int spaceI = line.IndexOf(' ');
-				if (spaceI == -1) return .Err;
+		StringView statusString = string[(spaceI + 1)...];
 
-				StringView statusString = line[(spaceI + 1)...];
+		if (!statusString[statusString.Length - 1].IsDigit) {
+			spaceI = statusString.IndexOf(' ');
+			if (spaceI == -1) return .Err;
 
-				if (!statusString[statusString.Length - 1].IsDigit) {
-					spaceI = statusString.IndexOf(' ');
-					if (spaceI == -1) return .Err;
+			statusString = statusString[...(spaceI - 1)];
+		}
 
-					statusString = statusString[...(spaceI - 1)];
-				}
-
-				switch (int.Parse(statusString)) {
-				case .Ok(let val):	status = HttpStatus.FromCode(val).GetOrPropagate!();
-				case .Err:			return .Err;
-				}
-
-				continue;
-			}
-
-			// Body
-			if (line.IsEmpty) {
-				body = string[@line.Position...]..Trim();
-				break;
-			}
-
-			// Headers
-			StringSplitEnumerator headerSplit = line.Split(':');
-
-			StringView name = headerSplit.GetNext().GetOrPropagate!()..Trim();
-			StringView value = headerSplit.GetNext().GetOrPropagate!()..Trim();
-
-			headers[name] = value;
+		switch (int.Parse(statusString)) {
+		case .Ok(let val):	Status = HttpStatus.FromCode(val).GetOrPropagate!();
+		case .Err:			return .Err;
 		}
 
 		return .Ok;
 	}
+
+	protected override int GetPayloadStatusSize() => 9 + 4 + Status.Name.Length;
+
+	protected override void GetPayloadStatus(String string) => string.AppendF("HTTP/1.1 {} {}", Status.Underlying, Status.Name);
 }

@@ -24,6 +24,8 @@ namespace Meteorite {
 		public TextRenderer textRenderer;
 		public HudRenderer hud;
 
+		public AccountManager accounts;
+
 		public ClientConnection connection;
 		public World world;
 		public ClientPlayerEntity player;
@@ -56,6 +58,8 @@ namespace Meteorite {
 			entityRenderDispatcher = new .();
 			textRenderer = new .();
 			hud = new .();
+
+			accounts = new .();
 
 			camera.pos.y = 160;
 			camera.yaw = 45;
@@ -104,13 +108,17 @@ namespace Meteorite {
 			Buffers.Destroy();
 			Gfxa.Destroy();
 
+			delete accounts;
+
 			// Connection needs to be deleted before world
 			delete connection;
 			delete world;
 		}
 
-		public void Join(StringView address, int32 port, StringView username) {
-			connection = new .(address, port, username);
+		public void Join(StringView address, int32 port) {
+			Runtime.Assert(accounts.active != null);
+
+			connection = new .(address, port);
 			Screen = null;
 		}
 

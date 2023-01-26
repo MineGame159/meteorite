@@ -1,6 +1,9 @@
 using System;
+using System.Diagnostics;
 
 using Cacti;
+using Cacti.Crypto;
+using Cacti.Http;
 
 namespace Meteorite {
 	public class LoginPacketHandler : PacketHandler {
@@ -23,6 +26,83 @@ namespace Meteorite {
 			Log.Error("Failed to login: {}", packet.reason);
 		}
 
+		private void OnEncryptionRequest(EncryptionRequestS2CPacket packet) {
+			// Create RNG
+			RNG rng = scope .();
+
+			// Create RSA
+			RSA rsa = scope .();
+			rsa.LoadPublicKey(packet.publicKey);
+
+			// Get encrypted size
+			int encryptedSize = rsa.GetEncryptedSize();
+			Debug.Assert(encryptedSize == 128);
+
+			// Generate shared secret
+			uint8[16] sharedSecret = ?;
+			rng.GenerateBlock(sharedSecret);
+
+			// Encrypt shared secret
+			uint8[] sharedSecretEncrypted = scope .[encryptedSize];
+			rsa.Encrypt(rng, sharedSecret, sharedSecretEncrypted);
+
+			// Encrypt verify token
+			uint8[] verifyTokenEncrypted = scope .[encryptedSize];
+			rsa.Encrypt(rng, packet.verifyToken, verifyTokenEncrypted);
+
+			// Send join server HTTP request
+			SHA1 sha = scope .();
+
+			sha.Update(.((uint8*) packet.serverId.Ptr, packet.serverId.Length));
+			sha.Update(sharedSecret);
+			sha.Update(packet.publicKey);
+
+			MicrosoftAccount account = (.) Meteorite.INSTANCE.accounts.active;
+			Json json = .Object();
+
+			json["accessToken"] = .String(account.authData.mcAccessToken);
+			json["selectedProfile"] = .String(account.uuid.ToString(.. scope .(), false));
+			json["serverId"] = .String(GetHexHash(sha, .. scope .()));
+
+			HttpResponse response = MsAuth.CLIENT.Send(scope HttpRequest(.Post)
+				..SetUrl("https://sessionserver.mojang.com/session/minecraft/join")
+				..SetBody(json)
+			);
+
+			Debug.Assert(response.Status == .NoContent);
+
+			json.Dispose();
+			delete response;
+			
+			// Send encryption response and enable connection encryption
+			connection.Send(scope EncryptionResponseC2SPacket(sharedSecretEncrypted, verifyTokenEncrypted));
+			connection.EnableCompression(sharedSecret);
+		}
+
+		private static void GetHexHash(SHA1 sha, String str) {
+			uint8[20] hash = sha.Final();
+
+			if ((hash[0] & 0x80) == 0x80) {
+				TwosComplement(ref hash);
+				str.Append('-');
+			}
+
+			Utils.HexEncode(hash, str);
+		}
+
+		private static void TwosComplement(ref uint8[20] bytes) {
+			bool carry = true;
+
+			for (int i = bytes.Count - 1; i >= 0; i--) {
+				bytes[i] = ~bytes[i] & 0xFF;
+
+				if (carry) {
+					carry = bytes[i] == 0xFF;
+					bytes[i]++;
+				}
+			}
+		}
+
 		private void OnLoginSuccess(LoginSuccessS2CPacket packet) {
 			connection.SetHandler(new PlayPacketHandler(connection));
 		}
@@ -31,8 +111,9 @@ namespace Meteorite {
 
 		public override S2CPacket GetPacket(int32 id) {
 			switch (id) {
-			case LoginDisconnectS2CPacket.ID: return new LoginDisconnectS2CPacket();
-			case LoginSuccessS2CPacket.ID: return new LoginSuccessS2CPacket();
+			case LoginDisconnectS2CPacket.ID:	return new LoginDisconnectS2CPacket();
+			case EncryptionRequestS2CPacket.ID:	return new EncryptionRequestS2CPacket();
+			case LoginSuccessS2CPacket.ID:		return new LoginSuccessS2CPacket();
 			}
 
 			return null;
@@ -40,8 +121,9 @@ namespace Meteorite {
 
 		public override void Handle(S2CPacket packet) {
 			switch (packet.id) {
-			case LoginDisconnectS2CPacket.ID: OnLoginDisconnect((.) packet);
-			case LoginSuccessS2CPacket.ID: OnLoginSuccess((.) packet);
+			case LoginDisconnectS2CPacket.ID:	OnLoginDisconnect((.) packet);
+			case EncryptionRequestS2CPacket.ID:	OnEncryptionRequest((.) packet);
+			case LoginSuccessS2CPacket.ID:		OnLoginSuccess((.) packet);
 			}
 		}
 	}

@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 
 using GLFW;
 using Bulkan;
@@ -50,6 +51,44 @@ namespace Cacti {
 			return .(string.Split('\n', .RemoveEmptyEntries));
 		}
 
+		public static (uint8, bool) HexToByte(char8 x1, char8 x2) {
+			uint8 b1 = HEX_TO_BYTE[x1];
+			uint8 b2 = HEX_TO_BYTE[x2];
+
+			return ((b1 << 4) | b2, b1 != 255 && b2 != 255);
+		}
+
+		public static int HexEncode(Span<uint8> bytes, String str) {
+			int i = 0;
+
+			for (uint8 v in bytes) {
+				str.Append(HEX_TABLE[v >> 4]);
+				str.Append(HEX_TABLE[v & 0x0F]);
+
+				i += 2;
+			}
+
+			return i;
+		}
+		
+		public static void OpenUrl(StringView url) {
+#if BF_PLATFORM_WINDOWS
+			Windows.ShellExecuteA(0, null, url.ToScopeCStr!(), null, null, Windows.SW_SHOW);
+#elif BF_PLATFORM_LINUX
+			ProcessStartInfo info = scope .();
+
+			info.SetFileName("xdg-open");
+			info.SetArguments(url);
+
+			SpawnedProcess process = scope .();
+			process.Start(info);
+
+			process.WaitFor();
+#else
+			Runtime.NotImplemented();
+#endif
+		}
+
 #if BF_PLATFORM_WINDOWS
 		[CRepr]
 		struct ProcessMemoryCounters {
@@ -78,6 +117,27 @@ namespace Cacti {
 			return 0;
 #endif
 		} }
+
+		private const uint8[?] HEX_TO_BYTE = .(
+			255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+			255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+			255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+			0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 255, 255, 255, 255, 255, 255,
+			255, 10, 11, 12, 13, 14, 15, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+			255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+			255, 10, 11, 12, 13, 14, 15, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+			255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+			255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+			255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+			255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+			255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+			255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+			255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+			255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+			255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255
+		);
+
+		private const String HEX_TABLE = "0123456789abcdef";
 	}
 
 	interface IPool<T> {

@@ -3,6 +3,8 @@ using System.Net;
 using System.Collections;
 using System.Diagnostics;
 
+using Cacti.Crypto;
+
 namespace Cacti.Http;
 
 interface IHttpConnection {
@@ -52,15 +54,14 @@ class HttpConnection : IHttpConnection {
 class HttpsConnection : IHttpConnection {
 	private const int READ_SIZE = 1024;
 
-	private WolfSSL.SSL* ssl ~ WolfSSL.Free(_);
+	private SSL ssl ~ delete _;
 
-	public this(WolfSSL.SSL* ssl) {
+	public this(SSL ssl) {
 		this.ssl = ssl;
 	}
 
 	public Result<void> Send(Span<uint8> data) {
-		int written = WolfSSL.Write(ssl, data.Ptr, (.) data.Length);
-		if (written <= 0) return .Err;
+		int written = ssl.Write(data).GetOrPropagate!();
 
 		Debug.Assert(written == data.Length);
 		return .Ok;
@@ -71,7 +72,7 @@ class HttpsConnection : IHttpConnection {
 
 		while (true) {
 			data.EnsureCapacity(data.Count + READ_SIZE, true);
-			int32 readThisCall = WolfSSL.Read(ssl, data.Ptr + data.Count, READ_SIZE);
+			int32 readThisCall = (.) ssl.Read(.(data.Ptr + data.Count, READ_SIZE)).GetOrPropagate!();
 
 			if (readThisCall < 0) return .Err;
 			if (readThisCall == 0) break;

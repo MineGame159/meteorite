@@ -4,6 +4,8 @@ using System.Threading;
 using System.Collections;
 
 using Cacti;
+using Cacti.Crypto;
+
 using MiniZ;
 
 namespace Meteorite {
@@ -20,6 +22,9 @@ namespace Meteorite {
 		private int neededLength;
 		private int compressionThreshold = -1;
 
+		private AES aesEncrypt ~ delete _;
+		private AES aesDecrypt ~ delete _;
+
 		public this(StringView address, int32 port) {
 			this.address = address;
 			this.port = port;
@@ -30,6 +35,14 @@ namespace Meteorite {
 
 			s.Close();
 			t?.Join();
+		}
+
+		public void EnableCompression(uint8[16] sharedSecret) {
+			aesEncrypt = new .();
+			aesEncrypt.SetKey(sharedSecret, sharedSecret, .Encrypt);
+
+			aesDecrypt = new .();
+			aesDecrypt.SetKey(sharedSecret, sharedSecret, .Encrypt);
 		}
 
 		protected void Start() {
@@ -81,6 +94,8 @@ namespace Meteorite {
 
 					if (s.Recv(buf, 1024) case .Ok(let v)) received = v;
 					else break;
+
+					if (aesEncrypt != null) Decrypt(buf, received);
 
 					buffer.Write(buf, received);
 
@@ -137,8 +152,29 @@ namespace Meteorite {
 			if (compressionThreshold != -1) packet.WriteVarInt(0);
 			packet.Write(buffer);
 
-			let result = s.Send(packet.[Friend]data, packet.size);
+			let result = Send(packet.[Friend]data, packet.size);
 			if (result == .Err) OnConnectionLost();
+		}
+
+		private Result<int> Send(uint8* data, int size) {
+			uint8* toSend = data;
+
+			if (aesEncrypt != null) {
+				uint8* encrypted = new .[size]*;
+				defer:: delete encrypted;
+
+				aesEncrypt.EncryptCfb8(.(toSend, size), encrypted);
+				toSend = encrypted;
+			}
+
+			return s.Send(toSend, size);
+		}
+
+		private void Decrypt(uint8* data, int size) {
+			uint8* decrypted = new:ScopedAlloc! .[size]*;
+
+			aesDecrypt.DecryptCfb8(.(data, size), decrypted);
+			Internal.MemCpy(data, decrypted, size);
 		}
 	}
 }

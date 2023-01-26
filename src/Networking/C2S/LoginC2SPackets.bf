@@ -25,18 +25,47 @@ namespace Meteorite {
 	class LoginStartC2SPacket : C2SPacket {
 		public const int32 ID = 0x00;
 
-		public String username;
+		public Account account;
 
 		[AllowAppend]
-		public this(StringView username) : base(ID) {
-			String u = append .(username);
-			this.username = u;
+		public this(Account account) : base(ID) {
+			this.account = account;
 		}
 
 		public override void Write(NetBuffer buf) {
-			buf.WriteString(username); // Username
-			buf.WriteBool(false); // Has player UUID
-			// Player UUID
+			buf.WriteString(account.username);
+
+			bool hasUuid = account.type == .Microsoft;
+			buf.WriteBool(hasUuid);
+
+			if (hasUuid) {
+				buf.WriteUUID(account.uuid);
+			}
+		}
+	}
+
+	class EncryptionResponseC2SPacket : C2SPacket {
+		public const int32 ID = 0x01;
+
+		public uint8[] sharedSecret ~ delete _;
+		public uint8[] verifyToken ~ delete _;
+
+		public this(uint8[] sharedSecret, uint8[] verifyToken) : base(ID) {
+			this.sharedSecret = new .[sharedSecret.Count];
+			this.verifyToken = new .[verifyToken.Count];
+
+			sharedSecret.CopyTo(this.sharedSecret);
+			verifyToken.CopyTo(this.verifyToken);
+		}
+
+		public override int DefaultBufferSize => (4 * 128) * 2;
+
+		public override void Write(NetBuffer buf) {
+			buf.WriteVarInt((.) sharedSecret.Count);
+			buf.Write(sharedSecret.Ptr, sharedSecret.Count);
+
+			buf.WriteVarInt((.) verifyToken.Count);
+			buf.Write(verifyToken.Ptr, verifyToken.Count);
 		}
 	}
 }

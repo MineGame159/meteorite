@@ -6,30 +6,26 @@ Name = "Cacti"
 TargetType = "BeefLib"
 StartupObject = "Cacti.Program"
 
-
-
 [Configs.Debug.Win64]
-LibPaths = ["$(ProjectDir)/lib/wolfssl_d.lib"]
-
-[Configs.Release.Win64]
 LibPaths = ["$(ProjectDir)/lib/wolfssl.lib"]
-
-[Configs.Paranoid.Win64]
-LibPaths = ["$(ProjectDir)/lib/wolfssl.lib"]
-
-[Configs.Test.Win64]
-LibPaths = ["$(ProjectDir)/lib/wolfssl.lib"]
-
-
 
 [Configs.Debug.Linux64]
 LibPaths = ["$(ProjectDir)/lib/libwolfssl.a"]
 
+[Configs.Release.Win64]
+LibPaths = ["$(ProjectDir)/lib/wolfssl.lib"]
+
 [Configs.Release.Linux64]
 LibPaths = ["$(ProjectDir)/lib/libwolfssl.a"]
 
+[Configs.Paranoid.Win64]
+LibPaths = ["$(ProjectDir)/lib/wolfssl.lib"]
+
 [Configs.Paranoid.Linux64]
 LibPaths = ["$(ProjectDir)/lib/libwolfssl.a"]
+
+[Configs.Test.Win64]
+LibPaths = ["$(ProjectDir)/lib/wolfssl.lib"]
 
 [Configs.Test.Linux64]
 LibPaths = ["$(ProjectDir)/lib/libwolfssl.a"]

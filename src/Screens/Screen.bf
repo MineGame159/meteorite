@@ -21,7 +21,7 @@ abstract class Screen {
 		Meteorite.INSTANCE.window.MouseHidden = wasMouseHidden;
 	}
 
-	public void Render() {
+	public virtual void Render() {
 		Meteorite.INSTANCE.window.MouseHidden = false;
 
 		ImGui.IO* io = ImGui.GetIO();

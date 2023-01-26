@@ -146,6 +146,14 @@ namespace Meteorite {
 			size += length;
 		}
 
+		public void WriteUUID(UUID uuid) {
+			EnsureCapacity(16);
+
+#unwarn
+			Internal.MemCpy(&data[size], &uuid.bytes, 16);
+			size += 16;
+		}
+
 		// Read
 
 		public uint8* Read(int size) {
