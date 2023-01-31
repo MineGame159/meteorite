@@ -12,7 +12,7 @@ namespace Meteorite {
 	abstract class Connection {
 		private const int32 S2C_SET_COMPRESSION = 0x03;
 
-		public StringView address;
+		public StringView ip;
 		public int32 port;
 		public bool closed;
 
@@ -25,8 +25,8 @@ namespace Meteorite {
 		private AES aesEncrypt ~ delete _;
 		private AES aesDecrypt ~ delete _;
 
-		public this(StringView address, int32 port) {
-			this.address = address;
+		public this(StringView ip, int32 port) {
+			this.ip = ip;
 			this.port = port;
 		}
 
@@ -51,8 +51,8 @@ namespace Meteorite {
 			s = new .();
 			s.Blocking = false;
 
-			if (s.Connect(address, port) case .Ok) {
-				Log.Info("Connected to {}:{}", address, port);
+			if (s.Connect(ip, port) case .Ok) {
+				Log.Info("Connected to {}:{}", ip, port);
 
 				neededLength = -1;
 
@@ -63,7 +63,7 @@ namespace Meteorite {
 				OnReady();
 			}
 			else {
-				Log.Error("Failed to connect to {}:{}", address, port);
+				Log.Error("Failed to connect to {}:{}", ip, port);
 				closed = true;
 			}
 		}

@@ -72,7 +72,7 @@ class MicrosoftAccount : Account {
 		// Fetch username and uuid
 		HttpResponse response = MsAuth.CLIENT.Send(scope HttpRequest(.Get)
 			..SetUrl("https://api.minecraftservices.com/minecraft/profile")
-			..SetHeader("Authorization", scope $"Bearer {authData.mcAccessToken}")
+			..SetHeader(.Authorization, scope $"Bearer {authData.mcAccessToken}")
 		);
 
 		defer delete response;

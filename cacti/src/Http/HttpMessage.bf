@@ -37,40 +37,34 @@ enum HttpMessageData : IEquatable<Self>, IEquatable<StringView>, IHashable, IDis
 	public static operator StringView(Self data) => data.String;
 }
 
-typealias HttpHeader = (StringView name, StringView value);
+typealias HttpHeader = (HttpHeaderName name, StringView value);
 
 abstract class HttpMessage {
 	protected HttpMessageData data ~ _.Dispose();
 
-	protected Dictionary<HttpMessageData, HttpMessageData> headers = new .() ~ delete _;
-	protected HttpMessageData body ~ _.Dispose();
+	protected Dictionary<HttpHeaderName, HttpMessageData> headers = new .() ~ delete _;
+	protected HttpStream body ~ delete _;
 
 	public ~this() {
 		for (let header in headers) {
-			header.key.Dispose();
 			header.value.Dispose();
 		}
 	}
 
-	public Self SetHeader(StringView name, StringView value, bool replace = true) {
-		HttpMessageData outKey;
+	public Self SetHeader(HttpHeaderName name, StringView value, bool replace = true) {
+		HttpHeaderName outKey;
 		HttpMessageData outValue;
 
 		if (headers.TryGetAlt(name, out outKey, out outValue)) {
-			if (replace) {
-				outKey.Dispose();
-				outValue.Dispose();
-			}
-			else {
-				return this;
-			}
+			if (replace) outValue.Dispose();
+			else return this;
 		}
 
-		headers[.Owned(new .(name))] = .Owned(new .(value));
+		headers[name] = .Owned(new .(value));
 		return this;
 	}
 
-	public StringView GetHeader(StringView name) {
+	public StringView GetHeader(HttpHeaderName name) {
 		HttpMessageData value;
 		if (headers.TryGetValueAlt(name, out value)) return value.String;
 
@@ -79,67 +73,55 @@ abstract class HttpMessage {
 
 	public HttpHeaderEnumerator Headers => .(this);
 
-	public Self SetBody(StringView body) {
-		this.body.Dispose();
-		this.body = .Owned(new .(body));
-
-		if (!Body.IsEmpty) {
-			SetHeader("Content-Type", "text/plain");
-			SetHeader("Content-Length", Body.Length.ToString(.. scope .()));
-		}
+	public Self SetBody(HttpStream stream) {
+		delete this.body;
+		this.body = stream;
 
 		return this;
+	}
+
+	public Self SetBody(StringView body) {
+		SetHeader(.ContentType, "text/plain");
+		SetHeader(.ContentLength, body.Length.ToString(.. scope .()));
+
+		return SetBody(new StringHttpStream(new .(body), true));
 	}
 
 	public Self SetBodyJson(StringView body) {
-		this.body.Dispose();
-		this.body = .Owned(new .(body));
+		SetHeader(.ContentType, "application/json");
+		SetHeader(.ContentLength, body.Length.ToString(.. scope .()));
 
-		if (!Body.IsEmpty) {
-			SetHeader("Content-Type", "application/json");
-			SetHeader("Content-Length", Body.Length.ToString(.. scope .()));
-		}
-
-		return this;
+		return SetBody(new StringHttpStream(new .(body), true));
 	}
 
 	public Self SetBody(Json json) {
-		this.body.Dispose();
-		this.body = .Owned(JsonWriter.Write(json, .. new .()));
+		String string = JsonWriter.Write(json, .. new .());
 
-		if (!Body.IsEmpty) {
-			SetHeader("Content-Type", "application/json");
-			SetHeader("Content-Length", Body.Length.ToString(.. scope .()));
-		}
-
-		return this;
+		SetHeader(.ContentType, "application/json");
+		SetHeader(.ContentLength, string.Length.ToString(.. scope .()));
+		
+		return SetBody(new StringHttpStream(string, true));
 	}
 
 	public Self SetBody(Dictionary<StringView, StringView> data) {
-		this.body.Dispose();
-
-		String str = new .();
+		String string = new .();
 		int i = 0;
 
 		for (let pair in data) {
-			if (i++ > 0) str.Append('&');
+			if (i++ > 0) string.Append('&');
 
-			str.Append(pair.key);
-			str.Append('=');
-			str.Append(pair.value);
+			string.Append(pair.key);
+			string.Append('=');
+			string.Append(pair.value);
 		}
 
-		this.body = .Owned(str);
+		SetHeader(.ContentType, "application/x-www-form-urlencoded");
+		SetHeader(.ContentLength, string.Length.ToString(.. scope .()));
 
-		if (!Body.IsEmpty) {
-			SetHeader("Content-Type", "application/x-www-form-urlencoded");
-			SetHeader("Content-Length", Body.Length.ToString(.. scope .()));
-		}
-
-		return this;
+		return SetBody(new StringHttpStream(string, true));
 	}
 
-	public StringView Body => body;
+	public HttpStream Body => body;
 
 	protected abstract Result<void> ParseStatus(StringView string);
 
@@ -160,17 +142,22 @@ abstract class HttpMessage {
 
 			// Body
 			if (line.IsEmpty) {
-				body = .View(data.String[@line.Position...]..Trim());
 				break;
 			}
 
 			// Headers
 			StringSplitEnumerator headerSplit = line.Split(':');
 
-			StringView name = headerSplit.GetNext().GetOrPropagate!()..Trim();
+			HttpHeaderName name;
+
+			switch (HttpHeaderName.Parse(headerSplit.GetNext().GetOrPropagate!()..Trim())) {
+			case .Ok(let val):	name = val;
+			case .Err:			continue;
+			}
+
 			StringView value = headerSplit.GetNext().GetOrPropagate!()..Trim();
 			
-			headers[.View(name)] = .View(value);
+			headers[name] = .View(value);
 		}
 
 		return .Ok;
@@ -184,14 +171,11 @@ abstract class HttpMessage {
 
 		// Headers
 		for (let header in Headers) {
-			size += header.name.Length + 2 + header.value.Length + 2;
+			size += header.name.Name.Length + 2 + header.value.Length + 2;
 		}
 
 		// Empty line
 		size += 2;
-
-		// Body
-		size += Body.Length;
 
 		return size;
 	}
@@ -219,18 +203,15 @@ abstract class HttpMessage {
 
 		// Headers
 		for (let header in Headers) {
-			AppendF("{}: {}\r\n", header.name, header.value);
+			AppendF("{}: {}\r\n", header.name.Name, header.value);
 		}
 
 		// Empty line
 		Append("\r\n");
-
-		// Body
-		Append(Body);
 	}
 
 	public struct HttpHeaderEnumerator : IEnumerator<HttpHeader> {
-		private Dictionary<HttpMessageData, HttpMessageData>.Enumerator enumerator;
+		private Dictionary<HttpHeaderName, HttpMessageData>.Enumerator enumerator;
 
 		public this(HttpMessage message) {
 			this.enumerator = message.headers.GetEnumerator();
@@ -238,7 +219,7 @@ abstract class HttpMessage {
 
 		public Result<HttpHeader> GetNext() mut {
 			switch (enumerator.GetNext()) {
-			case .Ok(let val):	return (val.key.String, val.value.String);
+			case .Ok(let val):	return (val.key, val.value.String);
 			case .Err:			return .Err;
 			}
 		}

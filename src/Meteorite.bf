@@ -115,10 +115,10 @@ namespace Meteorite {
 			delete world;
 		}
 
-		public void Join(StringView address, int32 port) {
+		public void Join(StringView ip, int32 port, StringView hostname) {
 			Runtime.Assert(accounts.active != null);
 
-			connection = new .(address, port);
+			connection = new .(ip, port, hostname);
 			Screen = null;
 		}
 

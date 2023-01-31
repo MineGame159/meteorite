@@ -7,23 +7,16 @@ using Cacti.Crypto;
 
 namespace Cacti.Http;
 
-interface IHttpConnection {
-	Result<void> Send(Span<uint8> data);
-
-	// TODO: Switch to a custom buffer
-	Result<void> Read(List<uint8> data);
-}
-
-class HttpConnection : IHttpConnection {
+class HttpConnection : HttpStream {
 	private const int READ_SIZE = 1024;
 
-	private Socket socket;
+	private Socket socket ~ delete _;
 
 	public this(Socket socket) {
 		this.socket = socket;
 	}
 
-	public Result<void> Send(Span<uint8> data) {
+	public Result<void> Write(Span<uint8> data) {
 		var data;
 
 		while (data.Length > 0) {
@@ -34,54 +27,42 @@ class HttpConnection : IHttpConnection {
 		return .Ok;
 	}
 
-	public Result<void> Read(List<uint8> data) {
-		while (true) {
-			data.EnsureCapacity(data.Count + READ_SIZE, true);
-			int read = socket.Recv(data.Ptr + data.Count, READ_SIZE).GetOrPropagate!();
-
-			if (read == 0) break;
-			data.[Friend]mSize += (.) read;
-
-			// TODO: I don't know if this is correct but the default behavior of when it returns .Err is kinda weird
-			if (read < READ_SIZE) break;
+	public Result<int> Read(Span<uint8> data) {
+		// Not using Socket.Recv() since it returns an error when both an error happens or when it reaches the end of the stream
+		int result = Socket.[Friend]recv(socket.NativeSocket, data.Ptr, (.) data.Length, 0);
+		
+		if (result == 0) {
+			socket.[Friend]mIsConnected = false;
 		}
 
-		Debug.Assert(!data.IsEmpty);
-		return .Ok;
+		if (result <= -1) {
+			socket.[Friend]CheckDisconnected();
+			return .Err;
+		}
+
+		return result;
 	}
 }
 
-class HttpsConnection : IHttpConnection {
+class HttpsConnection : HttpStream {
 	private const int READ_SIZE = 1024;
 
+	private Socket socket ~ delete _;
 	private SSL ssl ~ delete _;
 
-	public this(SSL ssl) {
+	public this(Socket socket, SSL ssl) {
+		this.socket = socket;
 		this.ssl = ssl;
 	}
 
-	public Result<void> Send(Span<uint8> data) {
+	public Result<void> Write(Span<uint8> data) {
 		int written = ssl.Write(data).GetOrPropagate!();
 
 		Debug.Assert(written == data.Length);
 		return .Ok;
 	}
 
-	public Result<void> Read(List<uint8> data) {
-		int read = 0;
-
-		while (true) {
-			data.EnsureCapacity(data.Count + READ_SIZE, true);
-			int32 readThisCall = (.) ssl.Read(.(data.Ptr + data.Count, READ_SIZE)).GetOrPropagate!();
-
-			if (readThisCall < 0) return .Err;
-			if (readThisCall == 0) break;
-
-			data.[Friend]mSize += readThisCall;
-			read += readThisCall;
-		}
-
-		Debug.Assert(read > 0);
-		return .Ok;
+	public Result<int> Read(Span<uint8> data) {
+		return ssl.Read(data);
 	}
 }

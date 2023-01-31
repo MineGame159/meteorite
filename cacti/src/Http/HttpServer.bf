@@ -77,6 +77,7 @@ class HttpServer {
 		// Create state
 		List<uint8> data = new .(1024);
 		uint8[] payload = null;
+		uint8[] bytes = scope .[512];
 
 		bool deleted = false;
 
@@ -90,16 +91,22 @@ class HttpServer {
 			if (ready != 1) continue;
 
 			// Accept
-			Socket socket = scope .();
+			Socket socket = new .();
 
 			socket.Blocking = true;
 			if (socket.AcceptFrom(listener) == .Err) continue;
 
 			// Read request
 			HttpConnection connection = scope .(socket);
-
+			
 			data.Clear();
-			if (connection.Read(data) == .Err) continue;
+
+			while (true) {
+				int read = connection.Read(bytes);
+				if (read < bytes.Count) break;
+
+				data.AddRange(.(bytes, 0, read));
+			}
 
 			// Handle request
 			StringView requestString = .((.) data.Ptr, data.Count);
@@ -122,7 +129,7 @@ class HttpServer {
 			}
 
 			// Send response
-			response.SetHeader("Connection", "close");
+			response.SetHeader(.Connection, "close");
 
 			int size = response.GetPayloadSize();
 
@@ -133,7 +140,7 @@ class HttpServer {
 
 			response.GetPayload(payload);
 
-			connection.Send(.(payload, 0, size));
+			connection.Write(.(payload, 0, size));
 		}
 
 		// Signal stop event

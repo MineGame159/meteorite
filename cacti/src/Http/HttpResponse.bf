@@ -9,7 +9,28 @@ class HttpResponse : HttpMessage {
 		this.Status = status;
 	}
 
-	public Result<Json> GetJson() => JsonParser.ParseString(body);
+	public Result<void> GetString(String string) {
+		uint8[512] data = ?;
+
+		while (true) {
+			int read = body.Read(data).GetOrPropagate!();
+			if (read == 0) break;
+
+			string.Append((char8*) &data, read);
+		}
+
+		return .Ok;
+	}
+
+	public Result<Json> GetJson() {
+		String string = new .(512);
+		GetString(string).GetOrPropagate!();
+		
+		Json json = JsonParser.ParseString(string);
+
+		delete string; // defer does not seem to be working once again
+		return json;
+	}
 
 	protected override Result<void> ParseStatus(StringView string) {
 		int spaceI = string.IndexOf(' ');

@@ -4,13 +4,12 @@ namespace Meteorite {
 	class HandshakeC2SPacket : C2SPacket {
 		public const int32 ID = 0x00;
 
-		public String address;
+		public append String address = .();
 		public uint16 port;
 
 		[AllowAppend]
 		public this(StringView address, uint16 port) : base(ID) {
-			String a = append .(address);
-			this.address = a;
+			this.address.Set(address);
 			this.port = port;
 		}
 

@@ -6,8 +6,11 @@ namespace Meteorite {
 	class ClientConnection : Connection {
 		private PacketHandler handler ~ DeleteAndNullify!(_);
 
-		public this(StringView address, int32 port) : base(address, port) {
+		private append String hostname = .();
+
+		public this(StringView ip, int32 port, StringView hostname) : base(ip, port) {
 			this.handler = new LoginPacketHandler(this);
+			this.hostname.Set(hostname);
 
 			Start();
 		}
@@ -18,7 +21,7 @@ namespace Meteorite {
 		}
 
 		protected override void OnReady() {
-			Send(scope HandshakeC2SPacket(address, (.) port));
+			Send(scope HandshakeC2SPacket(hostname, (.) port));
 			Send(scope LoginStartC2SPacket(Meteorite.INSTANCE.accounts.active));
 		}
 

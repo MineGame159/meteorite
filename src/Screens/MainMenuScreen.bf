@@ -1,13 +1,14 @@
 using System;
 
 using Cacti;
+using Cacti.Http;
+
 using ImGui;
 
 namespace Meteorite;
 
 class MainMenuScreen : Screen {
-	private char8[32] ip = "localhost";
-	private char8[6] port = "25565";
+	private char8[32] address = "localhost";
 
 	private char8[16] crackedUsername;
 	private bool addingCracked;
@@ -37,13 +38,100 @@ class MainMenuScreen : Screen {
 		}
 
 		if (join) {
-			Meteorite.INSTANCE.Join(.(&ip), int32.Parse(.(&port)));
+			String ip = scope .();
+			int32 port = 0;
+
+			switch (GetIPWithPort(ip, ref port)) {
+			case .Ok:	Meteorite.INSTANCE.Join(ip, port, .(&address));
+			case .Err:	Log.Error("Failed to resolved address '{}'", address);
+			}
 		}
 	}
 
+	private Result<void> GetIPWithPort(String ip, ref int32 port) {
+		StringView address = .(&address)..Trim();
+
+		defer {
+			// Use 25565 as a default port if one wasn't assigned
+			if (port == 0) {
+				port = 25565;
+			}
+		}
+
+		// Parse port
+		int portI = address.IndexOf(':');
+
+		if (portI != -1) {
+			StringView portStr = address[(portI + 1)...];
+			address = address[...(portI - 1)];
+
+			switch (int32.Parse(portStr)) {
+			case .Ok(let val):	port = val;
+			case .Err:			return .Err;
+			}
+
+			if (port > uint16.MaxValue) {
+				return .Err;
+			}
+		}
+
+		// Check if the address equals localhost
+		if (address == "localhost") {
+			ip.Set("127.0.0.1");
+			return .Ok;
+		}
+
+		// Check if the address is in the format of a raw IPv4 address
+		if (IsIPv4(address)) {
+			ip.Set(address);
+			return .Ok;
+		}
+
+		// Make a HTTP request to mcsrvstat.us to resolve the hostname
+		HttpResponse response = MsAuth.CLIENT.Send(scope HttpRequest(.Get)
+			..SetUrl(scope $"https://api.mcsrvstat.us/2/{address}")
+			..SetHeader(.Accept, "application/json")
+		);
+		defer delete response;
+
+		if (response.Status != .OK) {
+			return .Err;
+		}
+
+		Json json = response.GetJson();
+
+		if (json.GetBool("online")) {
+			ip.Set(json["ip"].AsString);
+
+			if (port == 0) {
+				port = (.) json["port"].AsNumber;
+			}
+
+			json.Dispose(); // defer does not seems to be working
+			return .Ok;
+		}
+
+		json.Dispose();
+		return .Err;
+	}
+
+	private bool IsIPv4(StringView address) {
+		if (address.Count('.') != 4) return false;
+
+		for (let part in address.Split('.')) {
+			switch (uint32.Parse(part)) {
+			case .Ok(let val):
+				if (val > 255) return false;
+			case .Err:
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	protected override void RenderImpl() {
-		ImGui.InputText("IP", &ip, ip.Count);
-		ImGui.InputText("Port", &port, port.Count);
+		ImGui.InputText("Address", &address, address.Count);
 		ImGui.SliderInt("Render Distance", &Meteorite.INSTANCE.options.renderDistance, 2, 32);
 
 		bool disabled = Meteorite.INSTANCE.accounts.active == null;

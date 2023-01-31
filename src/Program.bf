@@ -1,7 +1,6 @@
 using System;
 
 using Cacti;
-using Cacti.Http;
 
 namespace Meteorite {
 	class Program {

@@ -18,6 +18,8 @@ class AccountManager : IEnumerable<Account> {
 		Json json = JsonParser.Parse(fs);
 		defer json.Dispose();
 
+		fs.Close();
+
 		for (let accountJson in json.AsArray) {
 			AccountType type = Enum.Parse<AccountType>(accountJson["type"].AsString);
 

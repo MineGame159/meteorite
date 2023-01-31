@@ -123,7 +123,7 @@ static class MsAuth {
 	private static Result<void> CheckOwnership(MsAuthData data) {
 		HttpResponse response = CLIENT.Send(scope HttpRequest(.Get)
 			..SetUrl("https://api.minecraftservices.com/entitlements/mcstore")
-			..SetHeader("Authorization", scope $"Bearer {data.mcAccessToken}")
+			..SetHeader(.Authorization, scope $"Bearer {data.mcAccessToken}")
 		);
 
 		defer delete response;
@@ -168,7 +168,7 @@ static class MsAuth {
 		body["redirect_uri"] = scope $"http://127.0.0.1:{SERVER_PORT}";
 
 		HttpResponse response = CLIENT.Send(scope HttpRequest(.Post)
-			..SetUrl(scope $"https://login.live.com/oauth20_token.srf")
+			..SetUrl("https://login.live.com/oauth20_token.srf")
 			..SetBody(body)
 		);
 

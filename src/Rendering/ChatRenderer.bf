@@ -132,7 +132,7 @@ namespace Meteorite {
 		}
 
 		private bool OnKey(Key key, int scancode, InputAction action) {
-			if (action == .Release) return false;
+			if (me.Screen != null || action == .Release) return false;
 
 			if (typing) {
 				if (key == .Escape || key == .Enter || key == .KpEnter) {
@@ -226,6 +226,8 @@ namespace Meteorite {
 		}
 
 		private bool OnChar(char32 char) {
+			if (me.Screen != null) return false;
+
 			if (typing) {
 				if (firstChar) {
 					firstChar = false;
@@ -243,6 +245,8 @@ namespace Meteorite {
 		}
 
 		private bool OnScroll(float scroll) {
+			if (me.Screen != null) return false;
+
 			if (typing) {
 				renderFrom += (.) scroll;
 				renderFrom = Math.Clamp(renderFrom, 0, messages.Count - 16 - 1);

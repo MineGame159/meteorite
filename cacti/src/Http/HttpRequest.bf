@@ -8,13 +8,17 @@ enum HttpMethod {
 		 Put,
 		 Delete;
 
-	public override void ToString(String str) {
+	public StringView Name { get {
 		switch (this) {
-		case .Get:		str.Append("GET");
-		case .Post:		str.Append("POST");
-		case .Put:		str.Append("PUT");
-		case .Delete:	str.Append("DELETE");
+		case .Get:		return "GET";
+		case .Post:		return "POST";
+		case .Put:		return "PUT";
+		case .Delete:	return "DELETE";
 		}
+	} }
+
+	public override void ToString(String str) {
+		str.Append(Name);
 	}
 }
 
@@ -60,7 +64,7 @@ class HttpRequest : HttpMessage {
 		return .Ok;
 	}
 	
-	protected override int GetPayloadStatusSize() => 4 + Url.path.Length + 9 + 2;
+	protected override int GetPayloadStatusSize() => Method.Name.Length + 1 + Url.path.Length + 9;
 
 	protected override void GetPayloadStatus(String string) => string.AppendF("{} {} HTTP/1.1", Method, Url.path);
 }
