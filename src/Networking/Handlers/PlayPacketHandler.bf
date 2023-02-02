@@ -28,7 +28,7 @@ namespace Meteorite {
 		// Handlers
 
 		private void OnKeepAlive(KeepAliveS2CPacket packet) {
-			connection.Send(scope KeepAliveC2SPacket(&packet.data[0]));
+			connection.Send(scope KeepAliveC2SPacket(packet.data));
 		}
 
 		private void OnPlayerInfo(PlayerInfoS2CPacket packet) {

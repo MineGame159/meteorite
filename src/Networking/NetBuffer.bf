@@ -80,7 +80,20 @@ namespace Meteorite {
 		}
 
 		public void WriteLong(int64 v) {
-			*((int64*) &data[size]) = v;
+			/**((int64*) &data[size]) = v;
+			size += 8;*/
+
+#unwarn			
+			uint8* va = (.) &v;
+			uint8* d = &data[size];
+			d[0] = va[7];
+			d[1] = va[6];
+			d[2] = va[5];
+			d[3] = va[4];
+			d[4] = va[3];
+			d[5] = va[2];
+			d[6] = va[1];
+			d[7] = va[0];
 			size += 8;
 		}
 

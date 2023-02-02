@@ -4,15 +4,15 @@ namespace Meteorite{
 	class KeepAliveC2SPacket : C2SPacket {
 		public const int32 ID = 0x11;
 
-		public uint8[8] data;
+		public int64 data;
 
 		[AllowAppend]
-		public this(uint8* data) : base(ID) {
-			Internal.MemCpy(&this.data, data, 8);
+		public this(int64 data) : base(ID) {
+			this.data = data;
 		}
 
 		public override void Write(NetBuffer buf) {
-			buf.Write(&data, data.Count);
+			buf.WriteLong(data);
 		}
 	}
 }

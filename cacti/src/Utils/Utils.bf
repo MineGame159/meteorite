@@ -44,7 +44,7 @@ namespace Cacti {
 
 		public static int64 UnixTimeEpoch { get {
 			TimeSpan time = DateTime.Now.Subtract(DateTime(1970, 1, 1));
-			return ((int64) time / TimeSpan.TicksPerSecond) % 60;
+			return time.Ticks / TimeSpan.TicksPerSecond;
 		} }
 
 		public static LineEnumerator Lines(StringView string) {

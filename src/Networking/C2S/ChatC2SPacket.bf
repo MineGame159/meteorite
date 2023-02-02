@@ -23,7 +23,7 @@ namespace Meteorite {
 			buf.WriteVarInt(length);
 			buf.Write((.) &message.Ptr[id == COMMAND_ID ? 1 : 0], length);
 
-			buf.WriteLong(Utils.UnixTimeEpoch);
+			buf.WriteLong(Utils.UnixTimeEpoch); // TODO: My implementation of UNIX time uses the local time but it is possible that the game expects a UTC-0 timestamp
 			buf.WriteLong(RANDOM.NextI64());
 
 			if (id == COMMAND_ID) {
