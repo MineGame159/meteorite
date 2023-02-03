@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using System.Diagnostics;
 
+using Cacti.Json;
+
 namespace Cacti.Http;
 
 enum HttpMessageData : IEquatable<Self>, IEquatable<StringView>, IHashable, IDisposable {

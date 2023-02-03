@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections;
 
 using Cacti;
+using Cacti.Json;
 
 namespace Meteorite {
 	class ResourceLoader {
@@ -101,9 +102,13 @@ namespace Meteorite {
 		public void ReadJsons(StringView path, delegate void(Json json) callback) {
 			for (int i < locations.Count) {
 				String fullPath = scope $"{locations[i]}/{path}";
-
 				FileStream fs = scope .();
-				if (fs.Open(fullPath, .Read) == .Ok) callback(JsonParser.Parse(fs));
+				
+				if (fs.Open(fullPath, .Read) == .Ok) {
+					if (JsonParser.Parse(fs) case .Ok(let val)) {
+						callback(val);
+					}
+				}
 			}
 		}
 	}

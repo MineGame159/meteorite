@@ -3,6 +3,7 @@ using System.Collections;
 using System.Diagnostics;
 
 using Cacti;
+using Cacti.Json;
 
 namespace Meteorite{
 	static class BlockModelLoader {

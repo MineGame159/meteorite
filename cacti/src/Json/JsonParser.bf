@@ -1,193 +1,130 @@
 using System;
 using System.IO;
 
-namespace Cacti {
-	class JsonParser {
-		private Stream s;
+namespace Cacti.Json;
 
-		private String str = new .() ~ delete _;
-		private bool isKey;
-		
-		private Json root, element;
+class JsonParser {
+	private JsonLexer lexer ~ delete _;
 
-		private this(Stream s) {
-			this.s = s;
+	private JsonToken current, next;
+	private Json json;
+
+	private this(Stream stream) {
+		this.lexer = new .(stream);
+	}
+
+	public static Result<Json> Parse(Stream stream) => scope Self(stream).Parse();
+
+	public static Result<Json> Parse(StringView string) => scope Self(scope SpanMemoryStream(.((.) string.Ptr, string.Length))).Parse();
+
+	private Result<Json> Parse() {
+		Handle!(Advance());
+		Handle!(Advance());
+
+		switch (current) {
+		case .LeftBracket:	return ParseArray();
+		case .LeftBrace:	return ParseObject();
+		default:			return .Err;
+		}
+	}
+
+	private Result<Json> ParseElement() {
+		mixin Return(Json json) {
+			Handle!(Advance());
+			return json;
 		}
 
-		public static Json Parse(Stream s) {
-			return scope JsonParser(s).Parse();
+		switch (current) {
+		case .Null:					Return!(Json.Null());
+		case .True:					Return!(Json.Bool(true));
+		case .False:				Return!(Json.Bool(false));
+		case .Number(let value):	Return!(Json.Number(value));
+		case .String(let value):	Return!(Json.String(value));
+		case .LeftBracket:			return Handle!(ParseArray());
+		case .LeftBrace:			return Handle!(ParseObject());
+		default:					return .Err;
 		}
+	}
 
-		public static Json ParseString(StringView s) {
-			return Parse(scope StringStream(s, .Reference));
-		}
+	private Result<Json> ParseArray() {
+		Handle!(Advance());
+		Json json = .Array();
 
-		private Json Parse() {
-			SkipWhitespace();
-			ParseValue();
-
-			return root;
-		}
-
-		private void ParseValue() {
-			if (s.Peek<char8>() case .Ok(let c)) {
-				switch (c) {
-				case '{': ParseObject();
-				case '[': ParseArray();
-				case '"': ParseString();
-				case 't': ParseBool();
-				case 'f': ParseBool();
-				case 'n': ParseNull();
-				default:  ParseNumber();
-				}
+		defer {
+			if (@return == .Err) {
+				json.Dispose();
 			}
 		}
 
-		private void ParseObject() {
-			s.Skip(1);
-			SkipWhitespace();
+		while (current != .RightBracket) {
+			Json element = Handle!(ParseElement());
+			json.Add(element);
 
-			String key = scope .();
-
-			Json object = .Object();
-			if (root.IsNull) root = object;
-
-			for (;;) {
-				if (s.Peek<char8>() == '}') break;
-
-				isKey = true;
-				ParseString();
-				SkipWhitespace();
-				key.Set(str);
-				isKey = false;
-
-				Consume(':');
-
-				ParseValue();
-				SkipWhitespace();
-
-				object[key] = element;
-
-				if (s.Peek<char8>() == '}') break;
-				else Consume(',');
-			}
-
-			element = object;
-
-			Consume('}');
+			if (current != .RightBracket) Expect!(JsonToken.Comma);
 		}
 
-		private void ParseArray() {
-			s.Skip(1);
-			SkipWhitespace();
+		Expect!(JsonToken.RightBracket);
 
-			Json array = .Array();
-			if (root.IsNull) root = array;
+		return json;
+	}
 
-			for (;;) {
-				if (s.Peek<char8>() == ']') break;
+	private Result<Json> ParseObject() {
+		Handle!(Advance());
+		Json json = .Object();
 
-				ParseValue();
-				SkipWhitespace();
-
-				array.Add(element);
-
-				if (s.Peek<char8>() == ']') break;
-				else Consume(',');
-			}
-
-			element = array;
-
-			Consume(']');
-		}
-
-		private void ParseString() {
-			Consume('"');
-			str.Clear();
-
-			char8 lastC = '\0';
-
-			for (;;) {
-				char8 c = s.Peek<char8>();
-
-				if (c == '"' && lastC != '\\') break;
-				else {
-					str.Append(c);
-					s.Skip(1);
-				}
-
-				if (c == '\\' && lastC == '\\') c = '\0';
-				lastC = c;
-			}
-			
-			if (!isKey) element = .String(str);
-
-			Consume('"');
-		}
-
-		private void ParseBool() {
-			char8 c = s.Peek<char8>();
-			s.Skip(1);
-
-			if (c == 't') {
-				Consume('r');
-				Consume('u');
-				Consume('e');
-
-				element = .Bool(true);
-			}
-			else {
-				Consume('a');
-				Consume('l');
-				Consume('s');
-				Consume('e');
-
-				element = .Bool(false);
+		defer {
+			if (@return == .Err) {
+				json.Dispose();
 			}
 		}
 
-		private void ParseNull() {
-			Consume('n');
-			Consume('u');
-			Consume('l');
-			Consume('l');
+		while (current != .RightBrace) {
+			String name = scope .(32);
 
-			element = .Null();
-		}
-
-		private void ParseNumber() {
-			String str = scope .();
-
-			for (;;) {
-				char8 c = s.Peek<char8>();
-
-				if (c.IsNumber || c == '-' || c == '.') {
-					str.Append(c);
-					s.Skip(1);
-				}
-				else break;
+			if (current case .String(let value)) {
+				name.Set(value);
+				Handle!(Advance());
 			}
+			else return .Err;
 
-			element = .Number(double.Parse(str));
+			Expect!(JsonToken.Colon);
+
+			Json element = Handle!(ParseElement());
+			json[name] = element;
+
+			if (current != .RightBrace) Expect!(JsonToken.Comma);
 		}
 
-		private void SkipWhitespace() {
-			while (s.Peek<char8>() case .Ok(let c)) {
-				if (c.IsWhiteSpace) s.Skip(1);
-				else break;
-			}
+		Expect!(JsonToken.RightBrace);
+
+		return json;
+	}
+
+	private mixin Expect(JsonToken token) {
+		if (current != token) {
+			return .Err;
 		}
 
-		private void Consume(char8 expected) {
-			if (let c = s.Peek<char8>()) {
-				if (c == expected) {
-					s.Skip(1);
-					SkipWhitespace();
-					return;
-				}
-			}
+		Handle!(Advance());
+	}
 
-			Log.Error("Invalid json");
+	private Result<void> Advance() {
+		current = next;
+
+		switch (lexer.GetNext()) {
+		case .Ok(let val):
+			next = val;
+			return .Ok;
+		case .Err(let err):
+			return .Err;
 		}
+	}
+
+	private mixin Handle<T>(Result<T> result) {
+		if (result == .Err) {
+			return .Err;
+		}
+
+		result.Value
 	}
 }

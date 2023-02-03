@@ -1,251 +1,231 @@
 using System;
 using System.Collections;
 
-namespace Cacti {
-	enum JsonType {
-		Null,
-		Object,
-		Array,
-		String,
-		Number,
-		Bool,
-		DirectWrite
+namespace Cacti.Json;
+
+enum JsonType {
+	Null,
+	Bool,
+	Number,
+	String,
+	Array,
+	Object
+}
+
+[Union, NoShow]
+struct JsonData {
+	public bool bool;
+	public double number;
+	public String string;
+	public List<Json> list;
+	public Dictionary<String, Json> dict;
+}
+
+struct Json : IDisposable {
+	private JsonType type;
+	private JsonData data;
+
+	private this(JsonType type, JsonData data) {
+		this.type = type;
+		this.data = data;
 	}
 
-	interface ICustomJson {
-		void Write(String buffer);
+	// Constructors
+
+	public static Json Null() => .(.Null, default);
+
+	public static Json Bool(bool bool) => .(.Bool, .() { bool = bool });
+
+	public static Json Number(double number) => .(.Number, .() { number = number });
+
+	public static Json String(StringView string) => .(.String, .() { string = new .(string) });
+
+	public static Json Array(List<Json> list) => .(.Array, .() { list = list });
+	public static Json Array() => Array(new .());
+
+	public static Json Object(Dictionary<String, Json> dict) => .(.Object, .() { dict = dict });
+	public static Json Object() => Object(new .());
+
+	// Basic type methods
+
+	public JsonType Type => type;
+
+	public bool IsNull => type == .Null;
+	public bool IsBool => type == .Bool;
+	public bool IsNumber => type == .Number;
+	public bool IsString => type == .String;
+	public bool IsArray => type == .Array;
+	public bool IsObject => type == .Object;
+
+	public bool AsBool { get {
+		if (IsBool) return data.bool;
+		Runtime.FatalError(scope $"Tried to get a Json.Bool from a Json.{type}");
+	} }
+
+	public double AsNumber { get {
+		if (IsNumber) return data.number;
+		Runtime.FatalError(scope $"Tried to get a Json.Number from a Json.{type}");
+	} }
+
+	public String AsString { get {
+		if (IsString) return data.string;
+		Runtime.FatalError(scope $"Tried to get a Json.String from a Json.{type}");
+	} }
+
+	public List<Json> AsArray { get {
+		if (IsArray) return data.list;
+		Runtime.FatalError(scope $"Tried to get a Json.Array from a Json.{type}");
+	} }
+
+	public Dictionary<String, Json> AsObject { get {
+		if (IsObject) return data.dict;
+		Runtime.FatalError(scope $"Tried to get a Json.Object from a Json.{type}");
+	} }
+
+	// Object methods
+
+	public Json this[StringView name] {
+		get {
+			Json value;
+			if (AsObject.TryGetValueAlt(name, out value)) return value;
+
+			return .Null();
+		}
+		set {
+			Remove(name);
+			AsObject[new .(name)] = value;
+		}
 	}
 
-	[Union]
-	struct JsonData {
-		public Dictionary<String, Json> object;
-		public List<Json> array;
-		public String string;
-		public double number;
-		public bool bool;
+	public bool GetBool(StringView name, bool defaultValue = false) {
+		if (!IsObject) return defaultValue;
+
+		let element = this[name];
+		return element.IsBool ? element.AsBool : defaultValue;
 	}
 
-	struct Json : IDisposable {
-		public JsonType type;
-		private JsonData data;
+	public double GetDouble(StringView name, double defaultValue = 0) {
+		if (!IsObject) return defaultValue;
 
-		private this(JsonType type, JsonData data) {
-			this.type = type;
-			this.data = data;
+		let element = this[name];
+		return element.IsNumber ? element.AsNumber : defaultValue;
+	}
+
+	public int GetInt(StringView name, int defaultValue = 0) => (.) GetDouble(name, defaultValue);
+
+	public StringView GetString(StringView name, StringView defaultValue = "") {
+		if (!IsObject) return defaultValue;
+
+		let element = this[name];
+		return element.IsString ? element.AsString : defaultValue;
+	}
+
+	public bool Contains(StringView name) {
+		return AsObject.ContainsKeyAlt(name);
+	}
+
+	public bool Remove(StringView name) {
+		switch (AsObject.GetAndRemoveAlt(name)) {
+		case .Ok(let val):
+			delete val.key;
+			val.value.Dispose();
+			return true;
+		case .Err:
+			return false;
 		}
+	}
 
-		public static Json Null() {
-			return .(.Null, .());
-		}
+	// Array methods
 
-		public static Json Object() {
-			JsonData data;
-			data.object = new .();
+	public Json this[int index] {
+		get => AsArray[index];
+		set => AsArray[index] = value;
+	}
 
-			return .(.Object, data);
-		}
+	public void Add(Json json) {
+		AsArray.Add(json);
+	}
 
-		public static Json Array(List<Json> array = null) {
-			JsonData data;
-			data.array = array == null ? new .() : array;
+	// Generic methods
 
-			return .(.Array, data);
-		}
-
-		public static Json String(StringView str) {
-			JsonData data;
-			data.string = new .(str);
-
-			return .(.String, data);
-		}
-
-		public static Json Number(double num) {
-			JsonData data;
-			data.number = num;
-
-			return .(.Number, data);
-		}
-
-		public static Json Bool(bool bool) {
-			JsonData data;
-			data.bool = bool;
-
-			return .(.Bool, data);
-		}
-
-		public static Json DirectWrite(String str) {
-			JsonData data;
-			data.string = str;
-
-			return .(.DirectWrite, data);
-		}
-
-		public bool IsNull => type == .Null;
-		public bool IsObject => type == .Object;
-		public bool IsArray => type == .Array;
-		public bool IsString => type == .String;
-		public bool IsNumber => type == .Number;
-		public bool IsBool => type == .Bool;
-		public bool IsDirectWrite => type == .DirectWrite;
-
-		public Dictionary<String, Json> AsObject => data.object;
-		public List<Json> AsArray => data.array;
-		public String AsString => data.string;
-		public double AsNumber => data.number;
-		public bool AsBool => data.bool;
-
-		public Json this[StringView key]{
-			get {
-				String _key;
-				Json value;
-				if (AsObject.TryGetAlt(key, out _key, out value)) return value;
-				return .Null();
+	public void Clear() {
+		switch (type) {
+		case .Array:
+			ClearAndDisposeItems!(data.list);
+		case .Object:
+			for (let (key, json) in data.dict) {
+				delete key;
+				json.Dispose();
 			}
-			set {
-				Remove(key);
-				AsObject[new .(key)] = value;
+
+			data.dict.Clear();
+		default:
+			Internal.FatalError(scope $"Can only clear Json.Array and Json.Object but got Json.{type}");
+		}
+	}
+
+	public void Merge(Json json, delegate bool(StringView) mergeKey) {
+		if (IsObject) {
+			for (let pair in json.AsObject) {
+				if (!mergeKey(pair.key)) continue;
+
+				switch (pair.value.type) {
+				case .Object:
+					Json a = this[pair.key];
+					if (!a.IsObject) {
+						a = .Object();
+						this[pair.key] = a;
+					}
+
+					a.Merge(pair.value, mergeKey);
+				case .Array:
+					Json a = this[pair.key];
+					if (!a.IsArray) {
+						a = .Array();
+						this[pair.key] = a;
+					}
+
+					a.Merge(pair.value, mergeKey);
+				case .String: this[pair.key] = .String(pair.value.AsString);
+				case .Number, .Bool: this[pair.key] = pair.value;
+				default:
+				}
 			}
 		}
+		else if (IsArray) {
+			for (let j in json.AsArray) {
+				switch (j.type) {
+				case .Object:
+					Json a = .Object();
+					Add(a);
 
-		public Json this[int key] {
-			get => AsArray[key];
+					a.Merge(j, mergeKey);
+				case .Array:
+					Json a = .Array();
+					Add(a);
+
+					a.Merge(j, mergeKey);
+				case .String: Add(.String(j.AsString));
+				case .Number, .Bool: Add(j);
+				default:
+				}
+			}
 		}
+	}
+	public void Merge(Json json) => Merge(json, scope (key) => true);
 
-		public void Add(Json json) {
-			AsArray.Add(json);
-		}
-
-		public bool Contains(StringView key) => !this[key].IsNull;
-
-		public bool GetBool(String key, bool defaultValue = false) {
-			if (!IsObject) return defaultValue;
-
-			let json = this[key];
-			return json.IsBool ? json.AsBool : defaultValue;
-		}
-
-		public int GetInt(String key, int defaultValue) {
-			if (!IsObject) return defaultValue;
-
-			let json = this[key];
-			return json.IsNumber ? (.) json.AsNumber : defaultValue;
-		}
-
-		public double GetDouble(String key, double defaultValue) {
-			if (!IsObject) return defaultValue;
-
-			let json = this[key];
-			return json.IsNumber ? (.) json.AsNumber : defaultValue;
-		}
-
-		public StringView GetString(String key, StringView defaultValue) {
-			if (!IsObject) return defaultValue;
-
-			let json = this[key];
-			return json.IsString ? json.AsString : defaultValue;
-		}
-
-		public void Remove(StringView key) {
-			if (AsObject.GetAndRemoveAlt(key) case .Ok(let pair)) {
+	public void Dispose() {
+		switch (type) {
+		case .String:	delete data.string;
+		case .Array:	DeleteContainerAndDisposeItems!(data.list);
+		case .Object:
+			for (let pair in data.dict) {
 				delete pair.key;
 				pair.value.Dispose();
 			}
-		}
-
-		public void Merge(Json json, delegate bool(StringView) mergeKey) {
-			if (IsObject) {
-				for (let pair in json.AsObject) {
-					if (!mergeKey(pair.key)) continue;
-
-					switch (pair.value.type) {
-					case .Object:
-						Json a = this[pair.key];
-						if (!a.IsObject) {
-							a = .Object();
-							this[pair.key] = a;
-						}
-
-						a.Merge(pair.value, mergeKey);
-					case .Array:
-						Json a = this[pair.key];
-						if (!a.IsArray) {
-							a = .Array();
-							this[pair.key] = a;
-						}
-
-						a.Merge(pair.value, mergeKey);
-					case .String: this[pair.key] = .String(pair.value.AsString);
-					case .Number, .Bool: this[pair.key] = pair.value;
-					default:
-					}
-				}
-			}
-			else if (IsArray) {
-				for (let j in json.AsArray) {
-					switch (j.type) {
-					case .Object:
-						Json a = .Object();
-						Add(a);
-
-						a.Merge(j, mergeKey);
-					case .Array:
-						Json a = .Array();
-						Add(a);
-
-						a.Merge(j, mergeKey);
-					case .String: Add(.String(j.AsString));
-					case .Number, .Bool: Add(j);
-					default:
-					}
-				}
-			}
-		}
-		public void Merge(Json json) => Merge(json, scope (key) => true);
-
-		public Json Copy() {
-			switch (type) {
-			case .Null:        return .Null();
-			case .Object:
-				Json json = .Object();
-				for (let pair in AsObject) json[pair.key] = pair.value.Copy();
-				return json;
-			case .Array:
-				Json json = .Array();
-				for (let item in AsArray) json.Add(item.Copy());
-				return json;
-			case .String:      return .String(AsString);
-			case .Number:      return .Number(AsNumber);
-			case .Bool:        return .Bool(AsBool);
-			case .DirectWrite: return .DirectWrite(new .(AsString));
-			}
-		}
-		
-		public void Dispose() {
-			if (IsObject) {
-				for (let pair in AsObject) {
-					delete pair.key;
-					pair.value.Dispose();
-				}
-
-				delete AsObject;
-			}
-			else if (IsArray) {
-				DeleteContainerAndDisposeItems!(AsArray);
-			}
-			else if (IsString || IsDirectWrite) {
-				delete AsString;
-			}
-		}
-
-		public override void ToString(String str) {
-			switch (type) {
-			case .Null:        str.Append("null");
-			case .String:      str.Append(AsString);
-			case .Number:      str.AppendF("{}", AsNumber);
-			case .Bool:        str.Append(AsBool ? "true" : "false");
-			case .DirectWrite: str.Append(AsString);
-			default:
-			}
+			
+			delete data.dict;
+		default:
 		}
 	}
 }

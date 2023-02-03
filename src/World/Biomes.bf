@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 
 using Cacti;
+using Cacti.Json;
 
 namespace Meteorite {
 	static class Biomes {

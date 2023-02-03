@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections;
 
 using Cacti;
+using Cacti.Json;
 
 namespace Meteorite;
 
@@ -15,7 +16,11 @@ class AccountManager : IEnumerable<Account> {
 		FileStream fs = scope .();
 		if (fs.Open("run/accounts.json") case .Err) return;
 
-		Json json = JsonParser.Parse(fs);
+		Json json;
+		switch (JsonParser.Parse(fs)) {
+		case .Ok(let val):	json = val;
+		case .Err:			return;
+		}
 		defer json.Dispose();
 
 		fs.Close();
@@ -93,7 +98,7 @@ class AccountManager : IEnumerable<Account> {
 			json.Add(accountJson);
 		}
 
-		String data = JsonWriter.Write(json, .. scope .());
+		String data = JsonWriter.Write(json, .. scope .(), true);
 		File.WriteAllText("run/accounts.json", data);
 	}
 

@@ -1,6 +1,7 @@
 using System;
 
 using Cacti;
+using Cacti.Json;
 
 namespace Meteorite {
 	abstract class BlockEntityRenderer {

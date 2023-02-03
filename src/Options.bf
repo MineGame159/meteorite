@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections;
 
 using Cacti;
+using Cacti.Json;
 
 namespace Meteorite {
 	enum AO {
@@ -90,7 +91,7 @@ namespace Meteorite {
 				resourcePacksJson.Add(.String(resourcePack));
 			}
 
-			String str = JsonWriter.Write(json, .. scope .());
+			String str = JsonWriter.Write(json, .. scope .(), true);
 			File.WriteAllText("run/options.json", str);
 
 			json.Dispose();

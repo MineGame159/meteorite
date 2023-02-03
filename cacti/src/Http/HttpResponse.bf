@@ -1,5 +1,7 @@
 using System;
 
+using Cacti.Json;
+
 namespace Cacti.Http;
 
 class HttpResponse : HttpMessage {
@@ -26,10 +28,10 @@ class HttpResponse : HttpMessage {
 		String string = new .(512);
 		GetString(string).GetOrPropagate!();
 		
-		Json json = JsonParser.ParseString(string);
+		Result<Json> result = JsonParser.Parse(string);
 
 		delete string; // defer does not seem to be working once again
-		return json;
+		return result;
 	}
 
 	protected override Result<void> ParseStatus(StringView string) {

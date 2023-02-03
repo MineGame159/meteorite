@@ -1,6 +1,7 @@
 using System;
 
 using Cacti;
+using Cacti.Json;
 
 namespace Meteorite {
 	class NetBuffer {
@@ -284,7 +285,7 @@ namespace Meteorite {
 
 		public Text ReadText() {
 			String str = ReadString();
-			Json json = JsonParser.ParseString(str);
+			Json json = JsonParser.Parse(str);
 
 			Text text = .Parse(json);
 
