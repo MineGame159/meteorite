@@ -30,7 +30,7 @@ class JsonParser {
 
 	private Result<Json> ParseElement() {
 		mixin Return(Json json) {
-			Handle!(Advance());
+			Handle!(Advance(), json);
 			return json;
 		}
 
@@ -120,8 +120,9 @@ class JsonParser {
 		}
 	}
 
-	private mixin Handle<T>(Result<T> result) {
+	private mixin Handle<T>(Result<T> result, Json? toDelete = null) {
 		if (result == .Err) {
+			if (toDelete.HasValue) toDelete.Value.Dispose();
 			return .Err;
 		}
 

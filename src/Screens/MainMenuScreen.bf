@@ -39,6 +39,8 @@ class MainMenuScreen : Screen {
 		}
 
 		if (join) {
+			join = false;
+
 			String ip = scope .();
 			int32 port = 0;
 
@@ -99,7 +101,7 @@ class MainMenuScreen : Screen {
 			return .Err;
 		}
 
-		Json json = response.GetJson();
+		Json json = response.GetJson().GetOrPropagate!();
 
 		if (json.GetBool("online")) {
 			ip.Set(json["ip"].AsString);
@@ -117,7 +119,7 @@ class MainMenuScreen : Screen {
 	}
 
 	private bool IsIPv4(StringView address) {
-		if (address.Count('.') != 4) return false;
+		if (address.Count('.') != 3) return false;
 
 		for (let part in address.Split('.')) {
 			switch (uint32.Parse(part)) {

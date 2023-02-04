@@ -142,7 +142,7 @@ namespace Meteorite {
 				if (input.jump && onGround && jumpCooldown == 0) {
 					velocity.y = 0.42;
 
-					if (sprinting) {
+					if (!movement.IsZero && sprinting) {
 						double yawRad = Math.DEG2RADd * yaw;
 						velocity += .(-(Math.Cos(yawRad) * 0.2), 0, -(Math.Sin(yawRad) * 0.2));
 					}

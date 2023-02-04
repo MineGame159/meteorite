@@ -11,8 +11,6 @@ namespace Meteorite {
 		public this(StringView ip, int32 port, StringView hostname) : base(ip, port) {
 			this.handler = new LoginPacketHandler(this);
 			this.hostname.Set(hostname);
-
-			Start();
 		}
 
 		public void SetHandler(PacketHandler handler) {
@@ -36,7 +34,7 @@ namespace Meteorite {
 				p.Read(packet);
 
 				if (handler != null) handler.Handle(p);
-				delete p;
+				else delete p;
 			}
 		}
 

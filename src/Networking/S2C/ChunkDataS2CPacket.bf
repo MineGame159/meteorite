@@ -109,12 +109,18 @@ namespace Meteorite {
 																				
 					int32 typeId = buf.ReadVarInt();
 					Result<Tag> tag = buf.ReadNbt();
-					
-					BlockEntity blockEntity = BlockEntityTypes.TYPES[typeId].Create(.(this.pos.x * Section.SIZE + x, y, this.pos.z * Section.SIZE + z));
-					if (blockEntity != null) {
-						if (tag case .Ok) blockEntity.Load(tag);
 
-						blockEntities[.(x, y, z)] = blockEntity;
+					if (typeId >= 0 && typeId < BlockEntityTypes.TYPES.Count) {
+						BlockEntity blockEntity = BlockEntityTypes.TYPES[typeId].Create(.(this.pos.x * Section.SIZE + x, y, this.pos.z * Section.SIZE + z));
+
+						if (blockEntity != null) {
+							if (tag case .Ok) blockEntity.Load(tag);
+	
+							blockEntities[.(x, y, z)] = blockEntity;
+						}
+					}
+					else {
+						Log.Warning("Received ChunkDataS2CPacket with an invalid Block Entity type ID {}", typeId);
 					}
 
 					tag.Dispose();
@@ -165,7 +171,7 @@ namespace Meteorite {
 		private static IBitStorage ReadStorage(NetBuffer buf, int bitsPerEntry, int dataSize) {
 			IBitStorage storage;
 
-			if (bitsPerEntry == 0) {
+			if (bitsPerEntry == 0 || dataSize == 0) {
 				storage = new SingleBitStorage(0);
 			}
 			else {

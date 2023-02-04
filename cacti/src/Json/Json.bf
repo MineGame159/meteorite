@@ -22,6 +22,8 @@ struct JsonData {
 }
 
 struct Json : IDisposable {
+	private static Json NULL = .(.Null, default);
+
 	private JsonType type;
 	private JsonData data;
 
@@ -32,7 +34,7 @@ struct Json : IDisposable {
 
 	// Constructors
 
-	public static Json Null() => .(.Null, default);
+	public static Json Null() => NULL;
 
 	public static Json Bool(bool bool) => .(.Bool, .() { bool = bool });
 
@@ -84,12 +86,12 @@ struct Json : IDisposable {
 
 	// Object methods
 
-	public Json this[StringView name] {
+	public ref Json this[StringView name] {
 		get {
-			Json value;
-			if (AsObject.TryGetValueAlt(name, out value)) return value;
+			let index = AsObject.[Friend]FindEntryAlt(name);
+			if (index >= 0) return ref AsObject.[Friend]mEntries[index].mValue;
 
-			return .Null();
+			return ref NULL;
 		}
 		set {
 			Remove(name);
@@ -137,8 +139,8 @@ struct Json : IDisposable {
 
 	// Array methods
 
-	public Json this[int index] {
-		get => AsArray[index];
+	public ref Json this[int index] {
+		get => ref AsArray[index];
 		set => AsArray[index] = value;
 	}
 

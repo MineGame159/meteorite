@@ -26,7 +26,11 @@ class HttpResponse : HttpMessage {
 
 	public Result<Json> GetJson() {
 		String string = new .(512);
-		GetString(string).GetOrPropagate!();
+
+		if (GetString(string) == .Err) {
+			delete string;
+			return .Err;
+		}
 		
 		Result<Json> result = JsonParser.Parse(string);
 

@@ -24,7 +24,7 @@ namespace Meteorite {
 		// Handlers
 
 		private void OnLoginDisconnect(LoginDisconnectS2CPacket packet) {
-			Log.Error("Failed to login: {}", packet.reason);
+			me.Disconnect(packet.reason);
 		}
 
 		private void OnEncryptionRequest(EncryptionRequestS2CPacket packet) {
@@ -121,11 +121,18 @@ namespace Meteorite {
 		}
 
 		public override void Handle(S2CPacket packet) {
+			if (packet.synchronised) me.Execute(new () => Dispatch(packet));
+			else Dispatch(packet);
+		}
+
+		private void Dispatch(S2CPacket packet) {
 			switch (packet.id) {
 			case LoginDisconnectS2CPacket.ID:	OnLoginDisconnect((.) packet);
 			case EncryptionRequestS2CPacket.ID:	OnEncryptionRequest((.) packet);
 			case LoginSuccessS2CPacket.ID:		OnLoginSuccess((.) packet);
 			}
+
+			delete packet;
 		}
 	}
 }

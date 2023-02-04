@@ -34,6 +34,7 @@ namespace Meteorite {
 			Log.Info("Disconnecting");
 
 			s.Close();
+
 			t?.Join();
 		}
 
@@ -45,7 +46,7 @@ namespace Meteorite {
 			aesDecrypt.SetKey(sharedSecret, sharedSecret, .Encrypt);
 		}
 
-		protected void Start() {
+		public Result<void> Start() {
 			Socket.Init();
 
 			s = new .();
@@ -61,10 +62,11 @@ namespace Meteorite {
 				t.Start(false);
 
 				OnReady();
+				return .Ok;
 			}
 			else {
-				Log.Error("Failed to connect to {}:{}", ip, port);
 				closed = true;
+				return .Err;
 			}
 		}
 
@@ -86,7 +88,7 @@ namespace Meteorite {
 			uint8* buf = new uint8[1024]*;
 			NetBuffer buffer = scope .(8192);
 
-			for (;;) {
+			while (s.IsConnected) {
 				Socket.Select(&set, null, null, 1000);
 
 				if (set.IsSet(s.NativeSocket)) {

@@ -44,8 +44,10 @@ namespace Meteorite {
 			gamemode = packet.gamemode;
 
 			if (me.world != null) {
-				delete me.world;
-				delete me.worldRenderer;
+				DeleteAndNullify!(me.worldRenderer);
+				DeleteAndNullify!(me.world);
+
+				me.player = null;
 			}
 
 			Tag dimensionTypes = packet.registryCodec["minecraft:dimension_type"]["value"];
@@ -64,6 +66,8 @@ namespace Meteorite {
 
 			me.world = new .(dimensionType);
 			me.worldRenderer = new .();
+
+			firstPlayerPositionAndLook = true;
 		}
 
 		private void OnPlayerAbilities(PlayerAbilitiesS2CPacket packet) {
@@ -101,6 +105,7 @@ namespace Meteorite {
 				me.player.inventory.selectedSlot = selectedSlot;
 
 				firstPlayerPositionAndLook = false;
+				abilities = null;
 			}
 
 			packet.Apply(me.player);
@@ -252,7 +257,7 @@ namespace Meteorite {
 			case PlayerAbilitiesS2CPacket.ID:			return new PlayerAbilitiesS2CPacket();
 			case PlayerPositionAndLookS2CPacket.ID:		return new PlayerPositionAndLookS2CPacket();
 			case ChunkDataS2CPacket.ID:					return new ChunkDataS2CPacket();
-			//case LightDataS2CPacket.ID:					return new LightDataS2CPacket(); :skoll:
+			//case LightDataS2CPacket.ID:				return new LightDataS2CPacket(); :skoll:
 			case BlockChangeS2CPacket.ID:				return new BlockChangeS2CPacket();
 			case MultiBlockChangeS2CPacket.ID:			return new MultiBlockChangeS2CPacket();
 			case BlockEntityDataS2CPacket.ID:			return new BlockEntityDataS2CPacket();
@@ -282,6 +287,7 @@ namespace Meteorite {
 		}
 
 		private void Dispatch(S2CPacket packet) {
+			defer delete packet;
 			CheckPacketCondition!(packet);
 
 			switch (packet.id) {

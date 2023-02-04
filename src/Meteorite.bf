@@ -119,7 +119,14 @@ namespace Meteorite {
 			Runtime.Assert(accounts.active != null);
 
 			connection = new .(ip, port, hostname);
-			Screen = null;
+
+			if (connection.Start() == .Ok) {
+				Screen = null;
+			}
+			else {
+				Log.Error("Failed to connect to {}:{}", connection.ip, connection.port);
+				DeleteAndNullify!(connection);
+			}
 		}
 
 		public void Disconnect(Text reason) {
