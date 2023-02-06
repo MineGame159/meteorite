@@ -1,20 +1,24 @@
 #version 460
 #extension GL_EXT_samplerless_texture_functions : enable
 
-layout(location = 0) in vec2 v_TexCoord;
+layout(location = 0) in vec2 v_Texcoord;
 
 layout(location = 0) out vec4 color;
 
 #include <lib/api.glsl>
 
-layout(set = 1, binding = 0) uniform sampler2D u_Texture;
-#define SAMPLER u_Texture
+layout(set = 1, binding = 0) uniform sampler2D u_ColorTexture;
+#define SAMPLER u_ColorTexture
 
 layout(set = 2, binding = 0) uniform sampler2D u_SsaoTexture;
 #define SSAO_SAMPLER u_SsaoTexture
 
-#ifdef FXAA
-    #include <lib/fxaa.glsl>
+layout(set = 3, binding = 0) uniform sampler2D u_SmaaBlendTexture;
+
+#ifdef SMAA
+    layout(location = 1) in vec4 v_Offset;
+
+    #include <lib/smaa.glsl>
 #endif
 
 #ifdef SSAO
@@ -22,13 +26,13 @@ layout(set = 2, binding = 0) uniform sampler2D u_SsaoTexture;
 #endif
 
 void main() {
-    #ifdef FXAA
-        color = fxaa(v_TexCoord);
+    #ifdef SMAA
+        color = SMAANeighborhoodBlendingPS(v_Texcoord, v_Offset, u_ColorTexture, u_SmaaBlendTexture);
     #else
-        color = texelFetch(u_Texture, ivec2(gl_FragCoord.xy), 0);
+        color = texelFetch(u_ColorTexture, ivec2(gl_FragCoord.xy), 0);
     #endif
 
     #ifdef SSAO
-        color.rgb *= ssao(v_TexCoord);
+        color.rgb *= ssao(v_Texcoord);
     #endif
 }

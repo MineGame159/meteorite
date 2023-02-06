@@ -16,6 +16,39 @@ namespace Meteorite {
 		public bool HasSSAO => this == .SSAO || this == .Both;
 	}
 
+	enum AAEdgeDetection {
+		Fast,
+		Fancy
+	}
+
+	enum AAQuality {
+		Fast,
+		Balanced,
+		Fancy
+	}
+
+	struct AAOptions {
+		public bool enabled = false;
+		public AAEdgeDetection edgeDetection = .Fast;
+		public AAQuality quality = .Balanced;
+
+		public Json ToJson() {
+			Json json = .Object();
+
+			json["enabled"] = .Bool(enabled);
+			json["edge_detection"] = .String(edgeDetection.ToString(.. scope .()));
+			json["quality"] = .String(quality.ToString(.. scope .()));
+
+			return json;
+		}
+
+		public void FromJson(Json json) mut {
+			enabled = json.GetBool("enabled");
+			edgeDetection = Enum.Parse<AAEdgeDetection>(json.GetString("edge_detection"), true).Get(.Fast);
+			quality = Enum.Parse<AAQuality>(json.GetString("quality"), true).Get(.Balanced);
+		}
+	}
+
 	class Options {
 		public bool chunkBoundaries = false;
 
@@ -26,7 +59,8 @@ namespace Meteorite {
 		public float mouseSensitivity = 1;
 
 		public AO ao = .Vanilla;
-		public bool fxaa = false;
+
+		public AAOptions aa = .();
 
 		public List<String> resourcePacks = new .() ~ DeleteContainerAndItems!(_);
 
@@ -63,7 +97,8 @@ namespace Meteorite {
 			mouseSensitivity = (.) json.GetDouble("mouse_sensitivity", 1);
 
 			ao = Enum.Parse<AO>(json.GetString("ao", "vanilla"), true);
-			fxaa = json.GetBool("fxaa", false);
+
+			aa.FromJson(json["anti_aliasing"]);
 
 			if (json.Contains("resource_packs")) {
 				for (let j in json["resource_packs"].AsArray) {
@@ -84,7 +119,8 @@ namespace Meteorite {
 			json["mouse_sensitivity"] = .Number(mouseSensitivity);
 
 			json["ao"] = .String(ao.ToString(.. scope .()));
-			json["fxaa"] = .Bool(fxaa);
+
+			json["anti_aliasing"] = aa.ToJson();
 
 			Json resourcePacksJson = json["resource_packs"] =.Array();
 			for (let resourcePack in resourcePacks) {

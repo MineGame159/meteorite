@@ -63,6 +63,8 @@ static class ImGuiCacti {
 		return ImGuiImplCacti.Render(target, ImGui.GetDrawData());
 	}
 
+	// Widgets
+
 	public static bool Combo<T>(StringView label, ref T value) where T : enum {
 		String str = scope .();
 		value.ToString(str);
@@ -96,5 +98,36 @@ static class ImGuiCacti {
 		}
 
 		return valueChanged;
+	}
+
+	public static void Separator() {
+		float textHeight = ImGui.CalcTextSize(" ").y;
+
+		ImGui.SetCursorPosY(ImGui.GetCursorPosY() + Math.Floor(textHeight / 2));
+		ImGui.Separator();
+		ImGui.SetCursorPosY(ImGui.GetCursorPosY() + Math.Ceiling(textHeight / 2));
+	}
+
+	public static void Separator(StringView text) {
+		char8* textPtr = text.ToScopeCStr!();
+
+		float windowWidth = ImGui.GetWindowSize().x;
+		ImGui.Vec2 textSize = ImGui.CalcTextSize(textPtr);
+
+		float textX = (windowWidth - textSize.x) * 0.5f;
+		ImGui.SetCursorPosX(textX);
+
+		ImGui.Vec4* textColor = ImGui.GetStyleColorVec4(.Separator);
+		ImGui.TextColored(.(Math.Min(textColor.x + 25, 255), Math.Min(textColor.y + 25, 255), Math.Min(textColor.z + 25, 255), textColor.w), textPtr);
+
+		ImGui.Vec2 windowPos = ImGui.GetWindowPos();
+		ImGui.Vec2 spacing = ImGui.GetStyle().ItemSpacing;
+
+		float y = windowPos.y + ImGui.GetCursorPosY() - textSize.y + spacing.y - 1;
+		uint32 color = ImGui.GetColorU32(.Separator);
+
+		ImGui.DrawList* drawList = ImGui.GetWindowDrawList();
+		drawList.AddLine(.(windowPos.x + spacing.x, y), .(windowPos.x + textX - spacing.x, y), color);
+		drawList.AddLine(.(windowPos.x + spacing.x + textX + textSize.x, y), .(windowPos.x + windowWidth - spacing.x, y), color);
 	}
 }

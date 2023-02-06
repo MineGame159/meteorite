@@ -14,6 +14,7 @@ enum ImageFormat {
 		 RGBA16,
 		 RGBA32,
 		 R8,
+		 RG8,
 		 Depth;
 
 	public VkFormat Vk { get {
@@ -23,12 +24,20 @@ enum ImageFormat {
 		case .RGBA16:	return .VK_FORMAT_R16G16B16A16_SFLOAT;
 		case .RGBA32:	return .VK_FORMAT_R32G32B32A32_SFLOAT;
 		case .R8:		return .VK_FORMAT_R8_UNORM;
+		case .RG8:		return .VK_FORMAT_R8G8_UNORM;
 		case .Depth:	return .VK_FORMAT_D32_SFLOAT;
 		}
 	} }
 
 	public uint64 Bytes { get {
-		return this == .RGBA16 ? 8 : 4;
+		switch (this) {
+		case .RGBA, BGRA:	return 4;
+		case .RGBA16:		return 8;
+		case .RGBA32:		return 16;
+		case .R8:			return 1;
+		case .RG8:			return 2;
+		case .Depth:		return 4;
+		}
 	} }
 }
 

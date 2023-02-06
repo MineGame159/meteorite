@@ -12,8 +12,13 @@ namespace Meteorite {
 
 		public GpuImage mainColor, mainNormal;
 		public GpuImage mainDepth;
+		public GpuImage smaaEdges, smaaBlend;
 
 		public DescriptorSet mainColorSet ~ delete _, mainNormalSet ~ delete _, mainDepthSet ~ delete _;
+		public DescriptorSet smaaEdgesSet ~ delete _, smaaBlendSet ~ delete _;
+
+		private GpuImage smaaArea ~ delete _, smaaSearch ~ delete _;
+		private DescriptorSet smaaAreaSet ~ delete _, smaaSearchSet ~ delete _;
 
 		private SSAO ssao ~ delete _;
 
@@ -105,9 +110,49 @@ namespace Meteorite {
 					ssao.Render(cmds);
 				}
 
+				if (me.options.aa.enabled) {
+					// SMAA
+					if (smaaEdges == null) {
+						smaaEdges = ColorImage("SMAA - Edges", .RG8);
+						smaaBlend = ColorImage("SMAA - Blend");
+
+						smaaEdgesSet = Gfx.DescriptorSets.Create(Gfxa.IMAGE_SET_LAYOUT, .SampledImage(smaaEdges, .VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, Gfxa.LINEAR_SAMPLER));
+						smaaBlendSet = Gfx.DescriptorSets.Create(Gfxa.IMAGE_SET_LAYOUT, .SampledImage(smaaBlend, .VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, Gfxa.LINEAR_SAMPLER));
+
+						smaaArea = Gfxa.CreateImage("SMAA_AreaTex.png");
+						smaaSearch = Gfxa.CreateImage("SMAA_SearchTex.png");
+
+						smaaAreaSet = Gfx.DescriptorSets.Create(Gfxa.IMAGE_SET_LAYOUT, .SampledImage(smaaArea, .VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, Gfxa.LINEAR_SAMPLER));
+						smaaSearchSet = Gfx.DescriptorSets.Create(Gfxa.IMAGE_SET_LAYOUT, .SampledImage(smaaSearch, .VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, Gfxa.LINEAR_SAMPLER));
+					}
+
+					// SMAA - Edge Detection
+					cmds.TransitionImage(mainColor, .Sample);
+					cmds.TransitionImage(smaaEdges, .ColorAttachment);
+					cmds.PushDebugGroup("SMAA - Edge Detection");
+					cmds.BeginPass(null, .(smaaEdges, .ZERO));
+
+					RenderSmaaEdgeDetection(cmds);
+
+					cmds.EndPass();
+					cmds.PopDebugGroup();
+
+					// SMAA - Blending
+					cmds.TransitionImage(smaaEdges, .Sample);
+					cmds.TransitionImage(smaaBlend, .ColorAttachment);
+					cmds.PushDebugGroup("SMAA - Blending");
+					cmds.BeginPass(null, .(smaaBlend, .ZERO));
+
+					RenderSmaaBlending(cmds);
+
+					cmds.EndPass();
+					cmds.PopDebugGroup();
+				}
+
 				{
 					// Post
 					cmds.TransitionImage(mainColor, .Sample);
+					if (me.options.aa.enabled) cmds.TransitionImage(smaaBlend, .Sample);
 					if (ssao != null) ssao.Transition(cmds);
 
 					cmds.PushDebugGroup("Post");
@@ -163,6 +208,42 @@ namespace Meteorite {
 		private void RenderMainPost(CommandBuffer cmds) {
 			me.worldRenderer.RenderPost(cmds, me.tickCounter.tickDelta, delta);
 		}
+
+		private void RenderSmaaEdgeDetection(CommandBuffer cmds) {
+			cmds.Bind(Gfxa.SMAA_EDGE_DETECTION_PIPELINE);
+			FrameUniforms.Bind(cmds);
+			cmds.Bind(mainColorSet, 1);
+
+			MeshBuilder mb = scope .();
+
+			mb.Quad(
+				mb.Vertex<PostVertex>(.(.(-1, -1), .(0, 1))),
+				mb.Vertex<PostVertex>(.(.(-1, 1), .(0, 0))),
+				mb.Vertex<PostVertex>(.(.(1, 1), .(1, 0))),
+				mb.Vertex<PostVertex>(.(.(1, -1), .(1, 1)))
+			);
+
+			cmds.Draw(mb.End());
+		}
+
+		private void RenderSmaaBlending(CommandBuffer cmds) {
+			cmds.Bind(Gfxa.SMAA_BLENDING_PIPELINE);
+			FrameUniforms.Bind(cmds);
+			cmds.Bind(smaaEdgesSet, 1);
+			cmds.Bind(smaaAreaSet, 2);
+			cmds.Bind(smaaSearchSet, 3);
+
+			MeshBuilder mb = scope .();
+
+			mb.Quad(
+				mb.Vertex<PostVertex>(.(.(-1, -1), .(0, 1))),
+				mb.Vertex<PostVertex>(.(.(-1, 1), .(0, 0))),
+				mb.Vertex<PostVertex>(.(.(1, 1), .(1, 0))),
+				mb.Vertex<PostVertex>(.(.(1, -1), .(1, 1)))
+			);
+
+			cmds.Draw(mb.End());
+		}
 		
 		private void RenderPost(CommandBuffer cmds) {
 			cmds.Bind(Gfxa.POST_PIPELINE);
@@ -171,6 +252,8 @@ namespace Meteorite {
 
 			if (me.options.ao.HasSSAO) ssao.Bind(cmds, 2);
 			else cmds.Bind(Gfxa.PIXEL_SET, 2);
+
+			if (me.options.aa.enabled) cmds.Bind(smaaBlendSet, 3);
 
 			MeshBuilder mb = scope .();
 

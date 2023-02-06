@@ -60,6 +60,8 @@ namespace Meteorite {
 		public static Pipeline CHUNK_TRANSPARENT_PIPELINE;
 		public static Pipeline ENTITY_PIPELINE;
 		public static Pipeline POST_PIPELINE;
+		public static Pipeline SMAA_EDGE_DETECTION_PIPELINE;
+		public static Pipeline SMAA_BLENDING_PIPELINE;
 		public static Pipeline LINES_PIPELINE;
 		public static Pipeline TEX_QUADS_PIPELINE;
 
@@ -127,8 +129,24 @@ namespace Meteorite {
 			);
 			POST_PIPELINE = Gfx.Pipelines.Get(scope PipelineInfo("Post")
 				.VertexFormat(PostVertex.FORMAT)
-				.Sets(UNIFORM_SET_LAYOUT, IMAGE_SET_LAYOUT, IMAGE_SET_LAYOUT)
+				.Sets(UNIFORM_SET_LAYOUT, IMAGE_SET_LAYOUT, IMAGE_SET_LAYOUT, IMAGE_SET_LAYOUT)
 				.Shader("post", "post", new => PostPreProcessor)
+				.Targets(
+					.(.BGRA, .Disabled())
+				)
+			);
+			SMAA_EDGE_DETECTION_PIPELINE = Gfx.Pipelines.Get(scope PipelineInfo("SMAA - Edge Detection")
+				.VertexFormat(PostVertex.FORMAT)
+				.Sets(UNIFORM_SET_LAYOUT, IMAGE_SET_LAYOUT)
+				.Shader("smaa/edge_detection", "smaa/edge_detection", new => SMAAPreProcessor)
+				.Targets(
+					.(.RG8, .Disabled())
+				)
+			);
+			SMAA_BLENDING_PIPELINE = Gfx.Pipelines.Get(scope PipelineInfo("SMAA - Blending")
+				.VertexFormat(PostVertex.FORMAT)
+				.Sets(UNIFORM_SET_LAYOUT, IMAGE_SET_LAYOUT, IMAGE_SET_LAYOUT, IMAGE_SET_LAYOUT)
+				.Shader("smaa/blending", "smaa/blending", new => SMAAPreProcessor)
 				.Targets(
 					.(.BGRA, .Disabled())
 				)
@@ -173,6 +191,7 @@ namespace Meteorite {
 			ReleaseAndNullify!(CHUNK_TRANSPARENT_PIPELINE);
 			ReleaseAndNullify!(ENTITY_PIPELINE);
 			ReleaseAndNullify!(POST_PIPELINE);
+			ReleaseAndNullify!(SMAA_EDGE_DETECTION_PIPELINE);
 			ReleaseAndNullify!(LINES_PIPELINE);
 			ReleaseAndNullify!(TEX_QUADS_PIPELINE);
 
@@ -190,8 +209,27 @@ namespace Meteorite {
 		}
 
 		private static void PostPreProcessor(ShaderPreProcessor preProcessor) {
-			if (Meteorite.INSTANCE.options.fxaa) preProcessor.Define("FXAA");
+			if (Meteorite.INSTANCE.options.aa.enabled) preProcessor.Define("SMAA");
 			if (Meteorite.INSTANCE.options.ao.HasSSAO) preProcessor.Define("SSAO");
+
+			SMAAPreProcessor(preProcessor);
+		}
+
+		private static void SMAAPreProcessor(ShaderPreProcessor preProcessor) {
+			AAOptions options = Meteorite.INSTANCE.options.aa;
+
+			// Edge detection
+			switch (options.edgeDetection) {
+			case .Fast:		preProcessor.Define("SMAA_EDGE_DETECTION_LUMA");
+			case .Fancy:	preProcessor.Define("SMAA_EDGE_DETECTION_COLOR");
+			}
+
+			// Quality
+			switch (options.quality) {
+			case .Fast:		preProcessor.Define("SMAA_PRESET_MEDIUM");
+			case .Balanced:	preProcessor.Define("SMAA_PRESET_HIGH");
+			case .Fancy:	preProcessor.Define("SMAA_PRESET_ULTRA");
+			}
 		}
 	}
 }

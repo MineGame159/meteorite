@@ -1,3 +1,6 @@
+#ifndef _INCLUDE_API
+#define _INCLUDE_API
+
 layout(set = 0, binding = 0) uniform FrameUniforms {
     mat4 projection;
     mat4 inverseProjection;
@@ -21,3 +24,5 @@ layout(set = 0, binding = 0) uniform FrameUniforms {
 #define api_ProjectionB frame.projectionB
 
 #define api_Resolution frame.resolution
+
+#endif
