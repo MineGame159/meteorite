@@ -9,9 +9,9 @@ using ImGui;
 namespace Meteorite;
 
 class MainMenuScreen : Screen {
-	private char8[32] address = "localhost";
+	private String address = new .("localhost") ~ delete _;
 
-	private char8[16] crackedUsername;
+	private String crackedUsername = new .() ~ delete _;
 	private bool addingCracked;
 
 	private bool join;
@@ -32,8 +32,7 @@ class MainMenuScreen : Screen {
 		if (wasAddingCracked) {
 			ImGui.EndDisabled();
 			
-			ImGui.SetNextWindowSizeConstraints(.(300, 0), .(float.MaxValue, float.MaxValue));
-			ImGui.Begin("Add Cracked account");
+			ImGui.Begin("Add Cracked account", null, .AlwaysAutoResize);
 			RenderAddCracked();
 			ImGui.End();
 		}
@@ -45,14 +44,14 @@ class MainMenuScreen : Screen {
 			int32 port = 0;
 
 			switch (GetIPWithPort(ip, ref port)) {
-			case .Ok:	Meteorite.INSTANCE.Join(ip, port, .(&address));
+			case .Ok:	Meteorite.INSTANCE.Join(ip, port, address);
 			case .Err:	Log.Error("Failed to resolved address '{}'", address);
 			}
 		}
 	}
 
 	private Result<void> GetIPWithPort(String ip, ref int32 port) {
-		StringView address = .(&address)..Trim();
+		StringView address = address..Trim();
 
 		defer {
 			// Use 25565 as a default port if one wasn't assigned
@@ -134,8 +133,10 @@ class MainMenuScreen : Screen {
 	}
 
 	protected override void RenderImpl() {
-		ImGui.InputText("Address", &address, address.Count);
-		ImGui.SliderInt("Render Distance", &Meteorite.INSTANCE.options.renderDistance, 2, 32);
+		using (ImGuiOptions opts = .(200)) {
+			opts.InputText("Address", address, 32);
+			opts.SliderInt("Render Distance", ref Meteorite.INSTANCE.options.renderDistance, 2, 32);
+		}
 
 		bool disabled = Meteorite.INSTANCE.accounts.active == null;
 		ImGui.BeginDisabled(disabled);
@@ -207,22 +208,23 @@ class MainMenuScreen : Screen {
 	}
 
 	private void RenderAddCracked() {
-		ImGui.SetNextItemWidth(ImGui.GetContentRegionMax().x - ImGui.GetStyle().CellPadding.x - ImGui.CalcTextSize(" Username").x);
-		ImGui.InputText("Username", &crackedUsername, crackedUsername.Count, .CharsNoBlank);
-		
-		float spacing = ImGui.GetStyle().ItemSpacing.x;
-		float width = ImGui.GetWindowContentRegionMax().x / 2 - spacing;
-
-		if (ImGui.Button("Cancel", .(width, 0))) {
-			addingCracked = false;
+		using (ImGuiOptions opts = .(200)) {
+			opts.InputText("Username", crackedUsername, 16);
 		}
 
-		ImGui.SameLine();
-		if (ImGui.Button("Add", .(width, 0))) {
-			Meteorite.INSTANCE.accounts.Add(new CrackedAccount(.(&crackedUsername)));
+		ImGuiCacti.Separator();
 
-			Internal.MemSet(&crackedUsername, 0, crackedUsername.Count);
-			addingCracked = false;
+		using (ImGuiButtons btns = .(2)) {
+			if (btns.Button("Cancel")) {
+				addingCracked = false;
+			}
+
+			if (btns.Button("Add")) {
+				Meteorite.INSTANCE.accounts.Add(new CrackedAccount(crackedUsername));
+
+				crackedUsername.Clear();
+				addingCracked = false;
+			}
 		}
 	}
 }

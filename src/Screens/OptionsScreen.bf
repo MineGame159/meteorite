@@ -9,7 +9,7 @@ class OptionsScreen : Screen {
 	private Options options = Meteorite.INSTANCE.options;
 
 	private bool vsync;
-	private int32 renderDistance;
+	private int renderDistance;
 	private AAOptions aaOptions;
 
 	public this() : base("Options") {
@@ -57,62 +57,67 @@ class OptionsScreen : Screen {
 		Meteorite me = Meteorite.INSTANCE;
 
 		ImGuiCacti.Separator("General");
-
-		ImGui.Checkbox("VSync", &vsync);
-		ImGui.SliderInt("Render Distance", &renderDistance, 2, 32);
-		ImGui.SliderFloat("FOV", &me.options.fov, 10, 170, "%.0f");
-		ImGui.SliderFloat("Mouse Sensitivity", &me.options.mouseSensitivity, 0.1f, 2);
+		
+		using (ImGuiOptions opts = .(200)) {
+			opts.Checkbox("V-Sync", ref vsync);
+			opts.SliderInt("Render Distance", ref renderDistance, 2, 32);
+			opts.SliderFloat("FOV", ref me.options.fov, 10, 170, "%.0f");
+			opts.SliderFloat("Mouse Sensitivity", ref me.options.mouseSensitivity, 0.1f, 2);
+		}
 		
 		ImGuiCacti.Separator("Ambient Occlusion");
 
 		AO prevAo = me.options.ao;
-		if (ImGuiCacti.Combo("SSAO", ref me.options.ao)) {
-			bool prevVanilla = prevAo.HasVanilla;
-			bool prevSsao = prevAo.HasSSAO;
+		using (ImGuiOptions opts = .(200)) {
+			if (opts.Combo("Ambient Occlusion", ref me.options.ao)) {
+				bool prevVanilla = prevAo.HasVanilla;
+				bool prevSsao = prevAo.HasSSAO;
 
-			if (prevVanilla != me.options.ao.HasVanilla) {
-				me.world.ReloadChunks();
-			}
-			
-			if (prevSsao != me.options.ao.HasSSAO) {
-				Gfxa.POST_PIPELINE.Reload();
-				me.gameRenderer.[Friend]ssao?.pipeline.Reload();
+				if (prevVanilla != me.options.ao.HasVanilla) {
+					me.world.ReloadChunks();
+				}
+
+				if (prevSsao != me.options.ao.HasSSAO) {
+					Gfxa.POST_PIPELINE.Reload();
+					me.gameRenderer.[Friend]ssao?.pipeline.Reload();
+				}
 			}
 		}
 
 		ImGuiCacti.Separator("Anti Aliasing");
-		
-		ImGui.Checkbox("Enabled", &aaOptions.enabled);
-		ImGuiCacti.Combo("Edge Detection", ref aaOptions.edgeDetection);
-		ImGuiCacti.Combo("Quality", ref aaOptions.quality);
+
+		using (ImGuiOptions opts = .(200)) {
+			opts.Checkbox("Enabled", ref aaOptions.enabled);
+			opts.Combo("Edge Detection", ref aaOptions.edgeDetection);
+			opts.Combo("Quality", ref aaOptions.quality);
+		}
 
 		ImGuiCacti.Separator("Other");
 
-		ImGui.Checkbox("Chunk Boundaries", &me.options.chunkBoundaries);
+		using (ImGuiOptions opts = .(200)) {
+			opts.Checkbox("Chunk Boundaries", ref me.options.chunkBoundaries);
+		}
 
 		ImGuiCacti.Separator();
 
-		float spacing = ImGui.GetStyle().ItemSpacing.x;
-		float width = ImGui.GetWindowContentRegionMax().x / 3 - spacing;
+		using (ImGuiButtons btns = .(3)) {
+			if (btns.Button("Disconnect")) {
+				Gfx.RunOnNewFrame(new () => {
+					Text text = .Of("Disconnected");
+					me.Disconnect(text);
 
-		if (ImGui.Button("Disconnect", .(width, 0))) {
-			Gfx.RunOnNewFrame(new () => {
-				Text text = .Of("Disconnected");
-				me.Disconnect(text);
+					delete text;
+				});
+			}
 
-				delete text;
-			});
-		}
+			if (btns.Button("Apply")) {
+				Apply();
+				Load();
+			}
 
-		ImGui.SameLine();
-		if (ImGui.Button("Apply", .(width, 0))) {
-			Apply();
-			Load();
-		}
-
-		ImGui.SameLine();
-		if (ImGui.Button("Apply & Close", .(width, 0))) {
-			Meteorite.INSTANCE.Screen = null;
+			if (btns.Button("Apply & Close")) {
+				Meteorite.INSTANCE.Screen = null;
+			}
 		}
 	}
 }

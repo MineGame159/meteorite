@@ -11,9 +11,13 @@ class ScreenshotScreen : Screen {
 	public this() : base("Screeshot") {}
 
 	protected override void RenderImpl() {
-		ImGuiCacti.Combo("Resolution", ref options.resolution);
-		ImGui.DragFloat("Scale", &options.scale, 0.1f, 1, 2);
-		ImGui.Checkbox("Include GUI", &options.includeGui);
+		using (ImGuiOptions opts = .(200)) {
+			opts.Combo("Resolution", ref options.resolution);
+			opts.SliderFloat("Scale", ref options.scale, 0.75f, 2);
+			opts.Checkbox("Include GUI", ref options.includeGui);
+		}
+
+		ImGuiCacti.Separator();
 		
 		if (ImGui.Button("Take", .NOneZero)) {
 			Screenshots.Take(options);

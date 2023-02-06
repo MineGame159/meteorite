@@ -54,7 +54,7 @@ namespace Meteorite {
 
 		private bool vsync_ = true;
 
-		public int32 renderDistance = 6;
+		public int renderDistance = 6;
 		public float fov = 75;
 		public float mouseSensitivity = 1;
 

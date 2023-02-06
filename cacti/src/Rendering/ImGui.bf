@@ -9,6 +9,8 @@ static class ImGuiCacti {
 	private static bool firstFrame = true;
 	private static bool newFrameCalled;
 
+	private static int id;
+
 	public static bool customSize = false;
 	public static Vec2i size;
 
@@ -20,6 +22,9 @@ static class ImGuiCacti {
 		ImGui.CreateContext();
 		ImGui.StyleColorsDark();
 		ImGui.GetStyle().Alpha = 0.9f;
+
+		ImGui.IO* io = ImGui.GetIO();
+		io.Fonts.AddFontFromFileTTF("assets/meteorite/FiraCode-Regular.ttf", 16);
 
 		ImGuiImplCacti.Init(window);
 
@@ -44,6 +49,8 @@ static class ImGuiCacti {
 		ImGuiImplCacti.NewFrame();
 		ImGui.NewFrame();
 
+		id = 0;
+
 		newFrameCalled = true;
 		return true;
 	}
@@ -65,11 +72,150 @@ static class ImGuiCacti {
 
 	// Widgets
 
-	public static bool Combo<T>(StringView label, ref T value) where T : enum {
+	public static int GetId() => id++;
+
+	public static mixin GetStringId() {
+		scope:mixin $"##{GetId()}"
+	}
+
+	public static void Separator() {
+		float textHeight = ImGui.CalcTextSize(" ").y;
+
+		ImGui.SetCursorPosY(ImGui.GetCursorPosY() + Math.Floor(textHeight / 2));
+		ImGui.Separator();
+		ImGui.SetCursorPosY(ImGui.GetCursorPosY() + Math.Ceiling(textHeight / 2));
+	}
+
+	public static void Separator(StringView text) {
+		char8* textPtr = text.ToScopeCStr!();
+
+		float windowWidth = ImGui.GetWindowSize().x;
+		ImGui.Vec2 textSize = ImGui.CalcTextSize(textPtr);
+
+		float textX = (windowWidth - textSize.x) * 0.5f;
+		ImGui.SetCursorPosX(textX);
+
+		ImGui.Vec4* textColor = ImGui.GetStyleColorVec4(.Separator);
+		ImGui.TextColored(.(Math.Min(textColor.x + 25, 255), Math.Min(textColor.y + 25, 255), Math.Min(textColor.z + 25, 255), textColor.w), textPtr);
+
+		ImGui.Vec2 windowPos = ImGui.GetWindowPos();
+		ImGui.Vec2 spacing = ImGui.GetStyle().ItemSpacing;
+
+		float y = windowPos.y + ImGui.GetCursorPosY() - textSize.y + spacing.y;
+		uint32 color = ImGui.GetColorU32(.Separator);
+
+		ImGui.DrawList* drawList = ImGui.GetWindowDrawList();
+		drawList.AddLine(.(windowPos.x + spacing.x, y), .(windowPos.x + textX - spacing.x, y), color);
+		drawList.AddLine(.(windowPos.x + spacing.x + textX + textSize.x, y), .(windowPos.x + windowWidth - spacing.x, y), color);
+	}
+}
+
+struct ImGuiOptions : IDisposable {
+	private bool ok;
+	private int width;
+
+	public this(int width) {
+		this.ok = !ImGui.IsWindowCollapsed();
+		this.width = width;
+		
+		if (ok) {
+			ImGui.BeginTable(ImGuiCacti.GetStringId!(), 2);
+		}
+	}
+
+	public void Dispose() {
+		if (ok) {
+			ImGui.EndTable();
+		}
+	}
+
+	public bool Checkbox(StringView label, ref bool value) {
+		if (!ok) return false;
+
+		ImGui.TableNextRow();
+		ImGui.TableNextColumn();
+
+		ImGui.AlignTextToFramePadding();
+		ImGui.Text(label.ToScopeCStr!());
+
+		ImGui.TableNextColumn();
+		ImGui.PushItemWidth(width);
+		return ImGui.Checkbox(scope $"##{label}", &value);
+	}
+
+	public bool SliderInt(StringView label, ref int value, int min, int max, ImGui.SliderFlags flags = .None) {
+		if (!ok) return false;
+
+		int32 _value = (.) value;
+
+		ImGui.TableNextRow();
+		ImGui.TableNextColumn();
+
+		ImGui.AlignTextToFramePadding();
+		ImGui.Text(label.ToScopeCStr!());
+
+		ImGui.TableNextColumn();
+		ImGui.PushItemWidth(width);
+		bool changed = ImGui.SliderInt(scope $"##{label}", &_value, (.) min, (.) max, flags: flags);
+
+		value = _value;
+		return changed;
+	}
+
+	public bool SliderFloat(StringView label, ref float value, float min, float max, StringView format = "%.3f", ImGui.SliderFlags flags = .None) {
+		if (!ok) return false;
+
+		ImGui.TableNextRow();
+		ImGui.TableNextColumn();
+
+		ImGui.AlignTextToFramePadding();
+		ImGui.Text(label.ToScopeCStr!());
+
+		ImGui.TableNextColumn();
+		ImGui.PushItemWidth(width);
+		return ImGui.SliderFloat(scope $"##{label}", &value, min, max, format.ToScopeCStr!(), flags);
+	}
+
+	public bool InputText(StringView label, String str, int maxLength, ImGui.InputTextFlags flags = .None) {
+		if (!ok) return false;
+
+		str.[Friend]CalculatedReserve(maxLength);
+		char8[] buffer = new:ScopedAlloc! .[maxLength];
+
+		if (str.Length > 0) {
+			Internal.MemCpy(buffer.Ptr, str.Ptr, Math.Min(str.Length, maxLength));
+		}
+
+		ImGui.TableNextRow();
+		ImGui.TableNextColumn();
+
+		ImGui.AlignTextToFramePadding();
+		ImGui.Text(label.ToScopeCStr!());
+
+		ImGui.TableNextColumn();
+		ImGui.PushItemWidth(width);
+		bool changed = ImGui.InputText(scope $"##{label}", buffer.Ptr, (.) buffer.Count, flags);
+
+		str.Set(StringView(buffer.Ptr));
+		return changed;
+	}
+
+	public bool Combo<T>(StringView label, ref T value) where T : enum {
+		if (!ok) return false;
+
+		ImGui.TableNextRow();
+		ImGui.TableNextColumn();
+
+		ImGui.AlignTextToFramePadding();
+		ImGui.Text(label.ToScopeCStr!());
+
+		ImGui.TableNextColumn();
+		ImGui.PushItemWidth(width);
+
 		String str = scope .();
 		value.ToString(str);
 
-		if (!ImGui.BeginCombo(label.ToScopeCStr!(), str)) {
+		if (!ImGui.BeginCombo(scope $"##{label}", str)) {
 			return false;
 		}
 
@@ -99,35 +245,24 @@ static class ImGuiCacti {
 
 		return valueChanged;
 	}
+}
 
-	public static void Separator() {
-		float textHeight = ImGui.CalcTextSize(" ").y;
+struct ImGuiButtons : IDisposable {
+	private float width;
+	private int i = 0;
 
-		ImGui.SetCursorPosY(ImGui.GetCursorPosY() + Math.Floor(textHeight / 2));
-		ImGui.Separator();
-		ImGui.SetCursorPosY(ImGui.GetCursorPosY() + Math.Ceiling(textHeight / 2));
+	public this(int count) {
+		float spacing = ImGui.GetStyle().ItemSpacing.x;
+		this.width = ImGui.GetWindowContentRegionMax().x / count - spacing;
 	}
 
-	public static void Separator(StringView text) {
-		char8* textPtr = text.ToScopeCStr!();
+	public void Dispose() {}
 
-		float windowWidth = ImGui.GetWindowSize().x;
-		ImGui.Vec2 textSize = ImGui.CalcTextSize(textPtr);
+	public bool Button(StringView label, ImGui.ButtonFlags flags = .None) mut {
+		if (i++ > 0) {
+			ImGui.SameLine();
+		}
 
-		float textX = (windowWidth - textSize.x) * 0.5f;
-		ImGui.SetCursorPosX(textX);
-
-		ImGui.Vec4* textColor = ImGui.GetStyleColorVec4(.Separator);
-		ImGui.TextColored(.(Math.Min(textColor.x + 25, 255), Math.Min(textColor.y + 25, 255), Math.Min(textColor.z + 25, 255), textColor.w), textPtr);
-
-		ImGui.Vec2 windowPos = ImGui.GetWindowPos();
-		ImGui.Vec2 spacing = ImGui.GetStyle().ItemSpacing;
-
-		float y = windowPos.y + ImGui.GetCursorPosY() - textSize.y + spacing.y - 1;
-		uint32 color = ImGui.GetColorU32(.Separator);
-
-		ImGui.DrawList* drawList = ImGui.GetWindowDrawList();
-		drawList.AddLine(.(windowPos.x + spacing.x, y), .(windowPos.x + textX - spacing.x, y), color);
-		drawList.AddLine(.(windowPos.x + spacing.x + textX + textSize.x, y), .(windowPos.x + windowWidth - spacing.x, y), color);
+		return ImGui.Button(label.ToScopeCStr!(), .(width, 0));
 	}
 }
