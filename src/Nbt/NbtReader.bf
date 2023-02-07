@@ -41,8 +41,8 @@ namespace Meteorite {
 			case .Short: return .Short((int16) ((int16) s.Read<uint8>() << 8) | (int16) (s.Read<uint8>() & 0xff));
 			case .Int: return .Int(ReadInt(s));
 			case .Long: return .Long(ReadLong(s));
-			case .Float: return .Float(s.Read<float>());
-			case .Double: return .Double(s.Read<double>());
+			case .Float: return .Float(ReadFloat(s));
+			case .Double: return .Double(ReadDouble(s));
 			case .ByteArray:
 				uint8[] bytes = new uint8[ReadInt(s)];
 				s.TryRead(bytes);
@@ -84,5 +84,37 @@ namespace Meteorite {
 
 		private static int32 ReadInt(Stream s) => (int16) ((int32) (s.Read<uint8>() & 0xff) << 24) | (int16) ((int32) (s.Read<uint8>() & 0xff) << 16) | (int16) ((s.Read<uint8>() & 0xff) <<  8) | (int16) (s.Read<uint8>() & 0xff);
 		private static int64 ReadLong(Stream s) => (int64) ((s.Read<uint8>() & 0xff) << 56) | (int64) ((s.Read<uint8>() & 0xff) << 48) | (int64) ((s.Read<uint8>() & 0xff) << 40) | (int64) ((s.Read<uint8>() & 0xff) << 32) | (int64) ((s.Read<uint8>() & 0xff) << 24) | (int64) ((s.Read<uint8>() & 0xff) << 16) | (int64) ((s.Read<uint8>() & 0xff) <<  8) | (int64) ((s.Read<uint8>() & 0xff));
+
+		private static float ReadFloat(Stream s) {
+			uint8[4] bytes = ?;
+			s.TryRead(bytes);
+
+			uint8[4] bytes2 = .(
+				bytes[3],
+				bytes[2],
+				bytes[1],
+				bytes[0]
+			);
+
+			return *((float*) &bytes2);
+		}
+
+		private static double ReadDouble(Stream s) {
+			uint8[8] bytes = ?;
+			s.TryRead(bytes);
+
+			uint8[8] bytes2 = .(
+				bytes[7],
+				bytes[6],
+				bytes[5],
+				bytes[4],
+				bytes[3],
+				bytes[2],
+				bytes[1],
+				bytes[0]
+			);
+
+			return *((double*) &bytes2);
+		}
 	}
 }
