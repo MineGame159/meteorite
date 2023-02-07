@@ -60,6 +60,18 @@ namespace Meteorite {
 		}
 
 		private void RenderMessages(CommandBuffer cmds, MeshBuilder mb, float delta) {
+			// Remove visible messages if they are displayed for too long
+			for (let message in visibleMessages) {
+				message.timer += delta;
+
+				if (message.timer >= 10) {
+					@message.Remove();
+					delete message;
+					continue;
+				}
+			}
+
+			// Render messages while having the chat open
 			float y = 2 + me.textRenderer.Height + 8;
 
 			if (typing) {
@@ -73,14 +85,8 @@ namespace Meteorite {
 				return;
 			}
 
+			// Render visible messages while the chat is closed
 			for (let message in visibleMessages) {
-				message.timer += delta;
-				if (message.timer >= 10) {
-					@message.Remove();
-					delete message;
-					continue;
-				}
-
 				if (@message.Index < 10) {
 					float x = 4;
 					message.text.Visit(scope [&](text, color) => {
