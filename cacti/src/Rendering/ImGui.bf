@@ -139,7 +139,7 @@ struct ImGuiOptions : IDisposable {
 		ImGui.Text(label.ToScopeCStr!());
 
 		ImGui.TableNextColumn();
-		ImGui.PushItemWidth(width);
+		PushItemWidth();
 		return ImGui.Checkbox(scope $"##{label}", &value);
 	}
 
@@ -155,7 +155,7 @@ struct ImGuiOptions : IDisposable {
 		ImGui.Text(label.ToScopeCStr!());
 
 		ImGui.TableNextColumn();
-		ImGui.PushItemWidth(width);
+		PushItemWidth();
 		bool changed = ImGui.SliderInt(scope $"##{label}", &_value, (.) min, (.) max, flags: flags);
 
 		value = _value;
@@ -172,7 +172,7 @@ struct ImGuiOptions : IDisposable {
 		ImGui.Text(label.ToScopeCStr!());
 
 		ImGui.TableNextColumn();
-		ImGui.PushItemWidth(width);
+		PushItemWidth();
 		return ImGui.SliderFloat(scope $"##{label}", &value, min, max, format.ToScopeCStr!(), flags);
 	}
 
@@ -193,7 +193,7 @@ struct ImGuiOptions : IDisposable {
 		ImGui.Text(label.ToScopeCStr!());
 
 		ImGui.TableNextColumn();
-		ImGui.PushItemWidth(width);
+		PushItemWidth();
 		bool changed = ImGui.InputText(scope $"##{label}", buffer.Ptr, (.) buffer.Count, flags);
 
 		str.Set(StringView(buffer.Ptr));
@@ -210,7 +210,7 @@ struct ImGuiOptions : IDisposable {
 		ImGui.Text(label.ToScopeCStr!());
 
 		ImGui.TableNextColumn();
-		ImGui.PushItemWidth(width);
+		PushItemWidth();
 
 		String str = scope .();
 		value.ToString(str);
@@ -244,6 +244,11 @@ struct ImGuiOptions : IDisposable {
 		}
 
 		return valueChanged;
+	}
+
+	private void PushItemWidth() {
+		float availableWidth = ImGui.GetWindowContentRegionMax().x - ImGui.GetCursorPosX();
+		ImGui.PushItemWidth(Math.Max(width, availableWidth));
 	}
 }
 
