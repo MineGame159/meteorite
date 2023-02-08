@@ -68,27 +68,24 @@ namespace Meteorite {
 			cmds.TransitionImage(me.gameRenderer.mainNormal, .Sample);
 			cmds.TransitionImage(me.gameRenderer.mainDepth, .Sample);
 
-			cmds.BeginPass(null, .(ssao, .WHITE));
-
-			cmds.Bind(pipeline);
-			FrameUniforms.Bind(cmds);
-			cmds.Bind(me.gameRenderer.mainNormalSet, 1);
-			cmds.Bind(me.gameRenderer.mainDepthSet, 2);
-			cmds.Bind(set, 3);
-
-			MeshBuilder mb = scope .();
-
-			mb.Quad<PostVertex>(
-				.(.(-1, -1), .(0, 1)),
-				.(.(-1, 1), .(0, 0)),
-				.(.(1, 1), .(1, 0)),
-				.(.(1, -1), .(1, 1))
-			);
-
-			cmds.Draw(mb.End());
-
-			cmds.EndPass();
-			cmds.PopDebugGroup();
+			using (RenderPass pass = Gfx.RenderPasses.Begin(cmds, "SSAO", null, .(ssao, .WHITE))) {
+				cmds.Bind(pipeline);
+				FrameUniforms.Bind(cmds);
+				cmds.Bind(me.gameRenderer.mainNormalSet, 1);
+				cmds.Bind(me.gameRenderer.mainDepthSet, 2);
+				cmds.Bind(set, 3);
+	
+				MeshBuilder mb = scope .();
+	
+				mb.Quad<PostVertex>(
+					.(.(-1, -1), .(0, 1)),
+					.(.(-1, 1), .(0, 0)),
+					.(.(1, 1), .(1, 0)),
+					.(.(1, -1), .(1, 1))
+				);
+	
+				cmds.Draw(mb.End());
+			}
 		}
 
 		public void Transition(CommandBuffer cmds) => cmds.TransitionImage(ssao, .Sample);

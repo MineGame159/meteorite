@@ -35,6 +35,7 @@ static class Gfx {
 	public static CommandBufferManager CommandBuffers;
 	public static UploadManager Uploads;
 	public static Queries Queries;
+	public static RenderPassManager RenderPasses;
 
 	private static Window Window;
 	private static bool firstFrame = true;
@@ -75,6 +76,7 @@ static class Gfx {
 		CommandBuffers = new .();
 		Uploads = new .();
 		Queries = new .();
+		RenderPasses = new .();
 
 		Swapchain.Recreate(window.size);
 
@@ -85,6 +87,7 @@ static class Gfx {
 	public static void Destroy() {
 		vkDeviceWaitIdle(Device);
 
+		DeleteAndNullify!(RenderPasses);
 		DeleteAndNullify!(Queries);
 		DeleteAndNullify!(Uploads);
 		DeleteAndNullify!(CommandBuffers);

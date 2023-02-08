@@ -76,33 +76,21 @@ namespace Meteorite {
 
 				{
 					// Main Pre
-					cmds.PushDebugGroup("Main - Pre");
-					cmds.BeginPass(.(mainDepth, 1), .(mainColor, clearColor));
-
-					RenderMainPre(cmds);
-
-					cmds.EndPass();
-					cmds.PopDebugGroup();
+					using (RenderPass pass = Gfx.RenderPasses.Begin(cmds, "Main - Pre", .(mainDepth, 1), .(mainColor, clearColor))) {
+						RenderMainPre(cmds);
+					}
 				}
 				{
 					// Main
-					cmds.PushDebugGroup("Main");
-					cmds.BeginPass(.(mainDepth, null), .(mainColor, null), .(mainNormal, .ZERO));
-
-					RenderMain(cmds);
-
-					cmds.EndPass();
-					cmds.PopDebugGroup();
+					using (RenderPass pass = Gfx.RenderPasses.Begin(cmds, "Main", .(mainDepth, null), .(mainColor, null), .(mainNormal, .ZERO))) {
+						RenderMain(cmds);
+					}
 				}
 				{
 					// Main Post
-					cmds.PushDebugGroup("Main - Post");
-					cmds.BeginPass(.(mainDepth, null), .(mainColor, null));
-
-					RenderMainPost(cmds);
-
-					cmds.EndPass();
-					cmds.PopDebugGroup();
+					using (RenderPass pass = Gfx.RenderPasses.Begin(cmds, "Main - Post", .(mainDepth, null), .(mainColor, null))) {
+						RenderMainPost(cmds);
+					}
 				}
 
 				if (me.options.ao.HasSSAO) {
@@ -129,24 +117,18 @@ namespace Meteorite {
 					// SMAA - Edge Detection
 					cmds.TransitionImage(mainColor, .Sample);
 					cmds.TransitionImage(smaaEdges, .ColorAttachment);
-					cmds.PushDebugGroup("SMAA - Edge Detection");
-					cmds.BeginPass(null, .(smaaEdges, .ZERO));
 
-					RenderSmaaEdgeDetection(cmds);
-
-					cmds.EndPass();
-					cmds.PopDebugGroup();
+					using (RenderPass pass = Gfx.RenderPasses.Begin(cmds, "SMAA - Edge Detection", null, .(smaaEdges, .ZERO))) {
+						RenderSmaaEdgeDetection(cmds);
+					}
 
 					// SMAA - Blending
 					cmds.TransitionImage(smaaEdges, .Sample);
 					cmds.TransitionImage(smaaBlend, .ColorAttachment);
-					cmds.PushDebugGroup("SMAA - Blending");
-					cmds.BeginPass(null, .(smaaBlend, .ZERO));
 
-					RenderSmaaBlending(cmds);
-
-					cmds.EndPass();
-					cmds.PopDebugGroup();
+					using (RenderPass pass = Gfx.RenderPasses.Begin(cmds, "SMAA - Blending", null, .(smaaBlend, .ZERO))) {
+						RenderSmaaBlending(cmds);
+					}
 				}
 
 				{
@@ -155,13 +137,9 @@ namespace Meteorite {
 					if (me.options.aa.enabled) cmds.TransitionImage(smaaBlend, .Sample);
 					if (ssao != null) ssao.Transition(cmds);
 
-					cmds.PushDebugGroup("Post");
-					cmds.BeginPass(null, .(target, .ZERO));
-
-					RenderPost(cmds);
-
-					cmds.EndPass();
-					cmds.PopDebugGroup();
+					using (RenderPass pass = Gfx.RenderPasses.Begin(cmds, "Post", null, .(target, .ZERO))) {
+						RenderPost(cmds);
+					}
 				}
 			}
 
@@ -169,14 +147,10 @@ namespace Meteorite {
 			if (!Screenshots.rendering || Screenshots.options.includeGui) {
 				Color? clear = null;
 				if (!world) clear = clearColor;
-			
-				cmds.PushDebugGroup("2D");
-				cmds.BeginPass(null, .(target, clear));
 
-				Render2D(cmds);
-
-				cmds.EndPass();
-				cmds.PopDebugGroup();
+				using (RenderPass pass = Gfx.RenderPasses.Begin(cmds, "2D", null, .(target, clear))) {
+					Render2D(cmds);
+				}
 			}
 
 			cmds.End();

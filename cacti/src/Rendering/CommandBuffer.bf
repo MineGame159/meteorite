@@ -50,65 +50,6 @@ class CommandBuffer {
 		vkEndCommandBuffer(handle);
 	}
 
-	public void BeginPass(DepthAttachment? depthAttachment, params ColorAttachment[] colorAttachments) {
-		Debug.Assert(colorAttachments.Count <= PipelineInfo.MAX_TARGETS);
-
-		VkRenderingAttachmentInfo[] rawColorAttachments = scope .[colorAttachments.Count];
-		VkRenderingAttachmentInfo rawDepthAttachment;
-		
-		for (int i < colorAttachments.Count) {
-			ColorAttachment attachment = colorAttachments[i];
-			Color clearColor = attachment.clearColor.GetValueOrDefault();
-
-			TransitionImage(attachment.image, .ColorAttachment);
-
-			rawColorAttachments[i] = .() {
-				imageView = attachment.image.View,
-				imageLayout = .VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-				loadOp = attachment.clearColor.HasValue ? .VK_ATTACHMENT_LOAD_OP_CLEAR : .VK_ATTACHMENT_LOAD_OP_LOAD,
-				storeOp = .VK_ATTACHMENT_STORE_OP_STORE,
-				clearValue = .() {
-					color = .(clearColor.R, clearColor.G, clearColor.B, clearColor.A)
-				}
-			};
-		}
-
-		if (depthAttachment.HasValue) {
-			DepthAttachment attachment = depthAttachment.Value;
-
-			TransitionImage(attachment.image, .DepthAttachment);
-
-			rawDepthAttachment = .() {
-				imageView = attachment.image.View,
-				imageLayout = .VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL,
-				loadOp = attachment.clearDepth.HasValue ? .VK_ATTACHMENT_LOAD_OP_CLEAR : .VK_ATTACHMENT_LOAD_OP_LOAD,
-				storeOp = .VK_ATTACHMENT_STORE_OP_STORE,
-				clearValue = .() {
-					depthStencil = .() {
-						depth = attachment.clearDepth.GetValueOrDefault()
-					}
-				}
-			};
-		}
-
-		VkRenderingInfo info = .() {
-			renderArea = .((.) viewport.x, (.) viewport.y),
-			layerCount = 1,
-			colorAttachmentCount = (.) rawColorAttachments.Count,
-			pColorAttachments = rawColorAttachments.Ptr,
-			pDepthAttachment = depthAttachment.HasValue ? &rawDepthAttachment : null
-		};
-
-		vkCmdBeginRendering(handle, &info);
-	}
-
-	public void EndPass() {
-		vkCmdEndRendering(handle);
-	}
-
-	public struct ColorAttachment : this(GpuImage image, Color? clearColor) {}
-	public struct DepthAttachment : this(GpuImage image, float? clearDepth) {}
-
 	public void TransitionImage(GpuImage image, ImageAccess next, int mipLevel = 0) {
 		if (image.GetAccess(mipLevel) == next) return;
 

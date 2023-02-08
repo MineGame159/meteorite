@@ -130,34 +130,29 @@ class CactiTest : Application {
 	}
 
 	private void RenderScene(CommandBuffer cmds, GpuImage target) {
-		// Begin
-		cmds.PushDebugGroup("Scene");
-		cmds.BeginPass(.(depth, 1), .(target, .(100, 100, 100)), .(normal, .ZERO));
-
-		cmds.Bind(pipeline);
-		cmds.Bind(set, 0);
-
-		MeshBuilder mb = scope .();
-
-		// Ground
-		float groundSize = 50;
-
-		mb.Quad<Vertex>(
-			.(.(-groundSize, 0, -groundSize), .(0, 1, 0), .WHITE),
-			.(.(-groundSize, 0,  groundSize), .(0, 1, 0), .WHITE),
-			.(.( groundSize, 0,  groundSize), .(0, 1, 0), .WHITE),
-			.(.( groundSize, 0, -groundSize), .(0, 1, 0), .WHITE)
-		);
-
-		// Cubes
-		RenderCube(mb, .(-10, 0, 10), .(10, 5, 10), .WHITE);
-		RenderCube(mb, .(10, 0, 10), .(10, 5, 10), .(225, 25, 25));
-
-		cmds.Draw(mb.End());
-
-		// End
-		cmds.EndPass();
-		cmds.PopDebugGroup();
+		using (RenderPass pass = Gfx.RenderPasses.Begin(cmds, "Main", .(depth, 1), .(target, .(100, 100, 100)), .(normal, .ZERO))) {
+			// Bind
+			cmds.Bind(pipeline);
+			cmds.Bind(set, 0);
+	
+			MeshBuilder mb = scope .();
+	
+			// Ground
+			float groundSize = 50;
+	
+			mb.Quad<Vertex>(
+				.(.(-groundSize, 0, -groundSize), .(0, 1, 0), .WHITE),
+				.(.(-groundSize, 0,  groundSize), .(0, 1, 0), .WHITE),
+				.(.( groundSize, 0,  groundSize), .(0, 1, 0), .WHITE),
+				.(.( groundSize, 0, -groundSize), .(0, 1, 0), .WHITE)
+			);
+	
+			// Cubes
+			RenderCube(mb, .(-10, 0, 10), .(10, 5, 10), .WHITE);
+			RenderCube(mb, .(10, 0, 10), .(10, 5, 10), .(225, 25, 25));
+	
+			cmds.Draw(mb.End());
+		}
 	}
 
 	private void RenderUI() {

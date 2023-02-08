@@ -241,7 +241,8 @@ namespace Cacti {
 			}
 
 			if (drawData.CmdListsCount > 0) {
-				cmds.BeginPass(null, .(target, null));
+				// Begin render pass
+				RenderPass pass = Gfx.RenderPasses.Begin(cmds, "ImGui", null, .(target, null));
 
 				// Upload vertex and index data
 				uint64 vertexSize = (.) drawData.TotalVtxCount * sizeof(ImGui.DrawVert);
@@ -335,10 +336,10 @@ namespace Cacti {
 					globalIdxOffset += cmdList.IdxBuffer.Size;
 					globalVtxOffset += cmdList.VtxBuffer.Size;
 				}
-			}
 
-			// End render pass
-			if (drawData.CmdListsCount > 0) cmds.EndPass();
+				// End render pass
+				pass.Dispose();
+			}
 
 			// End command buffer
 			cmds.PopDebugGroup();
