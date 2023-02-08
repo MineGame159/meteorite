@@ -225,6 +225,7 @@ class PipelineInfo {
 		info.cullMode = cullMode;
 		info.frontFace = frontFace;
 
+		info.depthTarget = depthTarget;
 		info.depthTest = depthTest;
 		info.depthWrite = depthWrite;
 		
@@ -422,33 +423,57 @@ class PipelineInfo {
 class Pipeline : IRefCounted {
 	public PipelineInfo info = new .("") ~ delete _;
 
-	private VkPipeline handle ~ vkDestroyPipeline(Gfx.Device, _, null);
-	private PipelineLayout layout;
+	private VkShaderModule vertexShaderModule ~ vkDestroyShaderModule(Gfx.Device, _, null);
+	private VkShaderModule fragmentShaderModule ~ vkDestroyShaderModule(Gfx.Device, _, null);
+
+	private VkPipeline handle = .Null;
+	private PipelineLayout layout = null;
 
 	private int refCount = 1;
 	private bool valid = true;
 
-	private this(PipelineInfo info, VkPipeline handle, PipelineLayout layout) {
+	private this(PipelineInfo info, VkShaderModule vertexShaderModule, VkShaderModule fragmentShaderModule, PipelineLayout layout) {
 		info.CopyTo(this.info);
 
-		this.handle = handle;
+		this.vertexShaderModule = vertexShaderModule;
+		this.fragmentShaderModule = fragmentShaderModule;
 		this.layout = layout;
 	}
 
 	public ~this() {
 		Debug.Assert(refCount == 0);
+
+		if (handle != .Null) {
+			vkDestroyPipeline(Gfx.Device, handle, null);
+		}
 		
 		Gfx.Pipelines.[Friend]Remove(info);
 	}
 
-	public VkPipeline Vk => handle;
 	public PipelineLayout Layout => layout;
+
+	public Result<VkPipeline> GetRawPipeline() {
+		if (handle == .Null) {
+			handle = Create().GetOrPropagate!();
+		}
+
+		return handle;
+	}
 
 	public Result<void> Reload() {
 		VkPipeline oldHandle = handle;
-		Gfx.RunOnNewFrame(new () => vkDestroyPipeline(Gfx.Device, oldHandle, null));
+		VkShaderModule oldVertexShaderModule = vertexShaderModule;
+		VkShaderModule oldFragmentShaderModule = fragmentShaderModule;
 
-		(handle, layout) = Gfx.Pipelines.[Friend]Create(info).GetOrPropagate!();
+		Gfx.RunOnNewFrame(new () => {
+			vkDestroyShaderModule(Gfx.Device, oldVertexShaderModule, null);
+			vkDestroyShaderModule(Gfx.Device, oldFragmentShaderModule, null);
+
+			vkDestroyPipeline(Gfx.Device, oldHandle, null);
+		});
+
+		(vertexShaderModule, fragmentShaderModule) = CreateShaders(info).GetOrPropagate!();
+		handle = .Null;
 		
 		return .Ok;
 	}
@@ -479,6 +504,68 @@ class Pipeline : IRefCounted {
 		else {
 			delete this;
 		}
+	}
+
+	private static Result<(VkShaderModule, VkShaderModule)> CreateShaders(PipelineInfo info) {
+		VkShaderModule vertModule = info.VkShaderModule(true);
+		if (vertModule == .Null) return .Err;
+
+		VkShaderModule fragModule = info.VkShaderModule(false);
+		if (fragModule == .Null) {
+			vkDestroyShaderModule(Gfx.Device, vertModule, null);
+			return .Err;
+		}
+
+		return (vertModule, fragModule);
+	}
+
+	private Result<VkPipeline> Create() {
+		VkPipelineShaderStageCreateInfo[?] stages = .(
+			.() {
+				stage = .VK_SHADER_STAGE_VERTEX_BIT,
+				module = vertexShaderModule,
+				pName = "main"
+			},
+			.() {
+				stage = .VK_SHADER_STAGE_FRAGMENT_BIT,
+				module = fragmentShaderModule,
+				pName = "main"
+			}
+		);
+
+		VkGraphicsPipelineCreateInfo createInfo = .() {
+			pNext = &info.VkRendering!(),
+			stageCount = stages.Count,
+			pStages = &stages[0],
+			pVertexInputState = &info.VkVertexInput!(),
+			pInputAssemblyState = &info.VkInputAssembly!(),
+			pViewportState = &info.VkViewport!(),
+			pRasterizationState = &info.VkRasterization!(),
+			pColorBlendState = &info.VkBlendState!(),
+			pDynamicState = &info.VkDynamicState!(),
+			pMultisampleState = &info.VkMultisample!(),
+			pDepthStencilState = info.[Friend]depthTarget ? &info.VkDepth!() : null,
+			layout = layout,
+			renderPass = .Null
+		};
+
+		VkPipeline pipeline = ?;
+		VkResult result = vkCreateGraphicsPipelines(Gfx.Device, Gfx.Pipelines.[Friend]vkCache, 1, &createInfo, null, &pipeline);
+		if (result != .VK_SUCCESS) {
+			Log.Error("Failed to create Vulkan graphics pipeline: {}", result);
+			return .Err;
+		}
+
+		if (Gfx.DebugUtilsExt) {
+			VkDebugUtilsObjectNameInfoEXT nameInfo = .() {
+				objectType = .VK_OBJECT_TYPE_PIPELINE,
+				objectHandle = pipeline,
+				pObjectName = scope $"[PIPELINE] {info.[Friend]name}"
+			};
+			vkSetDebugUtilsObjectNameEXT(Gfx.Device, &nameInfo);
+		}
+
+		return pipeline;
 	}
 }
 
@@ -554,79 +641,16 @@ class PipelineManager {
 		if (cache.GetValue(info) case .Ok(let pipeline)) return pipeline..AddRef();
 
 		// Create new pipeline
-		let (handle, layout) = Create(info).GetOrPropagate!();
+		let (vertexShaderModule, fragmentShaderModule) = Pipeline.[Friend]CreateShaders(info).GetOrPropagate!();
 
-		Pipeline pipeline = new [Friend].(info, handle, layout);
+		PipelineLayout layout = Gfx.PipelineLayouts.Get(info.[Friend]sets, info.[Friend]pushConstantsSize);
+
+		Pipeline pipeline = new [Friend].(info, vertexShaderModule, fragmentShaderModule, layout);
 		return cache[pipeline.info] = pipeline;
 	}
 
 	private void Remove(PipelineInfo info) {
 		cache.Remove(info);
-	}
-
-	private Result<(VkPipeline, PipelineLayout)> Create(PipelineInfo info) {
-		VkShaderModule vertModule = info.VkShaderModule(true);
-		if (vertModule == .Null) return .Err;
-
-		VkShaderModule fragModule = info.VkShaderModule(false);
-		if (fragModule == .Null) {
-			vkDestroyShaderModule(Gfx.Device, vertModule, null);
-			return .Err;
-		}
-
-		defer {
-			vkDestroyShaderModule(Gfx.Device, vertModule, null);
-			vkDestroyShaderModule(Gfx.Device, fragModule, null);
-		}
-
-		PipelineLayout layout = Gfx.PipelineLayouts.Get(info.[Friend]sets, info.[Friend]pushConstantsSize);
-
-		VkPipelineShaderStageCreateInfo[?] stages = .(
-			.() {
-				stage = .VK_SHADER_STAGE_VERTEX_BIT,
-				module = vertModule,
-				pName = "main"
-			},
-			.() {
-				stage = .VK_SHADER_STAGE_FRAGMENT_BIT,
-				module = fragModule,
-				pName = "main"
-			}
-		);
-
-		VkGraphicsPipelineCreateInfo createInfo = .() {
-			pNext = &info.VkRendering!(),
-			stageCount = stages.Count,
-			pStages = &stages[0],
-			pVertexInputState = &info.VkVertexInput!(),
-			pInputAssemblyState = &info.VkInputAssembly!(),
-			pViewportState = &info.VkViewport!(),
-			pRasterizationState = &info.VkRasterization!(),
-			pColorBlendState = &info.VkBlendState!(),
-			pDynamicState = &info.VkDynamicState!(),
-			pMultisampleState = &info.VkMultisample!(),
-			pDepthStencilState = info.[Friend]depthTarget ? &info.VkDepth!() : null,
-			layout = layout,
-			renderPass = .Null
-		};
-
-		VkPipeline pipeline = ?;
-		VkResult result = vkCreateGraphicsPipelines(Gfx.Device, vkCache, 1, &createInfo, null, &pipeline);
-		if (result != .VK_SUCCESS) {
-			Log.Error("Failed to create Vulkan graphics pipeline: {}", result);
-			return .Err;
-		}
-
-		if (Gfx.DebugUtilsExt) {
-			VkDebugUtilsObjectNameInfoEXT nameInfo = .() {
-				objectType = .VK_OBJECT_TYPE_PIPELINE,
-				objectHandle = pipeline,
-				pObjectName = scope $"[PIPELINE] {info.[Friend]name}"
-			};
-			vkSetDebugUtilsObjectNameEXT(Gfx.Device, &nameInfo);
-		}
-
-		return (pipeline, layout);
 	}
 }
 

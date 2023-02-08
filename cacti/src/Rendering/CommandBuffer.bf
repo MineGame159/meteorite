@@ -111,7 +111,7 @@ class CommandBuffer {
 	public void Bind(Pipeline pipeline) {
 		if (boundPipeline == pipeline) return;
 
-		vkCmdBindPipeline(handle, .VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.Vk);
+		vkCmdBindPipeline(handle, .VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.GetRawPipeline());
 		boundPipeline = pipeline;
 	}
 
