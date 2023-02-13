@@ -36,6 +36,7 @@ class SweepResult {
 }
 
 static class BlockCollision {
+	[Tracy.Profile]
 	public static void HandlePhysics(AABB boundingBox, Vec3d velocity, Vec3d entityPosition, IBlockGetter getter, PhysicsResult result) {
 		if (velocity.IsZero) {
 			result.newPosition = entityPosition;
@@ -100,7 +101,8 @@ static class BlockCollision {
 		actualResult.collidedBlockY = collisionYBlock;
 		actualResult.blockTypeY = blockYType;
 	}
-
+	
+	[Tracy.Profile]
 	private static void ComputePhysics(AABB boundingBox, Vec3d velocity, Vec3d entityPosition, IBlockGetter getter, SweepResult finalResult, PhysicsResult result) {
 		SlowPhysics(boundingBox, velocity, entityPosition, getter, finalResult);
 
@@ -132,7 +134,8 @@ static class BlockCollision {
 		result.collidedBlockY = finalResult.collidedShapePosition;
 		result.blockTypeY = finalResult.blockType;
 	}
-
+	
+	[Tracy.Profile]
 	private static void SlowPhysics(AABB boundingBox, Vec3d velocity, Vec3d entityPosition, IBlockGetter getter, SweepResult finalResult) {
 		Vec3d min = boundingBox.min + entityPosition - boundingBox.Width / 2;
 		Vec3d max = boundingBox.max + entityPosition - boundingBox.Width / 2;

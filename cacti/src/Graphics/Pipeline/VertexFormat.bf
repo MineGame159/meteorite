@@ -3,7 +3,7 @@ using System.Collections;
 
 using Bulkan;
 
-namespace Cacti;
+namespace Cacti.Graphics;
 
 enum GVertexAttributeType {
 	case Float,

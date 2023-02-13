@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 
 using Cacti;
+using Cacti.Graphics;
 
 namespace Meteorite {
 	class VoxelShape {

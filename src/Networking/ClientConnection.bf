@@ -2,6 +2,8 @@ using System;
 using System.IO;
 using System.Collections;
 
+using Cacti;
+
 namespace Meteorite {
 	class ClientConnection : Connection {
 		private PacketHandler handler ~ DeleteAndNullify!(_);
@@ -26,8 +28,11 @@ namespace Meteorite {
 		protected override void OnConnectionLost() {
 			handler?.OnConnectionLost();
 		}
-
+		
+		[Tracy.Profile(variable = true)]
 		protected override void OnPacket(int id, NetBuffer packet) {
+			__tracy_zone.AddText(id.ToString(.. scope .()));
+			
 			S2CPacket p = handler?.GetPacket((.) id);
 
 			if (p != null) {
@@ -37,7 +42,8 @@ namespace Meteorite {
 				else delete p;
 			}
 		}
-
+		
+		[Tracy.Profile]
 		public void Send(C2SPacket packet) {
 			int size = NetBuffer.GetVarIntSize(packet.id) + packet.DefaultBufferSize;
 			NetBuffer buf;

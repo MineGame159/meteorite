@@ -3,7 +3,7 @@
 
 layout(location = 0) in vec3 position;
 layout(location = 1) in vec2 texCoords;
-layout(location = 2) in ivec2 lightTexCoords;
+layout(location = 2) in uvec2 lightTexCoords;
 layout(location = 3) in vec4 color;
 layout(location = 4) in uvec2 textureId;
 layout(location = 5) in vec4 normal;
@@ -27,11 +27,11 @@ struct Texture {
     float blend;
 };
 
-layout(set = 2, binding = 0, std430) uniform TextureBuffer {
+layout(set = 1, binding = 1, std430) uniform TextureBuffer {
     Texture textures[1];
 };
 
-layout(set = 3, binding = 0) uniform sampler2D u_Lightmap;
+layout(set = 2, binding = 0) uniform sampler2D u_Lightmap;
 
 vec4 sampleLightmap() {
     return texture(u_Lightmap, clamp(lightTexCoords / 256.0, vec2(0.5 / 16.0), vec2(15.5 / 16.0)));

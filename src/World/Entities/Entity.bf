@@ -1,6 +1,7 @@
 using System;
 
 using Cacti;
+using Cacti.Graphics;
 
 namespace Meteorite {
 	[CRepr]
@@ -51,7 +52,8 @@ namespace Meteorite {
 				bodyTrackingIncrements--;
 			}
 		}
-
+		
+		[Tracy.Profile]
 		public void Render(MeshBuilder mb, double tickDelta) {
 			Chunk chunk = Meteorite.INSTANCE.world.GetChunk(pos.IntX >> 4, pos.IntZ >> 4);
 			uint32 lightUv = BlockRenderer.FULL_BRIGHT_UV;

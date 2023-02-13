@@ -1,24 +1,24 @@
 using System;
-using System.Collections;
 
 using Cacti;
+using Cacti.Graphics;
 
-namespace Meteorite {
-	class Program {
-		private static bool RENDERDOC =
+namespace Meteorite;
+
+class Program {
+	private static bool RENDERDOC =
 #if DEBUG
-			true;
+		true;
 #else
-			false;
+		false;
 #endif
 
-		public static void Main(String[] args) {
-			if (Array.BinarySearch(args, "--renderdoc") != -1 || RENDERDOC) {
-				Log.Info("Loading RenderDoc");
-				RenderDoc.Init();
-			}
-
-			scope Meteorite().Run();
+	public static void Main(String[] args) {
+		if (Array.BinarySearch(args, "--renderdoc") != -1 || RENDERDOC) {
+			Log.Info("Loading RenderDoc");
+			RenderDoc.Init();
 		}
+
+		scope Meteorite().Run();
 	}
 }

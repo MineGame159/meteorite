@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 
 using Cacti;
+using Cacti.Graphics;
 
 namespace Meteorite {
 	class TexturePacker {
@@ -91,7 +92,7 @@ namespace Meteorite {
 		}
 
 		public GpuImage Finish() {
-			GpuImage image = Gfx.Images.Create(.RGBA, .Normal, .(size, size), "Block Atlas", 4);
+			GpuImage image = Gfx.Images.Create("Block Atlas", .RGBA, .Normal, .(size, size), 4);
 
 			for (int i < 4) {
 				Gfx.Uploads.UploadImage(image, datas[i], i);

@@ -13,7 +13,7 @@ layout(set = 1, binding = 0) uniform sampler2D u_NormalTexture;
 layout(set = 2, binding = 0) uniform sampler2D u_DepthTexture;
 #define DEPTH_SAMPLER u_DepthTexture
 
-layout(set = 3, binding = 0, std430) buffer Samples {
+layout(set = 3, binding = 0) uniform Samples {
     vec4 samples[64];
 } omg;
 

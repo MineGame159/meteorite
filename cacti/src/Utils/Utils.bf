@@ -10,6 +10,10 @@ namespace Cacti {
 
 		public static int CombineHashCode(int h1, int h2) => (((h1 << 5) + h1) ^ h2);
 
+		public static void CombineHashCode(ref int hash, int other) => hash = CombineHashCode(hash, other);
+
+		public static void CombineHashCode<T>(ref int hash, T other) where T : IHashable => hash = CombineHashCode(hash, other.GetHashCode());
+
 		public static T Lerp<T>(T delta, T start, T end) where T : operator T - T, operator T * T, operator T + T {
 			return start + delta * (end - start);
 		}
@@ -89,6 +93,10 @@ namespace Cacti {
 #endif
 		}
 
+		public static int GetNullableHashCode<T>(T? nulable) where T : struct, IHashable {
+			return nulable.HasValue ? nulable.Value.GetHashCode() : 159;
+		}
+
 #if BF_PLATFORM_WINDOWS
 		[CRepr]
 		struct ProcessMemoryCounters {
@@ -149,12 +157,16 @@ namespace Cacti {
 
 static {
 	public static mixin DisposeAndNullify(var val) {
-		val.Dispose();
-		val = null;
+		if (val != null) {
+			val.Dispose();
+			val = null;
+		}
 	}
 
 	public static mixin ReleaseAndNullify(var val) {
-		val.Release();
-		val = null;
+		if (val != null) {
+			val.Release();
+			val = null;
+		}
 	}
 }

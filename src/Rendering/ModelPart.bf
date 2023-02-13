@@ -3,6 +3,7 @@ using System.Collections;
 
 using Cacti;
 using Cacti.Json;
+using Cacti.Graphics;
 
 namespace Meteorite {
 	class ModelPart {

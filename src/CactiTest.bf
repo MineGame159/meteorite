@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 
 using Cacti;
+using Cacti.Graphics;
+
 using ImGui;
 
 namespace Meteorite;
@@ -60,27 +62,23 @@ class CactiTest : Application {
 			~ delete _;
 	}
 
-	private GpuImage depth ~ delete _;
-	private GpuImage normal ~ delete _;
+	private GpuImage depth ~ ReleaseAndNullify!(_);
+	private GpuImage normal ~ ReleaseAndNullify!(_);
 
-	private Pipeline pipeline;
+	private Pipeline pipeline ~ ReleaseAndNullify!(_);
 
-	private GpuBuffer ubo ~ delete _;
-	private DescriptorSet set ~ delete _;
+	private GpuBuffer ubo ~ ReleaseAndNullify!(_);
 
 	private Camera camera ~ delete _;
 
 	public this() : base("Cacti Test") {
-		depth = Gfx.Images.Create(.Depth, .DepthAttachment, window.size, "Depth");
-		normal = Gfx.Images.Create(.RGBA32, .ColorAttachment, window.size, "Normal");
+		depth = Gfx.Images.Create("Depth", .Depth, .DepthAttachment, window.size);
+		normal = Gfx.Images.Create("Normal", .RGBA32, .ColorAttachment, window.size);
 
-		DescriptorSetLayout setLayout = Gfx.DescriptorSetLayouts.Get(.UniformBuffer);
-
-		pipeline = Gfx.Pipelines.Get(scope PipelineInfo("Yoo")
+		pipeline = Gfx.Pipelines.Create(scope PipelineInfo("Yoo")
 			.VertexFormat(Vertex.FORMAT)
 			.Primitive(.Traingles)
-			.Shader(VERTEX_SHADER, FRAGMENT_SHADER, path: false)
-			.Sets(setLayout)
+			.Shader(.String(VERTEX_SHADER), .String(FRAGMENT_SHADER))
 			.Cull(.None, .Clockwise)
 			.Depth(true, true, true)
 			.Targets(
@@ -89,72 +87,87 @@ class CactiTest : Application {
 			)
 		);
 
-		ubo = Gfx.Buffers.Create(.Uniform, .Mappable, sizeof(Uniforms), "UBO");
-		set = Gfx.DescriptorSets.Create(setLayout, .Uniform(ubo));
+		ubo = Gfx.Buffers.Create("UBO", .Uniform, .Mappable, sizeof(Uniforms));
 
 		camera = new .(window);
 		camera.pos = .(5, 8, -3);
 		camera.yaw = -90;
 	}
 
+	[Tracy.Profile]
 	protected override void Update(double delta) {
 		if (Input.IsKeyReleased(.Escape)) window.MouseHidden = !window.MouseHidden;
 
 		camera.FlightMovement((.) delta);
 		camera.Update(1000);
 	}
-
+	
+	[Tracy.Profile]
 	protected override void Render(List<CommandBuffer> commandBuffers, GpuImage target, double delta) {
 		UploadUniforms();
+		ResizeAttachments();
 
 		CommandBuffer cmds = Gfx.CommandBuffers.GetBuffer();
 		commandBuffers.Add(cmds);
 
 		cmds.Begin();
-		cmds.SetViewport(target.size, true, true);
-
 		RenderScene(cmds, target);
-
 		cmds.End();
 
 		RenderUI();
 	}
-
+	
+	[Tracy.Profile]
 	private void UploadUniforms() {
 		Uniforms uniforms = .();
 
 		uniforms.projection = camera.proj;
 		uniforms.view = camera.view;
 
-		ubo.Upload(&uniforms, ubo.size);
+		ubo.Upload(&uniforms, ubo.Size);
 	}
-
+	
+	[Tracy.Profile]
+	private void ResizeAttachments() {
+		Gfx.Images.Resize(ref depth, window.size);
+		Gfx.Images.Resize(ref normal, window.size);
+	}
+	
+	[Tracy.Profile]
 	private void RenderScene(CommandBuffer cmds, GpuImage target) {
-		using (RenderPass pass = Gfx.RenderPasses.Begin(cmds, "Main", .(depth, 1), .(target, .(100, 100, 100)), .(normal, .ZERO))) {
+		using (RenderPass pass = Gfx.RenderPasses.New(cmds, "Scene")
+			.Depth(depth, 1)
+			.Color(target, .(100, 100, 100))
+			.Color(normal, .ZERO)
+			.Begin())
+		{
+			pass.SetViewport(target.Size, true, true);
+			
 			// Bind
-			cmds.Bind(pipeline);
-			cmds.Bind(set, 0);
-	
+			pass.Bind(pipeline);
+			pass.Bind(0, .Uniform(ubo));
+
 			MeshBuilder mb = scope .();
-	
+
 			// Ground
 			float groundSize = 50;
-	
+
 			mb.Quad<Vertex>(
 				.(.(-groundSize, 0, -groundSize), .(0, 1, 0), .WHITE),
 				.(.(-groundSize, 0,  groundSize), .(0, 1, 0), .WHITE),
 				.(.( groundSize, 0,  groundSize), .(0, 1, 0), .WHITE),
 				.(.( groundSize, 0, -groundSize), .(0, 1, 0), .WHITE)
 			);
-	
+
 			// Cubes
 			RenderCube(mb, .(-10, 0, 10), .(10, 5, 10), .WHITE);
 			RenderCube(mb, .(10, 0, 10), .(10, 5, 10), .(225, 25, 25));
-	
-			cmds.Draw(mb.End());
+
+			pass.Draw(mb.End());
 		}
 	}
-
+	
+	[Tracy.Profile]
 	private void RenderUI() {
 		if (!ImGuiCacti.NewFrame()) return;
 		ImGui.Begin("Camera");
@@ -167,7 +180,8 @@ class CactiTest : Application {
 
 		ImGui.End();
 	}
-
+	
+	[Tracy.Profile]
 	private void RenderCube(MeshBuilder mb, Vec3f pos, Vec3f size, Color color) {
 		// Bottom
 		Color col = color.MulWithoutA(0.4f);
@@ -221,7 +235,7 @@ class CactiTest : Application {
 		);
 	}
 
-	public static void Main() {
+	public static void Main(String[] args) {
 		//RenderDoc.Init();
 
 		scope CactiTest().Run();

@@ -1,6 +1,6 @@
 using System;
 
-namespace Cacti;
+namespace Cacti.Graphics;
 
 struct BuiltMesh : IDisposable {
 	public GpuBufferView vbo;
@@ -18,15 +18,15 @@ struct BuiltMesh : IDisposable {
 	}
 
 	public void Dispose() {
-		if (deleteVbo && vbo.Valid) delete vbo.buffer;
-		if (deleteIbo && ibo.Valid) delete ibo.buffer;
+		if (deleteVbo && vbo.Valid) vbo.buffer.Release();
+		if (deleteIbo && ibo.Valid) ibo.buffer.Release();
 	}
 }
 
 enum EndBuffer {
 	case Frame,
 		 Provided(GpuBufferView view),
-		 ProvidedResize(GpuBuffer buffer),
+		 ProvidedResize(GpuBuffer* buffer),
 		 Create(StringView name);
 
 	public static operator Self(GpuBufferView view) => .Provided(view);
@@ -131,8 +131,8 @@ class MeshBuilder {
 			switch (vbo) {
 			case .Frame:						this.vbo = Gfx.FrameAllocator.Allocate(.Vertex, vertices.Size);
 			case .Provided(let view):			this.vbo = view;
-			case .ProvidedResize(let buffer):	buffer.EnsureCapacity(vertices.Size); this.vbo = buffer;
-			case .Create(let name):				this.vbo = Gfx.Buffers.Create(.Vertex, .Mappable, vertices.Size, name);
+			case .ProvidedResize(let buffer):	Gfx.Buffers.EnsureSize(ref *buffer, vertices.Size); this.vbo = *buffer;
+			case .Create(let name):				this.vbo = Gfx.Buffers.Create(name, .Vertex, .Mappable, vertices.Size).Value;
 			}
 		}
 
@@ -140,8 +140,8 @@ class MeshBuilder {
 			switch (ibo) {
 			case .Frame:						this.ibo = Gfx.FrameAllocator.Allocate(.Index, indices.Size);
 			case .Provided(let view):			this.ibo = view;
-			case .ProvidedResize(let buffer):	buffer.EnsureCapacity(indices.Size); this.ibo = buffer;
-			case .Create(let name):				this.ibo = Gfx.Buffers.Create(.Index, .Mappable, indices.Size, name);
+			case .ProvidedResize(let buffer):	Gfx.Buffers.EnsureSize(ref *buffer, indices.Size); this.ibo = *buffer;
+			case .Create(let name):				this.ibo = Gfx.Buffers.Create(name, .Index, .Mappable, indices.Size).Value;
 			}
 		}
 

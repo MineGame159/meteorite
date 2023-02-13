@@ -1,6 +1,6 @@
 using System;
 
-namespace Cacti;
+namespace Cacti.Graphics;
 
 struct GpuBufferAllocatorStats {
 	public int AllocationCount;

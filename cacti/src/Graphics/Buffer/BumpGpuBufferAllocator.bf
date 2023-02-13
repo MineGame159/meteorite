@@ -3,16 +3,19 @@ using System.Collections;
 
 using Bulkan;
 using Bulkan.Utilities;
+using static Bulkan.VulkanNative;
 using static Bulkan.Utilities.VulkanMemoryAllocator;
 
-namespace Cacti;
+namespace Cacti.Graphics;
 
 class BumpGpuBufferAllocator {
 	private BufferType[Enum.GetCount<GpuBufferType>()] bufferTypes;
 	private GpuBufferAllocatorStats stats;
 
 	public ~this() {
-		for (let bufferType in bufferTypes) delete bufferType;
+		for (let bufferType in bufferTypes) {
+			delete bufferType;
+		}
 	}
 
 	public GpuBufferAllocatorStats Stats => stats;
@@ -36,6 +39,7 @@ class BumpGpuBufferAllocator {
 
 	public void Free(GpuBufferView buffer) {}
 
+	[Tracy.Profile]
 	public void FreeAll() {
 		for (let bufferType in bufferTypes) bufferType?.FreeAll();
 		stats = .();
@@ -45,6 +49,10 @@ class BumpGpuBufferAllocator {
 		private BumpGpuBufferAllocator allocator;
 		private GpuBufferType type;
 		private List<Block> blocks = new .() ~ DeleteContainerAndDisposeItems!(_);
+
+		public ~this() {
+
+		}
 
 		public this(BumpGpuBufferAllocator allocator, GpuBufferType type) {
 			this.allocator = allocator;
@@ -95,7 +103,7 @@ class BumpGpuBufferAllocator {
 			uint64 totalSize = 0;
 
 			for (let block in blocks) {
-				totalSize += block.buffer.size;
+				totalSize += block.buffer.Size;
 				block.Dispose();
 			}
 
@@ -107,11 +115,11 @@ class BumpGpuBufferAllocator {
 
 		private Block CreateBlock(uint64 minSize) {
 			// Create buffer
-			GpuBuffer buffer = Gfx.Buffers.Create(type, .Mappable | .TransferSrc, Math.Max(minSize, 1024 * 1024), scope $"Bump {blocks.Count}");
+			GpuBuffer buffer = Gfx.Buffers.Create(scope $"Bump {blocks.Count}", type, .Mappable | .TransferSrc, Math.Max(minSize, 1024 * 1024));
 
 			// Create virtual block
 			VmaVirtualBlockCreateInfo info = .() {
-				size = (.) buffer.size,
+				size = (.) buffer.Size,
 				flags = .VMA_VIRTUAL_BLOCK_CREATE_LINEAR_ALGORITHM_BIT
 			};
 
@@ -122,7 +130,7 @@ class BumpGpuBufferAllocator {
 			Block block = .(buffer, virtualBlock);
 			blocks.Add(block);
 
-			allocator.stats.AllocatedMemory += buffer.size;
+			allocator.stats.AllocatedMemory += buffer.Size;
 			return block;
 		}
 
@@ -144,7 +152,7 @@ class BumpGpuBufferAllocator {
 		struct Block : this(GpuBuffer buffer, VmaVirtualBlock block), IDisposable {
 			public void Dispose() {
 				vmaDestroyVirtualBlock(block);
-				delete buffer;
+				buffer.Release();
 			}
 		}
 	}

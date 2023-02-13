@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 
 using Cacti;
+using Cacti.Graphics;
 
 namespace Meteorite {
 	class EntityRenderDispatcher {
@@ -22,14 +23,14 @@ namespace Meteorite {
 
 		}
 
-		public void End(CommandBuffer cmds, Camera camera) {
-			cmds.Bind(Gfxa.ENTITY_PIPELINE);
-			FrameUniforms.Bind(cmds);
+		public void End(RenderPass pass, Camera camera) {
+			pass.Bind(Gfxa.ENTITY_PIPELINE);
+			pass.Bind(0, FrameUniforms.Descriptor);
 
 			for (let pair in provider.Meshes) {
-				Meteorite.INSTANCE.textures.Bind(cmds, pair.key);
+				pass.Bind(1, Meteorite.INSTANCE.textures.GetDescriptor(pair.key));
 
-				cmds.Draw(pair.value.End(.Frame, Buffers.QUAD_INDICES));
+				pass.Draw(pair.value.End(.Frame, Buffers.QUAD_INDICES));
 			}
 
 			provider.End();

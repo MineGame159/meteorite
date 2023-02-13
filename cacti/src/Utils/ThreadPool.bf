@@ -54,6 +54,8 @@ namespace Cacti {
 		}
 
 		private void Run() {
+			Tracy.RegisterCurrentThread();
+
 			for (;;) {
 				delegate void() task = null;
 

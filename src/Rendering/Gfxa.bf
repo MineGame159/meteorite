@@ -2,6 +2,7 @@ using System;
 using System.IO;
 
 using Cacti;
+using Cacti.Graphics;
 
 namespace Meteorite {
 	[CRepr]
@@ -49,11 +50,20 @@ namespace Meteorite {
 	static class Gfxa {
 		private static GpuImage PIXEL_TEXTURE;
 
+		public static Descriptor PIXEL_DESCRIPTOR => .SampledImage(PIXEL_TEXTURE, NEAREST_SAMPLER);
+
 		// Shaders
-		public static StringView POS_FOG = "pos_fog";
-		public static StringView POS_COLOR_SHADER = "pos_color";
-		public static StringView POS_TEX_SHADER = "pos_tex";
-		public static StringView POS_TEX_COLOR_SHADER = "pos_tex_color";
+		public static StringView POS_FOG_VERT = "pos_fog.vert";
+		public static StringView POS_FOG_FRAG = "pos_fog.frag";
+
+		public static StringView POS_COLOR_VERT = "pos_color.vert";
+		public static StringView POS_COLOR_FRAG = "pos_color.frag";
+
+		public static StringView POS_TEX_VERT = "pos_tex.vert";
+		public static StringView POS_TEX_FRAG = "pos_tex.frag";
+
+		public static StringView POS_TEX_COLOR_VERT = "pos_tex_color.vert";
+		public static StringView POS_TEX_COLOR_FRAG = "pos_tex_color.frag";
 
 		// Pipelines
 		public static Pipeline CHUNK_PIPELINE;
@@ -71,17 +81,9 @@ namespace Meteorite {
 		public static Sampler LINEAR_SAMPLER;
 		public static Sampler NEAREST_MIPMAP_SAMPLER;
 
-		// Descriptor set layouts
-		public static DescriptorSetLayout UNIFORM_SET_LAYOUT;
-		public static DescriptorSetLayout STORAGE_SET_LAYOUT;
-		public static DescriptorSetLayout IMAGE_SET_LAYOUT;
-
-		// Descriptor sets
-		public static DescriptorSet PIXEL_SET;
-
 		// Init
 		public static void Init() {
-			Gfx.Pipelines.SetReadCallback(new (path) => {
+			Gfx.Shaders.SetReadCallback(new (path) => {
 				String buffer = scope .();
 				bool result = Meteorite.INSTANCE.resources.ReadString(scope $"shaders/{path}", buffer);
 
@@ -89,83 +91,67 @@ namespace Meteorite {
 				return ShaderReadResult.New("", "");
 			});
 
-			// Descriptor set layouts
-			UNIFORM_SET_LAYOUT = Gfx.DescriptorSetLayouts.Get(.UniformBuffer);
-			STORAGE_SET_LAYOUT = Gfx.DescriptorSetLayouts.Get(.StorageBuffer);
-			IMAGE_SET_LAYOUT = Gfx.DescriptorSetLayouts.Get(.SampledImage);
-
 			// Pipelines
-			CHUNK_PIPELINE = Gfx.Pipelines.Get(scope PipelineInfo("Chunks")
+			CHUNK_PIPELINE = Gfx.Pipelines.Create(scope PipelineInfo("Chunks")
 				.VertexFormat(BlockVertex.FORMAT)
-				.Sets(UNIFORM_SET_LAYOUT, IMAGE_SET_LAYOUT, UNIFORM_SET_LAYOUT, IMAGE_SET_LAYOUT)
-				.PushConstants<Vec3f>()
-				.Shader("chunk", "chunk", new (preProcessor) => preProcessor.Define("SOLID"))
+				.Shader(.File("chunk.vert"), .File("chunk.frag"), new (preProcessor) => preProcessor.Define("SOLID"))
 				.Depth(true, true, true)
 				.Targets(
 					.(.BGRA, .Disabled()),
 					.(.RGBA16, .Disabled())
 				)
 			);
-			CHUNK_TRANSPARENT_PIPELINE = Gfx.Pipelines.Get(scope PipelineInfo("Transparent chunks")
+			CHUNK_TRANSPARENT_PIPELINE = Gfx.Pipelines.Create(scope PipelineInfo("Transparent chunks")
 				.VertexFormat(BlockVertex.FORMAT)
-				.Sets(UNIFORM_SET_LAYOUT, IMAGE_SET_LAYOUT, UNIFORM_SET_LAYOUT, IMAGE_SET_LAYOUT)
-				.PushConstants<Vec3f>()
-				.Shader("chunk", "chunk")
+				.Shader(.File("chunk.vert"), .File("chunk.frag"))
 				.Depth(true, true, false)
 				.Targets(
 					.(.BGRA, .Default()),
 					.(.RGBA16, .Disabled())
 				)
 			);
-			ENTITY_PIPELINE = Gfx.Pipelines.Get(scope PipelineInfo("Entities")
+			ENTITY_PIPELINE = Gfx.Pipelines.Create(scope PipelineInfo("Entities")
 				.VertexFormat(EntityVertex.FORMAT)
-				.Sets(UNIFORM_SET_LAYOUT, IMAGE_SET_LAYOUT, IMAGE_SET_LAYOUT)
-				.Shader("entity", "entity")
+				.Shader(.File("entity.vert"), .File("entity.frag"))
 				.Depth(true, true, true)
 				.Targets(
 					.(.BGRA, .Disabled()),
 					.(.RGBA16, .Disabled())
 				)
 			);
-			POST_PIPELINE = Gfx.Pipelines.Get(scope PipelineInfo("Post")
+			POST_PIPELINE = Gfx.Pipelines.Create(scope PipelineInfo("Post")
 				.VertexFormat(PostVertex.FORMAT)
-				.Sets(UNIFORM_SET_LAYOUT, IMAGE_SET_LAYOUT, IMAGE_SET_LAYOUT, IMAGE_SET_LAYOUT)
-				.Shader("post", "post", new => PostPreProcessor)
+				.Shader(.File("post.vert"), .File("post.frag"), new => PostPreProcessor)
 				.Targets(
 					.(.BGRA, .Disabled())
 				)
 			);
-			SMAA_EDGE_DETECTION_PIPELINE = Gfx.Pipelines.Get(scope PipelineInfo("SMAA - Edge Detection")
+			SMAA_EDGE_DETECTION_PIPELINE = Gfx.Pipelines.Create(scope PipelineInfo("SMAA - Edge Detection")
 				.VertexFormat(PostVertex.FORMAT)
-				.Sets(UNIFORM_SET_LAYOUT, IMAGE_SET_LAYOUT)
-				.Shader("smaa/edge_detection", "smaa/edge_detection", new => SMAAPreProcessor)
+				.Shader(.File("smaa/edge_detection.vert"), .File("smaa/edge_detection.frag"), new => SMAAPreProcessor)
 				.Targets(
 					.(.RG8, .Disabled())
 				)
 			);
-			SMAA_BLENDING_PIPELINE = Gfx.Pipelines.Get(scope PipelineInfo("SMAA - Blending")
+			SMAA_BLENDING_PIPELINE = Gfx.Pipelines.Create(scope PipelineInfo("SMAA - Blending")
 				.VertexFormat(PostVertex.FORMAT)
-				.Sets(UNIFORM_SET_LAYOUT, IMAGE_SET_LAYOUT, IMAGE_SET_LAYOUT, IMAGE_SET_LAYOUT)
-				.Shader("smaa/blending", "smaa/blending", new => SMAAPreProcessor)
+				.Shader(.File("smaa/blending.vert"), .File("smaa/blending.frag"), new => SMAAPreProcessor)
 				.Targets(
 					.(.BGRA, .Disabled())
 				)
 			);
-			LINES_PIPELINE = Gfx.Pipelines.Get(scope PipelineInfo("Lines")
+			LINES_PIPELINE = Gfx.Pipelines.Create(scope PipelineInfo("Lines")
 				.VertexFormat(PosColorVertex.FORMAT)
-				.PushConstants<Mat4>()
-				.Shader(POS_COLOR_SHADER, POS_COLOR_SHADER)
+				.Shader(.File(POS_COLOR_VERT), .File(POS_COLOR_FRAG))
 				.Primitive(.Lines)
 				.Depth(true, false, false)
 				.Targets(
 					.(.BGRA, .Default())
 				)
 			);
-			TEX_QUADS_PIPELINE = Gfx.Pipelines.Get(scope PipelineInfo("Textured quads")
+			TEX_QUADS_PIPELINE = Gfx.Pipelines.Create(scope PipelineInfo("Textured quads")
 				.VertexFormat(Pos2DUVColorVertex.FORMAT)
-				.Sets(IMAGE_SET_LAYOUT)
-				.PushConstants<Mat4>()
-				.Shader(POS_TEX_COLOR_SHADER, POS_TEX_COLOR_SHADER)
+				.Shader(.File(POS_TEX_COLOR_VERT), .File(POS_TEX_COLOR_FRAG))
 				.Targets(
 					.(.BGRA, .Default())
 				)
@@ -179,30 +165,26 @@ namespace Meteorite {
 
 			// Other
 			PIXEL_TEXTURE = CreateImage("pixel.png");
-
-			// Descriptor sets
-			PIXEL_SET = Gfx.DescriptorSets.Create(IMAGE_SET_LAYOUT, .SampledImage(PIXEL_TEXTURE, .VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, NEAREST_SAMPLER));
 		}
 
 		public static void Destroy() {
-			DeleteAndNullify!(PIXEL_TEXTURE);
+			ReleaseAndNullify!(PIXEL_TEXTURE);
 
 			ReleaseAndNullify!(CHUNK_PIPELINE);
 			ReleaseAndNullify!(CHUNK_TRANSPARENT_PIPELINE);
 			ReleaseAndNullify!(ENTITY_PIPELINE);
 			ReleaseAndNullify!(POST_PIPELINE);
 			ReleaseAndNullify!(SMAA_EDGE_DETECTION_PIPELINE);
+			ReleaseAndNullify!(SMAA_BLENDING_PIPELINE);
 			ReleaseAndNullify!(LINES_PIPELINE);
 			ReleaseAndNullify!(TEX_QUADS_PIPELINE);
-
-			DeleteAndNullify!(PIXEL_SET);
 		}
 
 		public static GpuImage CreateImage(StringView path) {
 			Image image = Meteorite.INSTANCE.resources.ReadImage(path);
 			defer delete image;
 
-			GpuImage gpuImage = Gfx.Images.Create(.RGBA, .Normal, image.size, path);
+			GpuImage gpuImage = Gfx.Images.Create(path, .RGBA, .Normal, image.size);
 			Gfx.Uploads.UploadImage(gpuImage, image.pixels);
 
 			return gpuImage;

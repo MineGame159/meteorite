@@ -2,7 +2,7 @@ using System;
 
 using ImGui;
 
-namespace Cacti;
+namespace Cacti.Graphics;
 
 static class ImGuiCacti {
 	private static bool initialized;

@@ -8,9 +8,10 @@ using Bulkan.Utilities;
 using static Bulkan.VulkanNative;
 using static Bulkan.Utilities.VulkanMemoryAllocator;
 
-namespace Cacti;
+namespace Cacti.Graphics;
 
 static class Gfx {
+	// Vulkan objects
 	public static VkInstance Instance;
 	public static VkSurfaceKHR Surface;
 	public static VkPhysicalDevice PhysicalDevice;
@@ -21,41 +22,53 @@ static class Gfx {
 	public static VkPhysicalDeviceProperties Properties;
 	public static VmaAllocator VmaAllocator;
 
-	public static bool DebugUtilsExt;
-
+	// Helper objects
 	public static GpuBufferManager Buffers;
 	public static BumpGpuBufferAllocator FrameAllocator;
-	public static DescriptorSetLayoutManager DescriptorSetLayouts;
-	public static DescriptorSetManager DescriptorSets;
+
+	public static GpuImageManager Images;
+	public static SamplerManager Samplers;
+
+	public static ShaderManager Shaders;
 	public static PipelineLayoutManager PipelineLayouts;
 	public static PipelineManager Pipelines;
-	public static ImageManager Images;
-	public static SamplerManager Samplers;
-	public static Swapchain Swapchain;
+
 	public static CommandBufferManager CommandBuffers;
+	public static DescriptorSetLayoutManager DescriptorSetLayouts;
+	public static DescriptorSetManager DescriptorSets;
+	public static RenderPassManager RenderPasses;
+
 	public static UploadManager Uploads;
 	public static Queries Queries;
-	public static RenderPassManager RenderPasses;
+
+	public static Swapchain Swapchain;
+
+	// Other
+	public static bool DebugUtilsExt;
 
 	private static Window Window;
 	private static bool firstFrame = true;
 
-	private static List<delegate void()> newFrameCallbacks = new .() ~ delete _;
+	private static List<DoubleRefCounted> toRelease = new .() ~ delete _;
 
 	public static Result<void> Init(Window window) {
+		// Initialize Vulkan library
 		VulkanNative.Initialize();
 		VulkanNative.LoadPreInstanceFunctions();
 
 		Window = window;
 
+		// Create Vulkan objects
 		CreateInstance().GetOrPropagate!();
 		SetupDebugCallback().GetOrPropagate!();
 		CreateSurface().GetOrPropagate!();
 		FindPhysicalDevice().GetOrPropagate!();
 		CreateDevice().GetOrPropagate!();
 
+		// Query GPU properties
 		vkGetPhysicalDeviceProperties(PhysicalDevice, &Properties);
 
+		// Create VMA allocator
 		VmaAllocatorCreateInfo allocatorInfo = .() {
 			physicalDevice = PhysicalDevice,
 			device = Device,
@@ -64,49 +77,81 @@ static class Gfx {
 		};
 		vmaCreateAllocator(&allocatorInfo, &VmaAllocator);
 
+		// Create helper objects
 		Buffers = new .();
 		FrameAllocator = new .();
-		DescriptorSetLayouts = new .();
-		DescriptorSets = new .();
-		PipelineLayouts = new .();
-		Pipelines = new .();
+
 		Images = new .();
 		Samplers = new .();
-		Swapchain = new .();
+
+		Shaders = new .();
+		PipelineLayouts = new .();
+		Pipelines = new .();
+
 		CommandBuffers = new .();
-		Uploads = new .();
-		Queries = new .();
+		DescriptorSetLayouts = new .();
+		DescriptorSets = new .();
 		RenderPasses = new .();
 
-		Swapchain.Recreate(window.size);
+		Uploads = new .();
+		Queries = new .();
 
+		Swapchain = new .();
+		Swapchain.Recreate(window.size).GetOrPropagate!();
+		
+		// Return
 		Log.Info("Initialized Vulkan");
 		return .Ok;
 	}
 
 	public static void Destroy() {
+		// Wait for the GPU to finish executing commands
 		vkDeviceWaitIdle(Device);
 
-		DeleteAndNullify!(RenderPasses);
+		// Destroy helper objects
+		DescriptorSets.Destroy();
+		RenderPasses.Destroy();
+
+		// Delete helper objects 1
+		DeleteAndNullify!(Swapchain);
 		DeleteAndNullify!(Queries);
 		DeleteAndNullify!(Uploads);
-		DeleteAndNullify!(CommandBuffers);
-		DeleteAndNullify!(Swapchain);
-		DeleteAndNullify!(Samplers);
-		DeleteAndNullify!(Images);
-		DeleteAndNullify!(Pipelines);
-		DeleteAndNullify!(PipelineLayouts);
+		DeleteAndNullify!(FrameAllocator);
+
+		// Release reference counted items
+		ReleaseItems();
+
+		// Delete helper objects 2
+		DeleteAndNullify!(RenderPasses);
 		DeleteAndNullify!(DescriptorSets);
 		DeleteAndNullify!(DescriptorSetLayouts);
-		DeleteAndNullify!(FrameAllocator);
+		DeleteAndNullify!(CommandBuffers);
+
+		DeleteAndNullify!(Pipelines);
+		DeleteAndNullify!(PipelineLayouts);
+		DeleteAndNullify!(Shaders);
+
+		DeleteAndNullify!(Samplers);
+		DeleteAndNullify!(Images);
+
 		DeleteAndNullify!(Buffers);
 
+		// Release reference counted items
+		ReleaseItems();
+
+		// Delete VMA allocator
 		vmaDestroyAllocator(VmaAllocator);
 		VmaAllocator = 0;
 
+		// Destroy Vulkan objects
 		Device = .Null;
 	}
 
+	public static void ReleaseNextFrame(DoubleRefCounted item) {
+		toRelease.Add(item);
+	}
+
+	[Tracy.Profile]
 	public static void NewFrame() {
 		// Skip first frame
 		if (firstFrame) {
@@ -116,21 +161,14 @@ static class Gfx {
 
 		// Call managers
 		FrameAllocator.FreeAll();
+		DescriptorSets.NewFrame();
 		CommandBuffers.NewFrame();
-		Pipelines.NewFrame();
+		RenderPasses.NewFrame();
 		Uploads.NewFrame();
 		Queries.NewFrame();
 
-		// Callbacks
-		for (let callback in newFrameCallbacks) {
-			callback();
-		}
-
-		newFrameCallbacks.ClearAndDeleteItems();
-	}
-
-	public static void RunOnNewFrame(delegate void() callback) {
-		newFrameCallbacks.Add(callback);
+		// Release reference counted items
+		ReleaseItems();
 	}
 
 	public static uint64 UsedMemory { get {
@@ -146,6 +184,14 @@ static class Gfx {
 		return usage;
 	} }
 
+	private static void ReleaseItems() {
+		for (DoubleRefCounted item in toRelease) {
+			item.ReleaseWeak();
+		}
+
+		toRelease.Clear();
+	}
+
 	// Initialization
 
 	private static Result<void> CreateInstance() {
@@ -154,7 +200,7 @@ static class Gfx {
 			applicationVersion = Version(0, 1, 0),
 			pEngineName = "Cacti",
 			engineVersion = Version(0, 1, 0),
-			apiVersion = Version(1, 3, 0)
+			apiVersion = Version(1, 2, 0)
 		};
 
 		List<StringView> extensions = Glfw.GetRequiredInstanceExtensions(.. scope .());
@@ -305,13 +351,9 @@ static class Gfx {
 			independentBlend = true,
 		};
 
-		VkPhysicalDeviceHostQueryResetFeatures queryResetFeatures = .() {
+		VkPhysicalDeviceVulkan12Features features12 = .() {
+			separateDepthStencilLayouts = true,
 			hostQueryReset = true
-		};
-
-		VkPhysicalDeviceVulkan13Features features13 = .() {
-			pNext = &queryResetFeatures,
-			dynamicRendering = true
 		};
 
 		char8*[?] layers = .(
@@ -320,10 +362,10 @@ static class Gfx {
 #endif
 		);
 
-		char8*[?] extensions = .("VK_KHR_swapchain", "VK_KHR_dynamic_rendering");
+		char8*[?] extensions = .("VK_KHR_swapchain");
 
 		VkDeviceCreateInfo info = .() {
-			pNext = &features13,
+			pNext = &features12,
 			queueCreateInfoCount = (.) queueInfos.Count,
 			pQueueCreateInfos = queueInfos.Ptr,
 			enabledLayerCount = layers.Count,

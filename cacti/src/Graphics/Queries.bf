@@ -3,7 +3,7 @@ using System;
 using Bulkan;
 using static Bulkan.VulkanNative;
 
-namespace Cacti;
+namespace Cacti.Graphics;
 
 class Queries {
 	public const int MAX_QUERIES = 16 * 2;
@@ -23,6 +23,7 @@ class Queries {
 		vkResetQueryPool(Gfx.Device, pool, 0, MAX_QUERIES);
 	}
 
+	[Tracy.Profile]
 	public void NewFrame() {
 		// Query results
 		Runtime.Assert(i % 2 == 0);

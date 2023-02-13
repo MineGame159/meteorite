@@ -1,6 +1,7 @@
 using System;
 
 using Cacti;
+using Cacti.Graphics;
 using ImGui;
 
 namespace Meteorite;
@@ -102,7 +103,7 @@ class OptionsScreen : Screen {
 
 		using (ImGuiButtons btns = .(3)) {
 			if (btns.Button("Disconnect")) {
-				Gfx.RunOnNewFrame(new () => {
+				me.Execute(new () => {
 					Text text = .Of("Disconnected");
 					me.Disconnect(text);
 

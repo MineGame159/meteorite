@@ -4,7 +4,7 @@ using System.Collections;
 using Bulkan;
 using static Bulkan.VulkanNative;
 
-namespace Cacti;
+namespace Cacti.Graphics;
 
 enum Filter {
 	case Nearest,
@@ -48,10 +48,13 @@ class SamplerManager {
 	private Dictionary<VkSamplerCreateInfo, Sampler> samplers = new .() ~ delete _;
 
 	public ~this() {
-		for (let sampler in samplers.Values) vkDestroySampler(Gfx.Device, sampler, null);
+		for (let sampler in samplers.Values) {
+			vkDestroySampler(Gfx.Device, sampler, null);
+		}
 	}
 
 	public Sampler Get(Filter mag, Filter min, MipmapMode mipmapMode = .Nearest, AddressMode addressModeU = .ClampToEdge, AddressMode addressModeV = .ClampToEdge, AddressMode addressModeW = .ClampToEdge, float minLod = 0, float maxLod = 0) {
+		// Create sampler info
 		VkSamplerCreateInfo info = .() {
 			magFilter = mag.Vk,
 			minFilter = min.Vk,
@@ -63,8 +66,10 @@ class SamplerManager {
 			maxLod = maxLod
 		};
 
+		// Check cache
 		if (samplers.GetValue(info) case .Ok(let val)) return val;
 
+		// Create new sampler
 		VkSampler sampler = ?;
 		vkCreateSampler(Gfx.Device, &info, null, &sampler);
 		samplers[info] = sampler;

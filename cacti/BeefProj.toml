@@ -7,25 +7,25 @@ TargetType = "BeefLib"
 StartupObject = "Cacti.Program"
 
 [Configs.Debug.Win64]
-LibPaths = ["$(ProjectDir)/lib/wolfssl.lib"]
+LibPaths = ["$(ProjectDir)/lib/wolfssl.lib", "$(ProjectDir)/lib/spirv-reflect-static.lib", "$(ProjectDir)/lib/TracyClient.lib"]
 
 [Configs.Debug.Linux64]
-LibPaths = ["$(ProjectDir)/lib/libwolfssl.a"]
+LibPaths = ["$(ProjectDir)/lib/libwolfssl.a", "$(ProjectDir)/lib/libspirv-reflect-static.a", "$(ProjectDir)/lib/libTracyClient.a"]
 
 [Configs.Release.Win64]
-LibPaths = ["$(ProjectDir)/lib/wolfssl.lib"]
+LibPaths = ["$(ProjectDir)/lib/wolfssl.lib", "$(ProjectDir)/lib/spirv-reflect-static.lib", "$(ProjectDir)/lib/TracyClient.lib"]
 
 [Configs.Release.Linux64]
-LibPaths = ["$(ProjectDir)/lib/libwolfssl.a"]
+LibPaths = ["$(ProjectDir)/lib/libwolfssl.a", "$(ProjectDir)/lib/libspirv-reflect-static.a", "$(ProjectDir)/lib/libTracyClient.a"]
 
 [Configs.Paranoid.Win64]
-LibPaths = ["$(ProjectDir)/lib/wolfssl.lib"]
+LibPaths = ["$(ProjectDir)/lib/wolfssl.lib", "$(ProjectDir)/lib/spirv-reflect-static.lib", "$(ProjectDir)/lib/TracyClient.lib"]
 
 [Configs.Paranoid.Linux64]
-LibPaths = ["$(ProjectDir)/lib/libwolfssl.a"]
+LibPaths = ["$(ProjectDir)/lib/libwolfssl.a", "$(ProjectDir)/lib/libspirv-reflect-static.a", "$(ProjectDir)/lib/libTracyClient.a"]
 
 [Configs.Test.Win64]
-LibPaths = ["$(ProjectDir)/lib/wolfssl.lib"]
+LibPaths = ["$(ProjectDir)/lib/wolfssl.lib", "$(ProjectDir)/lib/spirv-reflect-static.lib", "$(ProjectDir)/lib/TracyClient.lib"]
 
 [Configs.Test.Linux64]
-LibPaths = ["$(ProjectDir)/lib/libwolfssl.a"]
+LibPaths = ["$(ProjectDir)/lib/libwolfssl.a", "$(ProjectDir)/lib/libspirv-reflect-static.a", "$(ProjectDir)/lib/libTracyClient.a"]

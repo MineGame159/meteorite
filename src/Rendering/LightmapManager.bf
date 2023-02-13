@@ -1,32 +1,30 @@
 using System;
 
 using Cacti;
+using Cacti.Graphics;
 
 namespace Meteorite;
 
 class LightmapManager {
-	private GpuImage image ~ delete _;
-	private DescriptorSet set ~ delete _;
+	private GpuImage image ~ ReleaseAndNullify!(_);
 	private bool uploaded = true;
 
 	private float flickerIntensity;
 	private bool dirty;
 
 	public this() {
-		image = Gfx.Images.Create(.RGBA, .Normal, .(16, 16), "Lightmap");
-		set = Gfx.DescriptorSets.Create(Gfxa.IMAGE_SET_LAYOUT, .SampledImage(image, .VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, Gfxa.LINEAR_SAMPLER));
+		image = Gfx.Images.Create("Lightmap", .RGBA, .Normal, .(16, 16));
 	}
 
-	public void Bind(CommandBuffer cmds, uint32 index) {
-		cmds.Bind(set, index);
-	}
+	public Descriptor Descriptor => .SampledImage(image, Gfxa.NEAREST_SAMPLER);
 
 	public void Tick() {
 	    flickerIntensity += (float) ((Utils.RANDOM.NextDouble() - Utils.RANDOM.NextDouble()) * Utils.RANDOM.NextDouble() * Utils.RANDOM.NextDouble() * 0.1);
 	    flickerIntensity *= 0.9f;
 		dirty = true;
 	}
-
+	
+	[Tracy.Profile]
 	public void Update(float delta) {
 	    if (!dirty) return;
 	    dirty = false;

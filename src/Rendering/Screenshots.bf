@@ -1,6 +1,7 @@
 using System;
 
 using Cacti;
+using Cacti.Graphics;
 using ImGui;
 
 namespace Meteorite;
@@ -95,11 +96,13 @@ static class Screenshots {
 			height = window.Height;
 		}
 
+		prevSize = window.size;
+
 		width = (.) (width * options.scale);
 		height = (.) (height * options.scale);
 
-		texture = Gfx.Images.Create(.BGRA, .ColorAttachment, .(width, height), "Screenshot");
-		buffer = Gfx.Buffers.Create(.None, .TransferDst | .Mappable, texture.Bytes, "Screenshot");
+		texture = Gfx.Images.Create("Screenshot", .BGRA, .ColorAttachment, .(width, height));
+		buffer = Gfx.Buffers.Create("Screenshot", .None, .TransferDst | .Mappable, texture.GetByteSize());
 
 		ImGuiCacti.customSize = true;
 		ImGuiCacti.size = .(width, height);
@@ -107,11 +110,12 @@ static class Screenshots {
 
 	public static void Save() {
 		rendering = false;
-		
+
+		Meteorite.INSTANCE.window.size = prevSize;
 		ImGuiCacti.customSize = false;
 
 		if (buffer.Map() case .Ok(let data)) {
-			Image image = scope .(texture.size, 4, (.) data, false);
+			Image image = scope .(texture.Size, 4, (.) data, false);
 			image.Write("run/screenshot.png", true);
 
 			Log.Info("Saved screenshot to run/screenshot.png");
@@ -120,7 +124,7 @@ static class Screenshots {
 			Log.Error("Failed to map screenshot buffer");
 		}
 
-		delete buffer;
-		delete texture;
+		ReleaseAndNullify!(buffer);
+		ReleaseAndNullify!(texture);
 	}
 }

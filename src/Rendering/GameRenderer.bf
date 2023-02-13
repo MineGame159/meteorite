@@ -2,23 +2,36 @@ using System;
 using System.Collections;
 
 using Cacti;
+using Cacti.Graphics;
 using ImGui;
 
 namespace Meteorite {
 	class GameRenderer {
 		private Meteorite me = .INSTANCE;
 
-		private List<GpuImage> images = new .() ~ DeleteContainerAndItems!(_);
+		private append Attachments attachments = .();
 
-		public GpuImage mainColor, mainNormal;
-		public GpuImage mainDepth;
-		public GpuImage smaaEdges, smaaBlend;
+		private int mainColorI = -1;
+		public GpuImage MainColor => attachments.Get(mainColorI);
 
-		public DescriptorSet mainColorSet ~ delete _, mainNormalSet ~ delete _, mainDepthSet ~ delete _;
-		public DescriptorSet smaaEdgesSet ~ delete _, smaaBlendSet ~ delete _;
+		private int mainNormalI = -1;
+		public GpuImage MainNormal => attachments.Get(mainNormalI);
 
-		private GpuImage smaaArea ~ delete _, smaaSearch ~ delete _;
-		private DescriptorSet smaaAreaSet ~ delete _, smaaSearchSet ~ delete _;
+		private int mainDepthI = -1;
+		public GpuImage MainDepth => attachments.Get(mainDepthI);
+
+		private int smaaEdgesI = -1;
+		public GpuImage SmaaEdges => attachments.Get(smaaEdgesI);
+
+		private int smaaBlendI = -1;
+		public GpuImage SmaaBlend => attachments.Get(smaaBlendI);
+
+		public Descriptor MainColorDescriptor => .SampledImage(MainColor, Gfxa.LINEAR_SAMPLER);
+		public Descriptor MainNormalDescriptor => .SampledImage(MainNormal, Gfxa.NEAREST_SAMPLER);
+		public Descriptor MainDepthDescriptor => .SampledImage(MainDepth, Gfxa.NEAREST_SAMPLER);
+
+		private GpuImage smaaArea ~ ReleaseAndNullify!(_);
+		private GpuImage smaaSearch ~ ReleaseAndNullify!(_);
 
 		private SSAO ssao ~ delete _;
 
@@ -26,13 +39,9 @@ namespace Meteorite {
 		private bool afterScreenshot;
 
 		public this() {
-			mainColor = ColorImage("Main Color");
-			mainNormal = ColorImage("Main Normal", .RGBA16);
-			mainDepth = DepthImage("Main Depth");
-
-			mainColorSet = Gfx.DescriptorSets.Create(Gfxa.IMAGE_SET_LAYOUT, .SampledImage(mainColor, .VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, Gfxa.LINEAR_SAMPLER));
-			mainNormalSet = Gfx.DescriptorSets.Create(Gfxa.IMAGE_SET_LAYOUT, .SampledImage(mainNormal, .VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, Gfxa.NEAREST_SAMPLER));
-			mainDepthSet = Gfx.DescriptorSets.Create(Gfxa.IMAGE_SET_LAYOUT, .SampledImage(mainDepth, .VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, Gfxa.NEAREST_SAMPLER));
+			mainColorI = attachments.CreateColor("Main Color");
+			mainNormalI = attachments.CreateColor("Main Normal", .RGBA16);
+			mainDepthI = attachments.CreateDepth("Main Depth");
 
 			Input.keyEvent.Add(new => OnKey, -10);
 		}
@@ -54,19 +63,18 @@ namespace Meteorite {
 			me.lightmapManager.Tick();
 		}
 		
+		[Tracy.Profile]
 		public void Render(CommandBuffer cmds, GpuImage target, float delta) {
 			this.delta = delta;
 
 			FrameUniforms.Update();
 			me.lightmapManager.Update(delta);
 
-			if (me.options.ao.HasSSAO && ssao == null) ssao = new .(ColorImage("SSAO", .R8));
+			if (me.options.ao.HasSSAO && ssao == null) ssao = new .(attachments);
 
-			for (GpuImage image in images)
-				image.Resize(target.size);
+			attachments.Resize(target.Size);
 
 			cmds.Begin();
-			cmds.SetViewport(target.size, true, true);
 
 			Color clearColor = me.world != null ? me.world.GetClearColor(me.camera, me.tickCounter.tickDelta) : .(200, 200, 200, 255);
 			bool world = me.world != null && me.worldRenderer != null;
@@ -76,20 +84,36 @@ namespace Meteorite {
 
 				{
 					// Main Pre
-					using (RenderPass pass = Gfx.RenderPasses.Begin(cmds, "Main - Pre", .(mainDepth, 1), .(mainColor, clearColor))) {
-						RenderMainPre(cmds);
+					using (RenderPass pass = Gfx.RenderPasses.New(cmds, "Main - Pre")
+						.Depth(MainDepth, 1)
+						.Color(MainColor, clearColor)
+						.Begin())
+					{
+						pass.SetViewport(target.Size, true, true);
+						RenderMainPre(pass);
 					}
 				}
 				{
 					// Main
-					using (RenderPass pass = Gfx.RenderPasses.Begin(cmds, "Main", .(mainDepth, null), .(mainColor, null), .(mainNormal, .ZERO))) {
-						RenderMain(cmds);
+					using (RenderPass pass = Gfx.RenderPasses.New(cmds, "Main")
+						.Depth(MainDepth)
+						.Color(MainColor)
+						.Color(MainNormal, .ZERO)
+						.Begin())
+					{
+						pass.SetViewport(target.Size, true, true);
+						RenderMain(pass);
 					}
 				}
 				{
 					// Main Post
-					using (RenderPass pass = Gfx.RenderPasses.Begin(cmds, "Main - Post", .(mainDepth, null), .(mainColor, null))) {
-						RenderMainPost(cmds);
+					using (RenderPass pass = Gfx.RenderPasses.New(cmds, "Main - Post")
+						.Depth(MainDepth)
+						.Color(MainColor)
+						.Begin())
+					{
+						pass.SetViewport(target.Size, true, true);
+						RenderMainPost(pass);
 					}
 				}
 
@@ -100,45 +124,41 @@ namespace Meteorite {
 
 				if (me.options.aa.enabled) {
 					// SMAA
-					if (smaaEdges == null) {
-						smaaEdges = ColorImage("SMAA - Edges", .RG8);
-						smaaBlend = ColorImage("SMAA - Blend");
-
-						smaaEdgesSet = Gfx.DescriptorSets.Create(Gfxa.IMAGE_SET_LAYOUT, .SampledImage(smaaEdges, .VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, Gfxa.LINEAR_SAMPLER));
-						smaaBlendSet = Gfx.DescriptorSets.Create(Gfxa.IMAGE_SET_LAYOUT, .SampledImage(smaaBlend, .VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, Gfxa.LINEAR_SAMPLER));
+					if (smaaEdgesI == -1) {
+						smaaEdgesI = attachments.CreateColor("SMAA - Edges", .RG8);
+						smaaBlendI = attachments.CreateColor("SMAA - Blend");
 
 						smaaArea = Gfxa.CreateImage("SMAA_AreaTex.png");
 						smaaSearch = Gfxa.CreateImage("SMAA_SearchTex.png");
-
-						smaaAreaSet = Gfx.DescriptorSets.Create(Gfxa.IMAGE_SET_LAYOUT, .SampledImage(smaaArea, .VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, Gfxa.LINEAR_SAMPLER));
-						smaaSearchSet = Gfx.DescriptorSets.Create(Gfxa.IMAGE_SET_LAYOUT, .SampledImage(smaaSearch, .VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, Gfxa.LINEAR_SAMPLER));
 					}
 
 					// SMAA - Edge Detection
-					cmds.TransitionImage(mainColor, .Sample);
-					cmds.TransitionImage(smaaEdges, .ColorAttachment);
-
-					using (RenderPass pass = Gfx.RenderPasses.Begin(cmds, "SMAA - Edge Detection", null, .(smaaEdges, .ZERO))) {
-						RenderSmaaEdgeDetection(cmds);
+					using (RenderPass pass = Gfx.RenderPasses.New(cmds, "SMAA - Edge Detection")
+						.Color(SmaaEdges, .ZERO)
+						.Begin())
+					{
+						pass.SetViewport(target.Size, true, true);
+						RenderSmaaEdgeDetection(pass);
 					}
 
 					// SMAA - Blending
-					cmds.TransitionImage(smaaEdges, .Sample);
-					cmds.TransitionImage(smaaBlend, .ColorAttachment);
-
-					using (RenderPass pass = Gfx.RenderPasses.Begin(cmds, "SMAA - Blending", null, .(smaaBlend, .ZERO))) {
-						RenderSmaaBlending(cmds);
+					using (RenderPass pass = Gfx.RenderPasses.New(cmds, "SMAA - Blending")
+						.Color(SmaaBlend, .ZERO)
+						.Begin())
+					{
+						pass.SetViewport(target.Size, true, true);
+						RenderSmaaBlending(pass);
 					}
 				}
 
 				{
 					// Post
-					cmds.TransitionImage(mainColor, .Sample);
-					if (me.options.aa.enabled) cmds.TransitionImage(smaaBlend, .Sample);
-					if (ssao != null) ssao.Transition(cmds);
-
-					using (RenderPass pass = Gfx.RenderPasses.Begin(cmds, "Post", null, .(target, .ZERO))) {
-						RenderPost(cmds);
+					using (RenderPass pass = Gfx.RenderPasses.New(cmds, "Post")
+						.Color(target, .ZERO)
+						.Begin())
+					{
+						pass.SetViewport(target.Size, true, true);
+						RenderPost(pass);
 					}
 				}
 			}
@@ -148,14 +168,19 @@ namespace Meteorite {
 				Color? clear = null;
 				if (!world) clear = clearColor;
 
-				using (RenderPass pass = Gfx.RenderPasses.Begin(cmds, "2D", null, .(target, clear))) {
-					Render2D(cmds);
+				using (RenderPass pass = Gfx.RenderPasses.New(cmds, "2D")
+					.Color(target, clear)
+					.Begin())
+				{
+					pass.SetViewport(target.Size, true, true);
+					Render2D(pass);
 				}
 			}
 
 			cmds.End();
 		}
-		
+
+		[Tracy.Profile]
 		private void SetupWorldRendering() {
 			if (me.player != null/* && me.player.gamemode == .Spectator*/) {
 				Vec3d pos = me.player.lastPos.Lerp(me.tickCounter.tickDelta, me.player.pos);
@@ -171,22 +196,26 @@ namespace Meteorite {
 			me.camera.Update(me.options.renderDistance * Section.SIZE * 4);
 		}
 		
-		private void RenderMainPre(CommandBuffer cmds) {
-			me.worldRenderer.RenderPre(cmds, me.tickCounter.tickDelta, delta);
+		[Tracy.Profile]
+		private void RenderMainPre(RenderPass pass) {
+			me.worldRenderer.RenderPre(pass, me.tickCounter.tickDelta, delta);
 		}
 		
-		private void RenderMain(CommandBuffer cmds) {
-			me.worldRenderer.Render(cmds, me.tickCounter.tickDelta, delta);
+		[Tracy.Profile]
+		private void RenderMain(RenderPass pass) {
+			me.worldRenderer.Render(pass, me.tickCounter.tickDelta, delta);
 		}
 		
-		private void RenderMainPost(CommandBuffer cmds) {
-			me.worldRenderer.RenderPost(cmds, me.tickCounter.tickDelta, delta);
+		[Tracy.Profile]
+		private void RenderMainPost(RenderPass pass) {
+			me.worldRenderer.RenderPost(pass, me.tickCounter.tickDelta, delta);
 		}
-
-		private void RenderSmaaEdgeDetection(CommandBuffer cmds) {
-			cmds.Bind(Gfxa.SMAA_EDGE_DETECTION_PIPELINE);
-			FrameUniforms.Bind(cmds);
-			cmds.Bind(mainColorSet, 1);
+		
+		[Tracy.Profile]
+		private void RenderSmaaEdgeDetection(RenderPass pass) {
+			pass.Bind(Gfxa.SMAA_EDGE_DETECTION_PIPELINE);
+			pass.Bind(0, FrameUniforms.Descriptor);
+			pass.Bind(1, MainColorDescriptor);
 
 			MeshBuilder mb = scope .();
 
@@ -197,37 +226,16 @@ namespace Meteorite {
 				mb.Vertex<PostVertex>(.(.(1, -1), .(1, 1)))
 			);
 
-			cmds.Draw(mb.End());
-		}
-
-		private void RenderSmaaBlending(CommandBuffer cmds) {
-			cmds.Bind(Gfxa.SMAA_BLENDING_PIPELINE);
-			FrameUniforms.Bind(cmds);
-			cmds.Bind(smaaEdgesSet, 1);
-			cmds.Bind(smaaAreaSet, 2);
-			cmds.Bind(smaaSearchSet, 3);
-
-			MeshBuilder mb = scope .();
-
-			mb.Quad(
-				mb.Vertex<PostVertex>(.(.(-1, -1), .(0, 1))),
-				mb.Vertex<PostVertex>(.(.(-1, 1), .(0, 0))),
-				mb.Vertex<PostVertex>(.(.(1, 1), .(1, 0))),
-				mb.Vertex<PostVertex>(.(.(1, -1), .(1, 1)))
-			);
-
-			cmds.Draw(mb.End());
+			pass.Draw(mb.End());
 		}
 		
-		private void RenderPost(CommandBuffer cmds) {
-			cmds.Bind(Gfxa.POST_PIPELINE);
-			FrameUniforms.Bind(cmds);
-			cmds.Bind(mainColorSet, 1);
-
-			if (me.options.ao.HasSSAO) ssao.Bind(cmds, 2);
-			else cmds.Bind(Gfxa.PIXEL_SET, 2);
-
-			if (me.options.aa.enabled) cmds.Bind(smaaBlendSet, 3);
+		[Tracy.Profile]
+		private void RenderSmaaBlending(RenderPass pass) {
+			pass.Bind(Gfxa.SMAA_BLENDING_PIPELINE);
+			pass.Bind(0, FrameUniforms.Descriptor);
+			pass.Bind(1, .SampledImage(SmaaEdges, Gfxa.LINEAR_SAMPLER));
+			pass.Bind(2, .SampledImage(smaaArea, Gfxa.LINEAR_SAMPLER));
+			pass.Bind(3, .SampledImage(smaaSearch, Gfxa.LINEAR_SAMPLER));
 
 			MeshBuilder mb = scope .();
 
@@ -238,27 +246,74 @@ namespace Meteorite {
 				mb.Vertex<PostVertex>(.(.(1, -1), .(1, 1)))
 			);
 
-			cmds.Draw(mb.End());
+			pass.Draw(mb.End());
 		}
+		
+		[Tracy.Profile]
+		private void RenderPost(RenderPass pass) {
+			pass.Bind(Gfxa.POST_PIPELINE);
+			pass.Bind(0, FrameUniforms.Descriptor);
+			pass.Bind(1, MainColorDescriptor);
 
-		private void Render2D(CommandBuffer cmds) {
+			if (me.options.ao.HasSSAO) pass.Bind(2, ssao.Descriptor);
+			else pass.Bind(2, Gfxa.PIXEL_DESCRIPTOR);
+
+			if (me.options.aa.enabled) pass.Bind(3, .SampledImage(SmaaBlend, Gfxa.LINEAR_SAMPLER));
+
+			MeshBuilder mb = scope .();
+
+			mb.Quad(
+				mb.Vertex<PostVertex>(.(.(-1, -1), .(0, 1))),
+				mb.Vertex<PostVertex>(.(.(-1, 1), .(0, 0))),
+				mb.Vertex<PostVertex>(.(.(1, 1), .(1, 0))),
+				mb.Vertex<PostVertex>(.(.(1, -1), .(1, 1)))
+			);
+
+			pass.Draw(mb.End());
+		}
+		
+		[Tracy.Profile]
+		private void Render2D(RenderPass pass) {
 			if (ImGuiCacti.NewFrame()) {
-				if (me.world != null && me.player != null) me.hud.Render(cmds, delta);
+				if (me.world != null && me.player != null) me.hud.Render(pass, delta);
 
 				me.Screen?.Render();
 			}
 		}
+	}
 
-		private GpuImage ColorImage(StringView name, ImageFormat format = .BGRA) {
-			GpuImage image = Gfx.Images.Create(format, .ColorAttachment, .(1280, 720), name);
-			images.Add(image);
-			return image;
+	class Attachments {
+		private append List<GpuImage> images = .();
+
+		public ~this() {
+			for (GpuImage image in images) {
+				image.Release();
+			}
 		}
 
-		private GpuImage DepthImage(StringView name) {
-			GpuImage image = Gfx.Images.Create(.Depth, .DepthAttachment, .(1280, 720), name);
+		[Tracy.Profile]
+		public void Resize(Vec2i size) {
+			for (var image in ref images) {
+				Gfx.Images.Resize(ref image, size);
+			}
+		}
+
+		public GpuImage Get(int index) {
+			return images[index];
+		}
+
+		public int CreateColor(StringView name, ImageFormat format = .BGRA) {
+			GpuImage image = Gfx.Images.Create(name, format, .ColorAttachment, .(1280, 720));
+
 			images.Add(image);
-			return image;
+			return images.Count - 1;
+		}
+
+		public int CreateDepth(StringView name) {
+			GpuImage image = Gfx.Images.Create(name, .Depth, .DepthAttachment, .(1280, 720));
+
+			images.Add(image);
+			return images.Count - 1;
 		}
 	}
 }

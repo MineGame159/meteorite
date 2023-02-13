@@ -2,6 +2,7 @@ using System;
 
 using Cacti;
 using Cacti.Json;
+using Cacti.Graphics;
 
 namespace Meteorite {
 	class TextRenderer {
@@ -28,11 +29,13 @@ namespace Meteorite {
 			if (mb == null) mb = new .(false);
 		}
 
-		public void End(CommandBuffer cmds) {
-			cmds.Draw(mb.End(.Frame, Buffers.QUAD_INDICES));
+		[Tracy.Profile]
+		public void End(RenderPass pass) {
+			pass.Draw(mb.End(.Frame, Buffers.QUAD_INDICES));
 			DeleteAndNullify!(mb);
 		}
 
+		[Tracy.Profile]
 		public float Render(float x, float y, StringView text, Color color, bool shadow = true) {
 			float x2 = 0;
 
@@ -89,6 +92,6 @@ namespace Meteorite {
 			return x;
 		}
 
-		public void BindTexture(CommandBuffer cmds) => font.BindTexture(cmds);
+		public Descriptor Descriptor => font.Descriptor;
 	}
 }

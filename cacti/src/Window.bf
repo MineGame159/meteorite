@@ -1,6 +1,7 @@
 using System;
 
 using GLFW;
+using Cacti.Graphics;
 
 namespace Cacti {
 	class Window {
@@ -111,6 +112,7 @@ namespace Cacti {
 
 		public void Close() => Glfw.SetWindowShouldClose(handle, true);
 
+		[Tracy.Profile]
 		public void PollEvents() {
 			Input.[Friend]Update();
 			Glfw.PollEvents();

@@ -82,6 +82,8 @@ namespace Meteorite {
 		}
 
 		private void Receive() {
+			Tracy.RegisterCurrentThread();
+
 			Socket.FDSet set = .();
 			set.Add(s.NativeSocket);
 
@@ -115,7 +117,12 @@ namespace Meteorite {
 
 						if (uncompressedLength != -1) {
 							NetBuffer packet = scope .(uncompressedLength);
-							MiniZ.ReturnStatus status = MiniZ.Uncompress(packet.data, ref uncompressedLength, &buffer.data[buffer.pos], (.) (neededLength + lengthSize - buffer.pos));
+							MiniZ.ReturnStatus status;
+
+							using (Tracy.Zone _ = .(Tracy.GetLocation("Decompress packet"))) {
+								status = MiniZ.Uncompress(packet.data, ref uncompressedLength, &buffer.data[buffer.pos], (.) (neededLength + lengthSize - buffer.pos));
+							}
+
 							packet.size = uncompressedLength;
 
 							if (status == .OK) {
@@ -171,7 +178,8 @@ namespace Meteorite {
 
 			return s.Send(toSend, size);
 		}
-
+		
+		[Tracy.Profile]
 		private void Decrypt(uint8* data, int size) {
 			uint8* decrypted = new:ScopedAlloc! .[size]*;
 

@@ -4,17 +4,26 @@ using System.Collections;
 using Bulkan;
 using static Bulkan.VulkanNative;
 
-namespace Cacti;
+namespace Cacti.Graphics;
 
 class Swapchain {
 	private VkSwapchainKHR handle = .Null ~ vkDestroySwapchainKHR(Gfx.Device, _, null);
-	private List<GpuImage> images = new .() ~ DeleteContainerAndItems!(_);
+	private List<GpuImage> images = new .();
 
 	public bool vsync = true;
 	public uint32 index;
 
 	private bool supportsMailbox;
 
+	public ~this() {
+		for (GpuImage image in images) {
+			image.Release();
+		}
+
+		delete images;
+	}
+
+	[Tracy.Profile]
 	public Result<void> Recreate(Vec2i size) {
 		ImageFormat format = .BGRA;
 
@@ -87,7 +96,10 @@ class Swapchain {
 	}
 
 	private void GetImages(ImageFormat format, Vec2i size) {
-		images.ClearAndDeleteItems();
+		for (GpuImage image in images) {
+			image.Release();
+		}
+		images.Clear();
 
 		uint32 count = 0;
 		vkGetSwapchainImagesKHR(Gfx.Device, handle, &count, null);
@@ -96,7 +108,7 @@ class Swapchain {
 		vkGetSwapchainImagesKHR(Gfx.Device, handle, &count, rawImages.Ptr);
 
 		for (let i < count) {
-			images.Add(new [Friend].(rawImages[i], default, true, format, .ColorAttachment, size, 1, scope $"Swapchain {i}"));
+			images.Add(new [Friend].(rawImages[i], default, true, scope $"Swapchain {i}", format, .ColorAttachment, size, 1));
 
 			if (Gfx.DebugUtilsExt) {
 				VkDebugUtilsObjectNameInfoEXT nameInfo = .() {

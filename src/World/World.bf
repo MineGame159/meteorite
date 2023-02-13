@@ -107,7 +107,8 @@ namespace Meteorite {
 		public Entity GetEntity(int entityId) {
 			return entities.GetValueOrDefault(entityId);
 		}
-
+		
+		[Tracy.Profile]
 		public void Tick() {
 			for (Entity entity in entities.Values) {
 				entity.tickCount++;
@@ -131,7 +132,8 @@ namespace Meteorite {
 			int renderDistance = Meteorite.INSTANCE.options.renderDistance;
 			return Math.Abs(x1 - x2) <= renderDistance + 1 && Math.Abs(z1 - z2) <= renderDistance + 1;
 		}
-
+		
+		[Tracy.Profile]
 		public BlockHitResult Raycast(Vec3d start, Vec3d end) {
 			return Raycast(start, end, scope (pos) => {
 				BlockState blockState = GetBlock(pos);

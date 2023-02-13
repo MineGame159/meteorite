@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 
 using Cacti;
+using Cacti.Graphics;
 
 namespace Meteorite {
 	class BlockEntityRenderDispatcher {
@@ -20,7 +21,8 @@ namespace Meteorite {
 		public void Begin() {
 			
 		}
-
+		
+		[Tracy.Profile]
 		public void Render(BlockEntity blockEntity, double offsetY, float tickDelta) {
 			matrices.Push();
 			matrices.Translate(.(blockEntity.pos.x, blockEntity.pos.y + (.) offsetY, blockEntity.pos.z));
@@ -33,16 +35,17 @@ namespace Meteorite {
 			
 			matrices.Pop();
 		}
-
-		public void End(CommandBuffer cmds, Camera camera) {
-			cmds.Bind(Gfxa.ENTITY_PIPELINE);
-			FrameUniforms.Bind(cmds);
-			Meteorite.INSTANCE.lightmapManager.Bind(cmds, 2);
+		
+		[Tracy.Profile]
+		public void End(RenderPass pass, Camera camera) {
+			pass.Bind(Gfxa.ENTITY_PIPELINE);
+			pass.Bind(0, FrameUniforms.Descriptor);
+			pass.Bind(2, Meteorite.INSTANCE.lightmapManager.Descriptor);
 
 			for (let pair in provider.Meshes) {
-				Meteorite.INSTANCE.textures.Bind(cmds, pair.key);
+				pass.Bind(1, Meteorite.INSTANCE.textures.GetDescriptor(pair.key));
 
-				cmds.Draw(pair.value.End(.Frame, Buffers.QUAD_INDICES));
+				pass.Draw(pair.value.End(.Frame, Buffers.QUAD_INDICES));
 			}
 
 			provider.End();

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Diagnostics;
 
 using Cacti;
+using Cacti.Graphics;
 
 namespace Meteorite;
 
@@ -36,7 +37,8 @@ class ChunkRenderer : IEnumerable<Chunk> {
 	}
 
 	public int VisibleChunkCount => visibleChunks.Count;
-
+	
+	[Tracy.Profile]
 	public void Setup() {
 		visibleChunks.Clear();
 
@@ -69,10 +71,10 @@ class ChunkRenderer : IEnumerable<Chunk> {
 
 				// Get GPU buffer
 				if (data.gpuBuffer == null) {
-					data.gpuBuffer = Gfx.Buffers.Create(.Vertex, .TransferDst, totalSize, scope $"Chunk {chunk.pos.x}, {chunk.pos.z}");
+					data.gpuBuffer = Gfx.Buffers.Create(scope $"Chunk {chunk.pos.x}, {chunk.pos.z}", .Vertex, .TransferDst, totalSize);
 				}
 				else {
-					data.gpuBuffer.EnsureCapacity(totalSize);
+					Gfx.Buffers.EnsureSize(ref data.gpuBuffer, totalSize);
 				}
 
 				// Upload data for all layers
@@ -116,33 +118,39 @@ class ChunkRenderer : IEnumerable<Chunk> {
 		}
 
 		// Sort chunks
-		visibleChunks.Sort(scope (lhs, rhs) => {
-			double x1 = (lhs.pos.x + 0.5) * 16 - me.camera.pos.x;
-			double z1 = (lhs.pos.z + 0.5) * 16 - me.camera.pos.z;
-			double dist1 = x1 * x1 + z1 * z1;
-
-			double x2 = (rhs.pos.x + 0.5) * 16 - me.camera.pos.x;
-			double z2 = (rhs.pos.z + 0.5) * 16 - me.camera.pos.z;
-			double dist2 = x2 * x2 + z2 * z2;
-
-			return dist2.CompareTo(dist1);
-		});
+		using (Tracy.Zone _ = .(Tracy.GetLocation("Sort Chunks"))) {
+			visibleChunks.Sort(scope (lhs, rhs) => {
+				double x1 = (lhs.pos.x + 0.5) * 16 - me.camera.pos.x;
+				double z1 = (lhs.pos.z + 0.5) * 16 - me.camera.pos.z;
+				double dist1 = x1 * x1 + z1 * z1;
+	
+				double x2 = (rhs.pos.x + 0.5) * 16 - me.camera.pos.x;
+				double z2 = (rhs.pos.z + 0.5) * 16 - me.camera.pos.z;
+				double dist2 = x2 * x2 + z2 * z2;
+	
+				return dist1.CompareTo(dist2);
+			});
+		}
 	}
 
-	public void RenderLayer(CommandBuffer cmds, ChunkRenderLayer layer) {
-		// Bind state
-		cmds.PushDebugGroup(scope $"Chunks - {layer}");
-		cmds.Bind(layer == .Solid ? Gfxa.CHUNK_PIPELINE : Gfxa.CHUNK_TRANSPARENT_PIPELINE);
-		FrameUniforms.Bind(cmds);
-		me.textures.Bind(cmds);
-		me.lightmapManager.Bind(cmds, 3);
+	public void RenderLayer(RenderPass pass, ChunkRenderLayer layer) {
+		String name = scope $"Chunks - {layer}";
 
-		cmds.Bind(Buffers.QUAD_INDICES);
+		Tracy.Scoped!(Tracy.GetLocation(name));
+
+		// Bind state
+		pass.PushDebugGroup(name);
+		pass.Bind(layer == .Solid ? Gfxa.CHUNK_PIPELINE : Gfxa.CHUNK_TRANSPARENT_PIPELINE);
+		pass.Bind(0, FrameUniforms.Descriptor);
+		pass.Bind(1, me.textures.ImageDescriptor, me.textures.BufferDescriptor);
+		pass.Bind(2, me.lightmapManager.Descriptor);
+
+		pass.Bind(Buffers.QUAD_INDICES);
 
 		// Layer drawing mixin
 		static mixin Draw(LayerData data, QuadCullFace cullFace) {
 			Draw draw = data.draws[(.) cullFace];
-			if (draw.valid) cmds.DrawIndexed(draw.indexCount, 0, draw.vertexOffset);
+			if (draw.valid) pass.DrawIndexed(draw.indexCount, 0, draw.vertexOffset);
 		}
 
 		// Loop over all visible chunks
@@ -156,8 +164,8 @@ class ChunkRenderer : IEnumerable<Chunk> {
 			if (data.gpuBuffer == null) continue;
 
 			// Bind chunk specific state
-			cmds.Bind(data.gpuBuffer);
-			cmds.SetPushConstants((Vec3d(chunk.pos.x * Section.SIZE, 0, chunk.pos.z * Section.SIZE) - cameraPos).ToFloat);
+			pass.Bind(data.gpuBuffer);
+			pass.SetPushConstants((Vec3d(chunk.pos.x * Section.SIZE, 0, chunk.pos.z * Section.SIZE) - cameraPos).ToFloat);
 			
 			// Render sides
 			Draw!(layerData, QuadCullFace.None);
@@ -172,14 +180,17 @@ class ChunkRenderer : IEnumerable<Chunk> {
 			if (cameraPos.z < chunk.max.z) Draw!(layerData, QuadCullFace.North);
 		}
 
-		cmds.PopDebugGroup();
+		pass.PopDebugGroup();
 	}
 
 	private bool AreNeighboursLoaded(Chunk chunk) {
 		return me.world.IsChunkLoaded(chunk.pos.x + 1, chunk.pos.z) && me.world.IsChunkLoaded(chunk.pos.x - 1, chunk.pos.z) && me.world.IsChunkLoaded(chunk.pos.x, chunk.pos.z + 1) && me.world.IsChunkLoaded(chunk.pos.x, chunk.pos.z - 1);
 	}
-
+	
+	[Tracy.Profile(variable = true)]
 	private void BuildChunk(Chunk chunk) {
+		__tracy_zone.AddText(scope $"{chunk.pos.x}, {chunk.pos.z}");
+
 		ChunkData data = Data!(chunk);
 
 		int minI = (.) chunk.min.y / Section.SIZE;
@@ -265,7 +276,7 @@ class ChunkRenderer : IEnumerable<Chunk> {
 	public class ChunkData {
 		public Status status = .NotReady;
 
-		public GpuBuffer gpuBuffer ~ delete _;
+		public GpuBuffer gpuBuffer ~ ReleaseAndNullify!(_);
 		public LayerData[Enum.GetCount<ChunkRenderLayer>()] layerDatas;
 
 		public this() {

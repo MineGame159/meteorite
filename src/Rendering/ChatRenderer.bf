@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 
 using Cacti;
+using Cacti.Graphics;
 
 namespace Meteorite {
 	class ChatRenderer {
@@ -36,30 +37,31 @@ namespace Meteorite {
 			
 			Log.Info("Chat: {}", message);
 		}
-
-		public void Render(CommandBuffer cmds, float delta) {
+		
+		[Tracy.Profile]
+		public void Render(RenderPass pass, float delta) {
 			me.textRenderer.Begin();
 			MeshBuilder mb = scope .(false);
 
-			RenderMessages(cmds, mb, delta);
-			if (typing) RenderTyping(cmds, mb, delta, true);
+			RenderMessages(pass, mb, delta);
+			if (typing) RenderTyping(pass, mb, delta, true);
 
-			cmds.Bind(Gfxa.PIXEL_SET, 0);
-			cmds.Draw(mb.End(.Frame, Buffers.QUAD_INDICES));
+			pass.Bind(0, Gfxa.PIXEL_DESCRIPTOR);
+			pass.Draw(mb.End(.Frame, Buffers.QUAD_INDICES));
 
-			me.textRenderer.BindTexture(cmds);
-			me.textRenderer.End(cmds);
+			pass.Bind(0, me.textRenderer.Descriptor);
+			me.textRenderer.End(pass);
 
 			if (typing) {
 				mb = scope .(false);
-				RenderTyping(cmds, mb, delta, false);
+				RenderTyping(pass, mb, delta, false);
 
-				cmds.Bind(Gfxa.PIXEL_SET, 0);
-				cmds.Draw(mb.End(.Frame, Buffers.QUAD_INDICES));
+				pass.Bind(0, Gfxa.PIXEL_DESCRIPTOR);
+				pass.Draw(mb.End(.Frame, Buffers.QUAD_INDICES));
 			}
 		}
 
-		private void RenderMessages(CommandBuffer cmds, MeshBuilder mb, float delta) {
+		private void RenderMessages(RenderPass pass, MeshBuilder mb, float delta) {
 			// Remove visible messages if they are displayed for too long
 			for (let message in visibleMessages) {
 				message.timer += delta;
@@ -105,7 +107,7 @@ namespace Meteorite {
 			}
 		}
 
-		private void RenderTyping(CommandBuffer cmds, MeshBuilder mb, float delta, bool first) {
+		private void RenderTyping(RenderPass pass, MeshBuilder mb, float delta, bool first) {
 			if (first) {
 				cursorTimer += delta * 2;
 				if (cursorTimer >= 1) {

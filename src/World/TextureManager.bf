@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 
 using Cacti;
+using Cacti.Graphics;
 
 namespace Meteorite {
 	class TextureManager {
@@ -11,35 +12,42 @@ namespace Meteorite {
 
 		private List<AnimatedTexture> animatedTextures ~ DeleteContainerAndItems!(_);
 
-		private GpuImage texture ~ delete _;
+		private GpuImage texture ~ ReleaseAndNullify!(_);
 
 		private BufferTexture[] bufferData ~ delete _;
-		private GpuBuffer buffer ~ delete _;
+		private GpuBuffer buffer ~ ReleaseAndNullify!(_);
 
-		private DescriptorSet textureSet ~ delete _;
-		private DescriptorSet bufferSet ~ delete _;
-
-		private Dictionary<String, BindableTexture> bindableTextures = new .() ~ DeleteDictionaryAndKeysAndValues!(_);
+		private Dictionary<String, GpuImage> bindableTextures = new .();
 
 		public this() {
 			packer = new .(8192);
 			textures = new .();
 		}
 
-		public void Bind(CommandBuffer cmds, String name) {
-			String outKey;
-			BindableTexture outTexture;
-			if (bindableTextures.TryGet(name, out outKey, out outTexture)) {
-				outTexture.Bind(cmds);
-				return;
+		public ~this() {
+			for (let (path, image) in bindableTextures) {
+				delete path;
+				image.Release();
 			}
 
-			BindableTexture texture = new .(Gfxa.CreateImage(name));
-			texture.Bind(cmds);
-
-			bindableTextures[new .(name)] = texture;
+			delete bindableTextures;
 		}
 
+		public Descriptor ImageDescriptor => .SampledImage(texture, Gfxa.NEAREST_MIPMAP_SAMPLER);
+		public Descriptor BufferDescriptor => .Uniform(buffer);
+
+		public Descriptor GetDescriptor(StringView path) {
+			GpuImage image;
+
+			if (!bindableTextures.TryGetValueAlt(path, out image)) {
+				image = Gfxa.CreateImage(path);
+				bindableTextures[new .(path)] = image;
+			}
+
+			return .SampledImage(image, Gfxa.NEAREST_SAMPLER);
+		}
+		
+		[Tracy.Profile]
 		public void Tick() {
 			// Tick animated textures
 			bool upload = false;
@@ -185,19 +193,10 @@ namespace Meteorite {
 				tex.Dispose();
 			}
 
-			buffer = Gfx.Buffers.Create(.Uniform, .Mappable, (.) (sizeof(BufferTexture) * bufferData.Count), "Textures");
-			buffer.Upload(&bufferData[0], buffer.size);
+			buffer = Gfx.Buffers.Create("Textures", .Uniform, .Mappable, (.) (sizeof(BufferTexture) * bufferData.Count));
+			buffer.Upload(&bufferData[0], buffer.Size);
 			
 			DeleteAndNullify!(textures);
-
-			// Bind groups
-			textureSet = Gfx.DescriptorSets.Create(Gfxa.IMAGE_SET_LAYOUT, .SampledImage(texture, .VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, Gfxa.NEAREST_MIPMAP_SAMPLER));
-			bufferSet = Gfx.DescriptorSets.Create(Gfxa.UNIFORM_SET_LAYOUT, .Uniform(buffer));
-		}
-
-		public void Bind(CommandBuffer cmds) {
-			cmds.Bind(textureSet, 1);
-			cmds.Bind(bufferSet, 2);
 		}
 
 		struct TempTexture : this(String path, UV[] uvs, int size, TextureAnimationMetadata animation) {
@@ -260,17 +259,5 @@ namespace Meteorite {
 		}
 
 		struct UV : this(int index, int x, int y) {}
-
-		class BindableTexture {
-			private DescriptorSet set ~ delete _;
-			private GpuImage image ~ delete _;
-
-			public this(GpuImage texture) {
-				this.set = Gfx.DescriptorSets.Create(Gfxa.IMAGE_SET_LAYOUT, .SampledImage(texture, .VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, Gfxa.NEAREST_SAMPLER));
-				this.image = texture;
-			}
-
-			public void Bind(CommandBuffer cmds) => cmds.Bind(set, 1);
-		}
 	}
 }

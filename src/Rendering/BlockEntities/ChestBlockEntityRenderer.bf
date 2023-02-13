@@ -1,6 +1,7 @@
 using System;
 
 using Cacti;
+using Cacti.Graphics;
 
 namespace Meteorite {
 	class ChestBlockEntityRenderer : BlockEntityRenderer {

@@ -3,31 +3,29 @@ using System.Collections;
 
 using Cacti;
 using Cacti.Json;
+using Cacti.Graphics;
 
 namespace Meteorite {
 	class Font {
-		private GpuImage texture ~ delete _;
+		private GpuImage texture ~ ReleaseAndNullify!(_);
 		private Dictionary<int32, Glyph> glyphs ~ DeleteDictionaryAndValues!(_);
 
 		public int height;
-
-		private DescriptorSet bindGroup ~ delete _;
 
 		public this(GpuImage texture, Dictionary<int32, Glyph> glyphs, int height) {
 			this.texture = texture;
 			this.glyphs = glyphs;
 			this.height = height;
-			this.bindGroup = Gfx.DescriptorSets.Create(Gfxa.IMAGE_SET_LAYOUT, .SampledImage(texture, .VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, Gfxa.NEAREST_SAMPLER));
 		}
 
 		public Glyph GetGlyph(char32 c) => glyphs.GetValueOrDefault((.) c);
-		
-		public void BindTexture(CommandBuffer cmds) => cmds.Bind(bindGroup, 0);
+
+		public Descriptor Descriptor => .SampledImage(texture, Gfxa.NEAREST_SAMPLER);
 
 		public static Font Parse(Json json) {
 			Image image = Meteorite.INSTANCE.resources.ReadImage(json["file"].AsString[10...]);
 
-			GpuImage texture = Gfx.Images.Create(.RGBA, .Normal, image.size, "Font");
+			GpuImage texture = Gfx.Images.Create("Font", .RGBA, .Normal, image.size);
 			Gfx.Uploads.UploadImage(texture, image.pixels);
 
 			int height = json.GetInt("height", 8);

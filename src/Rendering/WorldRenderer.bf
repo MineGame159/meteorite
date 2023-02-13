@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 
 using Cacti;
+using Cacti.Graphics;
 
 namespace Meteorite {
 	class WorldRenderer {
@@ -9,30 +10,31 @@ namespace Meteorite {
 
 		public ChunkRenderer chunkRenderer = new .() ~ delete _;
 
-		public void RenderPre(CommandBuffer cmds, float tickDelta, float delta) {
+		public void RenderPre(RenderPass pass, float tickDelta, float delta) {
 			chunkRenderer.Setup();
 
-			SkyRenderer.Render(cmds, me.world, me.camera, tickDelta);
+			SkyRenderer.Render(pass, me.world, me.camera, tickDelta);
 		}
 
-		public void Render(CommandBuffer cmds, float tickDelta, float delta) {
-			cmds.PushDebugGroup("World");
+		public void Render(RenderPass pass, float tickDelta, float delta) {
+			pass.PushDebugGroup("World");
 
-			chunkRenderer.RenderLayer(cmds, .Solid);
-			RenderBlockEntities(cmds, tickDelta);
-			RenderEntities(cmds, tickDelta);
-			chunkRenderer.RenderLayer(cmds, .Transparent);
+			chunkRenderer.RenderLayer(pass, .Solid);
+			RenderBlockEntities(pass, tickDelta);
+			RenderEntities(pass, tickDelta);
+			chunkRenderer.RenderLayer(pass, .Transparent);
 			
-			cmds.PopDebugGroup();
+			pass.PopDebugGroup();
 		}
 
-		public void RenderPost(CommandBuffer cmds, float tickDelta, float delta) {
-			if (me.player != null && me.player.selection != null && !me.player.selection.missed) RenderBlockSelection(cmds);
-			if (me.options.chunkBoundaries) RenderChunkBoundaries(cmds);
+		public void RenderPost(RenderPass pass, float tickDelta, float delta) {
+			if (me.player != null && me.player.selection != null && !me.player.selection.missed) RenderBlockSelection(pass);
+			if (me.options.chunkBoundaries) RenderChunkBoundaries(pass);
 		}
 
-		private void RenderBlockEntities(CommandBuffer cmds, float tickDelta) {
-			cmds.PushDebugGroup("Block Entities");
+		[Tracy.Profile]
+		private void RenderBlockEntities(RenderPass pass, float tickDelta) {
+			pass.PushDebugGroup("Block Entities");
 			me.blockEntityRenderDispatcher.Begin();
 			
 			for (Chunk chunk in chunkRenderer) {
@@ -41,16 +43,17 @@ namespace Meteorite {
 				}
 			}
 
-			me.blockEntityRenderDispatcher.End(cmds, me.camera);
-			cmds.PopDebugGroup();
+			me.blockEntityRenderDispatcher.End(pass, me.camera);
+			pass.PopDebugGroup();
 		}
 
-		private void RenderEntities(CommandBuffer cmds, float tickDelta) {
-			cmds.PushDebugGroup("Entities");
-			cmds.Bind(Gfxa.ENTITY_PIPELINE);
-			FrameUniforms.Bind(cmds);
-			cmds.Bind(Gfxa.PIXEL_SET, 1);
-			Meteorite.INSTANCE.lightmapManager.Bind(cmds, 2);
+		[Tracy.Profile]
+		private void RenderEntities(RenderPass pass, float tickDelta) {
+			pass.PushDebugGroup("Entities");
+			pass.Bind(Gfxa.ENTITY_PIPELINE);
+			pass.Bind(0, FrameUniforms.Descriptor);
+			pass.Bind(1, Gfxa.PIXEL_DESCRIPTOR);
+			pass.Bind(2, me.lightmapManager.Descriptor);
 
 			MeshBuilder mb = scope .(false);
 			Meteorite me = Meteorite.INSTANCE;
@@ -61,9 +64,9 @@ namespace Meteorite {
 				entity.Render(mb, tickDelta);
 			}
 
-			cmds.Draw(mb.End(.Frame, Buffers.QUAD_INDICES));
+			pass.Draw(mb.End(.Frame, Buffers.QUAD_INDICES));
 
-			cmds.PopDebugGroup();
+			pass.PopDebugGroup();
 		}
 
 		private bool ShouldRenderSelf() {
@@ -71,7 +74,8 @@ namespace Meteorite {
 			//return me.player.gamemode == .Spectator;
 		}
 
-		private void RenderBlockSelection(CommandBuffer cmds) {
+		[Tracy.Profile]
+		private void RenderBlockSelection(RenderPass pass) {
 			Vec3i pos = me.player.selection.blockPos;
 
 			BlockState blockState = me.world.GetBlock(pos);
@@ -80,10 +84,10 @@ namespace Meteorite {
 			VoxelShape shape = blockState.Shape;
 			if (shape == null) return;
 
-			cmds.Bind(Gfxa.LINES_PIPELINE);
+			pass.Bind(Gfxa.LINES_PIPELINE);
 
 			Mat4 projectionView = me.camera.proj * me.camera.viewRotationOnly;
-			cmds.SetPushConstants(projectionView);
+			pass.SetPushConstants(projectionView);
 
 			Color color = .(255, 255, 255, 100);
 			MeshBuilder mb = scope .();
@@ -119,15 +123,16 @@ namespace Meteorite {
 			mb.Line(ib3, it3);
 			mb.Line(ib4, it4);
 
-			cmds.Draw(mb.End());
+			pass.Draw(mb.End());
 		}
 
-		private void RenderChunkBoundaries(CommandBuffer cmds) {
-			cmds.PushDebugGroup("Chunk Boundaries");
-			cmds.Bind(Gfxa.LINES_PIPELINE);
+		[Tracy.Profile]
+		private void RenderChunkBoundaries(RenderPass pass) {
+			pass.PushDebugGroup("Chunk Boundaries");
+			pass.Bind(Gfxa.LINES_PIPELINE);
 
 			Mat4 projectionView = me.camera.proj * me.camera.viewRotationOnly;
-			cmds.SetPushConstants(projectionView);
+			pass.SetPushConstants(projectionView);
 
 			MeshBuilder mb = scope .();
 
@@ -166,9 +171,9 @@ namespace Meteorite {
 			Line(mb, x + 16, z + 48, color2);
 			Line(mb, x + 32, z + 48, color2);
 
-			cmds.Draw(mb.End());
+			pass.Draw(mb.End());
 
-			cmds.PopDebugGroup();
+			pass.PopDebugGroup();
 		}
 
 		private void Line(MeshBuilder mb, int x, int z, Color color) {

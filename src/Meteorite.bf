@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections;
 
 using Cacti;
+using Cacti.Graphics;
 using Bulkan;
 
 namespace Meteorite {
@@ -117,6 +118,7 @@ namespace Meteorite {
 
 		public void Join(StringView ip, int32 port, StringView hostname) {
 			Runtime.Assert(accounts.active != null);
+			Tracy.Message(scope $"Join: {hostname} ({ip}:{port})");
 
 			connection = new .(ip, port, hostname);
 
@@ -131,6 +133,7 @@ namespace Meteorite {
 
 		public void Disconnect(Text reason) {
 			if (connection == null) return;
+			Tracy.Message(scope $"Disconnect: {reason}");
 
 			DeleteAndNullify!(worldRenderer);
 			DeleteAndNullify!(world);
@@ -157,6 +160,7 @@ namespace Meteorite {
 			tasks.Add(task);
 		}
 
+		[Tracy.Profile]
 		private void Tick(float tickDelta) {
 			if (connection != null && connection.closed) {
 				DeleteAndNullify!(connection);
@@ -177,7 +181,8 @@ namespace Meteorite {
 
 			if (!window.minimized) gameRenderer.Tick();
 		}
-
+		
+		[Tracy.Profile]
 		protected override void Update(double delta) {
 			Screenshots.Update();
 
@@ -187,6 +192,7 @@ namespace Meteorite {
 			for (int i < Math.Min(10, tickCount)) Tick(tickCounter.tickDelta);
 		}
 		
+		[Tracy.Profile]
 		protected override void Render(List<CommandBuffer> commandBuffers, GpuImage target, double delta) {
 			if (!window.minimized) {
 				CommandBuffer cmds = Gfx.CommandBuffers.GetBuffer();
@@ -196,6 +202,7 @@ namespace Meteorite {
 			}
 		}
 		
+		[Tracy.Profile]
 		protected override CommandBuffer AfterRender(GpuImage target) {
 			if (Screenshots.rendering) {
 				CommandBuffer cmds = Gfx.CommandBuffers.GetBuffer();
@@ -215,7 +222,8 @@ namespace Meteorite {
 
 			return null;
 		}
-
+		
+		[Tracy.Profile]
 		protected override GpuImage GetTargetImage(VkSemaphore imageAvailableSemaphore) {
 			if (afterScreenshot) {
 				Screenshots.Save();
@@ -225,7 +233,5 @@ namespace Meteorite {
 			swapchainTarget = Gfx.Swapchain.GetImage(imageAvailableSemaphore);
 			return Screenshots.rendering ? Screenshots.texture : swapchainTarget;
 		}
-		
-		protected override GpuImage GetPresentImage() => swapchainTarget;
 	}
 }

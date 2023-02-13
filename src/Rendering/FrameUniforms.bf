@@ -1,6 +1,7 @@
 using System;
 
 using Cacti;
+using Cacti.Graphics;
 
 namespace Meteorite {
 	static class FrameUniforms {
@@ -16,18 +17,16 @@ namespace Meteorite {
 		}
 
 		private static GpuBuffer buffer;
-		private static DescriptorSet set;
 
 		public static void Init() {
-			buffer = Gfx.Buffers.Create(.Uniform, .Mappable, sizeof(Data), "Frame Uniforms");
-			set = Gfx.DescriptorSets.Create(Gfxa.UNIFORM_SET_LAYOUT, .Uniform(buffer));
+			buffer = Gfx.Buffers.Create("Frame Uniforms", .Uniform, .Mappable, sizeof(Data));
 		}
 
 		public static void Destroy() {
-			delete buffer;
-			delete set;
+			ReleaseAndNullify!(buffer);
 		}
 		
+		[Tracy.Profile]
 		public static void Update() {
 			Data data = .();
 
@@ -49,6 +48,6 @@ namespace Meteorite {
 			buffer.Upload(&data, sizeof(Data));
 		}
 
-		public static void Bind(CommandBuffer cmds) => cmds.Bind(set, 0);
+		public static Descriptor Descriptor => .Uniform(buffer);
 	}
 }

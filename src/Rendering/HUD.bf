@@ -1,6 +1,7 @@
 using System;
 
 using Cacti;
+using Cacti.Graphics;
 using ImGui;
 using GLFW;
 
@@ -20,17 +21,18 @@ namespace Meteorite {
 		private double lastTime;
 
 		private char8*[?] aos = .("None", "Vanilla", "SSAO", "Both");
-
-		public void Render(CommandBuffer cmds, float delta) {
+		
+		[Tracy.Profile]
+		public void Render(RenderPass pass, float delta) {
 			if (me.world != null && me.worldRenderer != null) {
-				cmds.Bind(Gfxa.TEX_QUADS_PIPELINE);
-				cmds.Bind(Gfxa.PIXEL_SET, 0);
+				pass.Bind(Gfxa.TEX_QUADS_PIPELINE);
+				pass.Bind(0, Gfxa.PIXEL_DESCRIPTOR);
 	
 				Mat4 pc = me.camera.proj2d;
-				cmds.SetPushConstants(pc);
+				pass.SetPushConstants(pc);
 
-				RenderCrosshair(cmds);
-				chat.Render(cmds, delta);
+				RenderCrosshair(pass);
+				chat.Render(pass, delta);
 			}
 
 			double time = Glfw.GetTime();
@@ -83,7 +85,7 @@ namespace Meteorite {
 			ImGui.End();
 		}
 
-		private void RenderCrosshair(CommandBuffer cmds) {
+		private void RenderCrosshair(RenderPass pass) {
 			Color color = .(200, 200, 200);
 			MeshBuilder mb = scope .();
 
@@ -107,7 +109,7 @@ namespace Meteorite {
 				mb.Vertex<Pos2DUVColorVertex>(.(.(x + s2, y - s1), .(), color))
 			);
 
-			cmds.Draw(mb.End());
+			pass.Draw(mb.End());
 		}
 	}
 }

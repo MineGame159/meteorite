@@ -1,29 +1,28 @@
 using System;
 
 using Cacti;
+using Cacti.Graphics;
 
 namespace Meteorite {
 	class SSAO {
-		private GpuImage ssao;
-		public Pipeline pipeline;
+		private Attachments attachments;
 
-		private GpuBuffer samplesBuffer ~ delete _;
-		private GpuImage noiseTexture ~ delete _;
+		private int ssaoI = -1;
+		private GpuImage Ssao => attachments.Get(ssaoI);
 
-		private DescriptorSet set ~ delete _;
-		private DescriptorSet ssaoSet ~ delete _;
+		public Pipeline pipeline ~ ReleaseAndNullify!(_);
 
-		public this(GpuImage ssao) {
-			this.ssao = ssao;
-			this.ssaoSet = Gfx.DescriptorSets.Create(Gfxa.IMAGE_SET_LAYOUT, .SampledImage(ssao, .VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, Gfxa.NEAREST_SAMPLER));
+		private GpuBuffer samplesBuffer ~ ReleaseAndNullify!(_);
+		private GpuImage noiseTexture ~ ReleaseAndNullify!(_);
 
-			DescriptorSetLayout setLayout = Gfx.DescriptorSetLayouts.Get(.StorageBuffer, .SampledImage);
+		public this(Attachments attachments) {
+			this.attachments = attachments;
+			this.ssaoI = attachments.CreateColor("SSAO", .R8);
 
 			// Pipeline
-			pipeline = Gfx.Pipelines.Get(scope PipelineInfo("SSAO")
+			pipeline = Gfx.Pipelines.Create(scope PipelineInfo("SSAO")
 				.VertexFormat(PostVertex.FORMAT)
-				.Sets(Gfxa.UNIFORM_SET_LAYOUT, Gfxa.IMAGE_SET_LAYOUT, Gfxa.IMAGE_SET_LAYOUT, setLayout)
-				.Shader("ssao", "ssao")
+				.Shader(.File("ssao.vert"), .File("ssao.frag"))
 				.Targets(
 					.(.R8, .Disabled())
 				)
@@ -43,8 +42,8 @@ namespace Meteorite {
 				samples[i] = sample;
 			}
 
-			samplesBuffer = Gfx.Buffers.Create(.Storage, .Mappable, sizeof(Vec4f[64]), "SSAO Samples");
-			samplesBuffer.Upload(&samples, samplesBuffer.size);
+			samplesBuffer = Gfx.Buffers.Create("SSAO Samples", .Storage, .Mappable, sizeof(Vec4f[64]));
+			samplesBuffer.Upload(&samples, samplesBuffer.Size);
 
 			// Noise
 			Vec4f[16] noise = .();
@@ -53,27 +52,23 @@ namespace Meteorite {
 				noise[i] = .((.) random.NextDouble() * 2f - 1f, (.) random.NextDouble() * 2f - 1f, 0, 0);
 			}
 
-			noiseTexture = Gfx.Images.Create(.RGBA32, .ColorAttachment, .(4, 4), "SSAO Noise");
+			noiseTexture = Gfx.Images.Create("SSAO Noise", .RGBA32, .ColorAttachment, .(4, 4));
 			Gfx.Uploads.UploadImage(noiseTexture, &noise);
-
-			// Bind group
-			set = Gfx.DescriptorSets.Create(setLayout, .Storage(samplesBuffer), .SampledImage(noiseTexture, .VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, Gfxa.NEAREST_REPEAT_SAMPLER));
 		}
 
+		[Tracy.Profile]
 		public void Render(CommandBuffer cmds) {
 			Meteorite me = .INSTANCE;
 
-			cmds.PushDebugGroup("SSAO");
-			cmds.TransitionImage(ssao, .ColorAttachment);
-			cmds.TransitionImage(me.gameRenderer.mainNormal, .Sample);
-			cmds.TransitionImage(me.gameRenderer.mainDepth, .Sample);
-
-			using (RenderPass pass = Gfx.RenderPasses.Begin(cmds, "SSAO", null, .(ssao, .WHITE))) {
-				cmds.Bind(pipeline);
-				FrameUniforms.Bind(cmds);
-				cmds.Bind(me.gameRenderer.mainNormalSet, 1);
-				cmds.Bind(me.gameRenderer.mainDepthSet, 2);
-				cmds.Bind(set, 3);
+			using (RenderPass pass = Gfx.RenderPasses.New(cmds, "SSAO")
+				.Color(Ssao, .WHITE)
+				.Begin())
+			{
+				pass.Bind(pipeline);
+				pass.Bind(0, FrameUniforms.Descriptor);
+				pass.Bind(1, me.gameRenderer.MainNormalDescriptor);
+				pass.Bind(2, me.gameRenderer.MainDepthDescriptor);
+				pass.Bind(3, .Uniform(samplesBuffer), .SampledImage(noiseTexture, Gfxa.NEAREST_REPEAT_SAMPLER));
 	
 				MeshBuilder mb = scope .();
 	
@@ -84,11 +79,10 @@ namespace Meteorite {
 					.(.(1, -1), .(1, 1))
 				);
 	
-				cmds.Draw(mb.End());
+				pass.Draw(mb.End());
 			}
 		}
 
-		public void Transition(CommandBuffer cmds) => cmds.TransitionImage(ssao, .Sample);
-		public void Bind(CommandBuffer cmds, uint32 index) => cmds.Bind(ssaoSet, index);
+		public Descriptor Descriptor => .SampledImage(Ssao, Gfxa.NEAREST_SAMPLER);
 	}
 }

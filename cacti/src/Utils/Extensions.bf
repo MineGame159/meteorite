@@ -39,4 +39,25 @@ namespace System {
 			return count;
 		}
 	}
+
+	extension Span<T> {
+		public Self Copy() {
+			Self copy = .(new T[Length]* (?), Length);
+			CopyTo(copy);
+
+			return copy;
+		}
+	}
+
+	extension Span<T> where T : IHashable {
+		public int GetCombinedHashCode() {
+			int hash = Length;
+
+			for (let item in this) {
+				Cacti.Utils.CombineHashCode(ref hash, item);
+			}
+
+			return hash;
+		}
+	}
 }

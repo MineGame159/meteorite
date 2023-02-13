@@ -6,6 +6,8 @@ using System.Collections;
 using Bulkan;
 using static Bulkan.VulkanNative;
 
+using Cacti.Graphics;
+
 namespace Cacti {
 	abstract class Application {
 		public Window window ~ delete _;
@@ -13,6 +15,11 @@ namespace Cacti {
 		public TimeSpan lastFrameTime;
 
 		public this(StringView title) {
+			Thread.CurrentThread.SetName("Main");
+
+			Tracy.Startup();
+			Tracy.RegisterCurrentThread();
+			
 			Log.AddLogger(new ConsoleLogger());
 
 			window = new .(title);
@@ -23,6 +30,8 @@ namespace Cacti {
 		public ~this() {
 			ImGuiCacti.Destroy();
 			Gfx.Destroy();
+
+			Tracy.Shutdown();
 		}
 
 		private bool stop = false;
@@ -46,7 +55,13 @@ namespace Cacti {
 
 			TimeSpan lastTime = sw.Elapsed;
 
+			Tracy.Location syncLocation = Tracy.AllocLocation("GPU Sync");
+			Tracy.Location submitLocation = Tracy.AllocLocation("Submit");
+			Tracy.Location presentLocation = Tracy.AllocLocation("Present");
+
 			while (window.Open) {
+				Tracy.Frame();
+
 				// Calculate delta
 				TimeSpan time = sw.Elapsed;
 				double delta = (time - lastTime).TotalSeconds;
@@ -58,12 +73,13 @@ namespace Cacti {
 
 				if (!window.minimized && !stop) {
 					// GPU Synchronization
-					vkWaitForFences(Gfx.Device, 1, &inFlightFence, true, uint64.MaxValue);
-					vkResetFences(Gfx.Device, 1, &inFlightFence);
+					using (Tracy.Zone _ = .(&syncLocation)) {
+						vkWaitForFences(Gfx.Device, 1, &inFlightFence, true, uint64.MaxValue);
+						vkResetFences(Gfx.Device, 1, &inFlightFence);
+					}
 					
 					// Get targets
 					GpuImage target = GetTargetImage(imageAvailableSemaphore);
-					GpuImage present = GetPresentImage();
 
 					TimeSpan frameStart = sw.Elapsed;
 	
@@ -82,49 +98,42 @@ namespace Cacti {
 					// After render
 					CommandBuffer afterCmds = AfterRender(target);
 					if (afterCmds != null) commandBuffers.Add(afterCmds);
-
-					// Transition target to Present if needed
-					if (present.Access != .Present) {
-						CommandBuffer cmds = Gfx.CommandBuffers.GetBuffer();
-						cmds.Begin();
-	
-						cmds.TransitionImage(present, .Present);
-	
-						cmds.End();
-						commandBuffers.Add(cmds);
-					}
 	
 					// Submit
-					VkCommandBuffer[] rawCommandBuffers = scope .[commandBuffers.Count];
-					for (let commandBuffer in commandBuffers) rawCommandBuffers[@commandBuffer.Index] = commandBuffer.[Friend]handle;
-	
-					VkPipelineStageFlags waitStage = .VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-					VkSubmitInfo submitInfo = .() {
-						waitSemaphoreCount = 1,
-						pWaitSemaphores = &imageAvailableSemaphore,
-						pWaitDstStageMask = &waitStage,
-						commandBufferCount = (.) rawCommandBuffers.Count,
-						pCommandBuffers = rawCommandBuffers.Ptr,
-						signalSemaphoreCount = 1,
-						pSignalSemaphores = &renderFinishedSemaphore
-					};
-	
-					vkQueueSubmit(Gfx.GraphicsQueue, 1, &submitInfo, inFlightFence);
+					using (Tracy.Zone _ = .(&submitLocation)) {
+						VkCommandBuffer[] rawCommandBuffers = scope .[commandBuffers.Count];
+						for (let commandBuffer in commandBuffers) rawCommandBuffers[@commandBuffer.Index] = commandBuffer.[Friend]handle;
+		
+						VkPipelineStageFlags waitStage = .VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+						VkSubmitInfo submitInfo = .() {
+							waitSemaphoreCount = 1,
+							pWaitSemaphores = &imageAvailableSemaphore,
+							pWaitDstStageMask = &waitStage,
+							commandBufferCount = (.) rawCommandBuffers.Count,
+							pCommandBuffers = rawCommandBuffers.Ptr,
+							signalSemaphoreCount = 1,
+							pSignalSemaphores = &renderFinishedSemaphore
+						};
+		
+						vkQueueSubmit(Gfx.GraphicsQueue, 1, &submitInfo, inFlightFence);
+					}
 
 					// Calculate frame time
 					TimeSpan frameEnd = sw.Elapsed;
 					lastFrameTime = frameEnd - frameStart;
 	
 					// Present
-					VkPresentInfoKHR presentInfo = .() {
-						waitSemaphoreCount = 1,
-						pWaitSemaphores = &renderFinishedSemaphore,
-						swapchainCount = 1,
-						pSwapchains = &Gfx.Swapchain.[Friend]handle,
-						pImageIndices = &Gfx.Swapchain.index
-					};
-
-					vkQueuePresentKHR(Gfx.PresentQueue, &presentInfo);
+					using (Tracy.Zone _ = .(&presentLocation)) {
+						VkPresentInfoKHR presentInfo = .() {
+							waitSemaphoreCount = 1,
+							pWaitSemaphores = &renderFinishedSemaphore,
+							swapchainCount = 1,
+							pSwapchains = &Gfx.Swapchain.[Friend]handle,
+							pImageIndices = &Gfx.Swapchain.index
+						};
+	
+						vkQueuePresentKHR(Gfx.PresentQueue, &presentInfo);
+					}
 				}
 
 				// Sleep if the window is minimized
@@ -142,14 +151,8 @@ namespace Cacti {
 			return null;
 		}
 
-
-
-		private GpuImage swapchainImage;
-
 		protected virtual GpuImage GetTargetImage(VkSemaphore imageAvailableSemaphore) {
-			return swapchainImage = Gfx.Swapchain.GetImage(imageAvailableSemaphore);
+			return Gfx.Swapchain.GetImage(imageAvailableSemaphore);
 		}
-
-		protected virtual GpuImage GetPresentImage() => swapchainImage;
 	}
 }
