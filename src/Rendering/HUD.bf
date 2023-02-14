@@ -15,15 +15,21 @@ namespace Meteorite {
 
 		public ChatRenderer chat = new .() ~ delete _;
 
+		private SimpleBumpAllocator alloc = new .() ~ delete _;
+
 		private Average<60> fps = new .() ~ delete _;
 		private Average<60> frameTime = new .() ~ delete _;
 		private Average<60> gpuFrameTime = new .() ~ delete _;
 		private double lastTime;
 
 		private char8*[?] aos = .("None", "Vanilla", "SSAO", "Both");
+
+		private bool debug = false;
 		
 		[Tracy.Profile]
 		public void Render(RenderPass pass, float delta) {
+			alloc.FreeAll();
+
 			if (me.world != null && me.worldRenderer != null) {
 				pass.Bind(Gfxa.TEX_QUADS_PIPELINE);
 				pass.Bind(0, Gfxa.PIXEL_DESCRIPTOR);
@@ -41,12 +47,10 @@ namespace Meteorite {
 
 			fps.Add(1.0 / deltaTime);
 			frameTime.Add(me.lastFrameTime.TotalMilliseconds);
-			gpuFrameTime.Add(Gfx.Queries.total.TotalMilliseconds);
+			gpuFrameTime.Add(Gfx.CommandBuffers.TotalDuration.TotalMilliseconds);
 
 			ImGui.Begin("Meteorite", null, .AlwaysAutoResize);
 			ImGui.Text("FPS: {:0}", fps.Get());
-			ImGui.Text("CPU: {:0.000} ms, GPU: {:0.000} ms", frameTime.Get(), gpuFrameTime.Get());
-			ImGui.Text("CPU: {} MB, GPU: {} MB", Utils.UsedMemory, Gfx.UsedMemory / (1024 * 1024));
 
 			ImGui.Separator();
 			if (me.worldRenderer != null) {
@@ -81,6 +85,61 @@ namespace Meteorite {
 			}
 			else ImGui.Text("Selection:");
 			ImGui.Text("Speed: {:0.#}", me.player.Speed);
+
+			ImGui.End();
+
+			// Debug
+
+			if (!Input.capturingCharacters && Input.IsKeyReleased(.G)) {
+				debug = !debug;
+			}
+
+			if (debug) {
+				RenderDebug();
+			}
+		}
+
+		private void RenderDebug() {
+			ImGui.SetNextWindowSizeConstraints(.(200, 0), .(float.MaxValue, float.MaxValue));
+			ImGui.Begin("Debug", &debug, .AlwaysAutoResize);
+
+			if (ImGui.CollapsingHeader("Basic")) {
+				using (ImGuiTextList list = .(alloc)) {
+					list.Text("FPS:", scope $"{fps.Get():0}");
+					list.Separator();
+
+					list.Text("CPU Frame:", scope $"{frameTime.Get():0.000} ms");
+					list.Text("CPU Memory:", scope $"{Utils.UsedMemory} MB");
+					list.Separator();
+
+					list.Text("GPU Frame:", scope $"{gpuFrameTime.Get():0.000} ms");
+					list.Text("GPU Memory:", scope $"{Gfx.UsedMemory / (1024 * 1024)} MB");
+				}
+			}
+
+			if (ImGui.CollapsingHeader("Graphics object count")) {
+				using (ImGuiTextList list = .(alloc)) {
+					list.Text("Buffers:", Gfx.Buffers.Count);
+					list.Text("Images:", Gfx.Images.Count);
+					list.Text("Samplers:", Gfx.Samplers.Count);
+					list.Separator();
+
+					list.Text("Descriptor Sets:", scope $"{Gfx.DescriptorSets.Count} / {Gfx.DescriptorSetLayouts.Count}");
+					list.Text("Pipelines:", scope $"{Gfx.Pipelines.Count} / {Gfx.PipelineLayouts.Count}");
+					list.Separator();
+
+					list.Text("Framebuffers:", Gfx.RenderPasses.FramebufferCount);
+					list.Text("Render Passes:", Gfx.RenderPasses.Count);
+				}
+			}
+
+			if (ImGui.CollapsingHeader("Render passes")) {
+				using (ImGuiTextList list = .(alloc)) {
+					for (let entry in Gfx.RenderPasses.DurationEntries) {
+						list.Text(entry.name, scope $"{entry.duration.TotalMilliseconds:0.000} ms");
+					}
+				}
+			}
 
 			ImGui.End();
 		}

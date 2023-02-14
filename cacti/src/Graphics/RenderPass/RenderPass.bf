@@ -11,6 +11,7 @@ class RenderPass : IDisposable {
 	private VkRenderPass handle ~ vkDestroyRenderPass(Gfx.Device, _, null);
 
 	private append String name = .();
+	private append GpuQuery query = .();
 
 	private CommandBuffer cmds;
 
@@ -25,6 +26,7 @@ class RenderPass : IDisposable {
 	public VkRenderPass Vk => handle;
 
 	public StringView Name => name;
+	public TimeSpan Duration => query.Duration;
 
 	public CommandBuffer Cmds => cmds;
 

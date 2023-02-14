@@ -12,6 +12,8 @@ class CommandBufferManager {
 	private List<CommandBuffer> freeBuffers = new .() ~ DeleteContainerAndItems!(_);
 	private List<CommandBuffer> usedBuffers = new .() ~ DeleteContainerAndItems!(_);
 
+	public TimeSpan TotalDuration { get; private set; }
+
 	public this() {
 		VkCommandPoolCreateInfo info = .() {
 			queueFamilyIndex = Gfx.FindQueueFamilies(Gfx.PhysicalDevice).graphicsFamily.Value
@@ -23,9 +25,18 @@ class CommandBufferManager {
 
 	[Tracy.Profile]
 	public void NewFrame() {
+		// Calculate total duration
+		TotalDuration = .Zero;
+
+		for (CommandBuffer cmds in usedBuffers) {
+			TotalDuration += cmds.Duration;
+		}
+
+		// Free command buffers
 		freeBuffers.AddRange(usedBuffers);
 		usedBuffers.Clear();
 
+		// Reset pool
 		vkResetCommandPool(Gfx.Device, pool, .None);
 	}
 

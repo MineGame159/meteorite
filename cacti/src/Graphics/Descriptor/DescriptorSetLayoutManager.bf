@@ -9,6 +9,8 @@ namespace Cacti.Graphics;
 class DescriptorSetLayoutManager {
 	private Dictionary<Info, DescriptorSetLayout> layouts = new .() ~ delete _;
 
+	public int Count => layouts.Count;
+
 	public ~this() {
 		for (let pair in layouts) {
 			pair.key.Dispose();

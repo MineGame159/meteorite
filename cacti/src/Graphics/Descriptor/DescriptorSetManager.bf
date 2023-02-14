@@ -11,6 +11,8 @@ class DescriptorSetManager {
 
 	private Dictionary<Info, VkDescriptorSet> sets = new .() ~ delete _;
 
+	public int Count => sets.Count;
+
 	public this() {
 		// Create pool
 		VkDescriptorPoolSize[Enum.GetCount<DescriptorType>()] sizes = .();

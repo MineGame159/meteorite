@@ -53,6 +53,7 @@ class RenderPassBuilder {
 	public Result<RenderPass> Begin() => Gfx.RenderPasses.[Friend]Begin();
 }
 
+// TODO: Do not create new render pass for matching attachments but different name
 class RenderPassManager {
 	private FramebufferManager framebuffers = new .() ~ delete _;
 	
@@ -61,7 +62,14 @@ class RenderPassManager {
 	
 	private append RenderPassBuilder builder = .();
 
+	private append SimpleBumpAllocator alloc = .();
+	private append List<RenderPass> usedPasses = .();
+	private append List<Entry> durationEntries = .();
+	
+	public int FramebufferCount => framebuffers.Count;
 	public int Count => passes.Count;
+
+	public Span<Entry> DurationEntries => durationEntries;
 
 	public void Destroy() {
 		for (let (info, pass) in passes) {
@@ -76,6 +84,21 @@ class RenderPassManager {
 
 	[Tracy.Profile]
 	public void NewFrame() {
+		// Set render pass entries
+		for (let entry in durationEntries) {
+			delete:alloc entry.name;
+		}
+
+		durationEntries.Clear();
+		alloc.FreeAll();
+
+		for (let pass in usedPasses) {
+			durationEntries.Add(.(new:alloc .(pass.Name), pass.Duration));
+		}
+
+		usedPasses.Clear();
+
+		// Delete old render passes
 		for (let (info, pass) in passes) {
 			if (info.HasNoReferences()) {
 				info.Dispose();
@@ -85,6 +108,7 @@ class RenderPassManager {
 			}
 		}
 
+		// Call framebuffers new frame
 		framebuffers.NewFrame();
 	}
 
@@ -99,6 +123,7 @@ class RenderPassManager {
 		Debug.Assert(pass.Cmds.[Friend]currentPass != null);
 
 		vkCmdEndRenderPass(pass.Cmds.Vk);
+		pass.Cmds.EndQuery(pass.[Friend]query);
 		pass.Cmds.PopDebugGroup();
 
 		pass.[Friend]cmds = null;
@@ -167,6 +192,7 @@ class RenderPassManager {
 		};
 
 		builder.[Friend]cmds.PushDebugGroup(builder.[Friend]name);
+		builder.[Friend]cmds.BeginQuery(pass.[Friend]query);
 		vkCmdBeginRenderPass(builder.[Friend]cmds.Vk, &info, .VK_SUBPASS_CONTENTS_INLINE);
 
 		// Set some state
@@ -182,6 +208,7 @@ class RenderPassManager {
 		}
 
 		pass.[Friend]Prepare();
+		usedPasses.Add(pass);
 
 		return pass;
 	}
@@ -324,24 +351,26 @@ class RenderPassManager {
 	}
 	
 	struct Info : IEquatable<Self>, IHashable, IDisposable {
+		private String name;
 		private DepthAttachment? depthAttachment;
 		private Span<ColorAttachment> colorAttachments;
 
 		private int hash;
 		private bool copied;
 
-		private this(DepthAttachment? depthAttachment, Span<ColorAttachment> colorAttachments, bool copied) {
+		private this(String name, DepthAttachment? depthAttachment, Span<ColorAttachment> colorAttachments, bool copied) {
+			this.name = name;
 			this.depthAttachment = depthAttachment;
 			this.colorAttachments = colorAttachments;
 
-			this.hash = Utils.CombineHashCode(Utils.GetNullableHashCode(depthAttachment), colorAttachments.GetCombinedHashCode());
+			this.hash = Utils.CombineHashCode(Utils.CombineHashCode(name.GetHashCode(), Utils.GetNullableHashCode(depthAttachment)), colorAttachments.GetCombinedHashCode());
 			this.copied = copied;
 		}
 
-		public static Self Point(RenderPassBuilder builder) => .(builder.[Friend]depthAttachment, builder.[Friend]colorAttachments, false);
+		public static Self Point(RenderPassBuilder builder) => .(builder.[Friend]name, builder.[Friend]depthAttachment, builder.[Friend]colorAttachments, false);
 
 		public static Self Copy(Self info) {
-			return .(info.depthAttachment, info.colorAttachments.Copy(), true);
+			return .(new .(info.name), info.depthAttachment, info.colorAttachments.Copy(), true);
 		}
 
 		public bool HasNoReferences() {
@@ -365,6 +394,7 @@ class RenderPassManager {
 		public bool Equals(Self other) {
 			if (depthAttachment != other.depthAttachment) return false;
 			if (colorAttachments.Length != other.colorAttachments.Length) return false;
+			if (name != other.name) return false;
 
 			for (int i < colorAttachments.Length) {
 				if (colorAttachments[i] != other.colorAttachments[i]) return false;
@@ -383,10 +413,13 @@ class RenderPassManager {
 			}
 
 			if (copied) {
+				delete name;
 				delete colorAttachments.Ptr;
 			}
 		}
 
 		public static bool operator==(Self lhs, Self rhs) => lhs.Equals(rhs);
 	}
+	
+	public struct Entry : this(String name, TimeSpan duration) {}
 }

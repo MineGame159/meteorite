@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 
 using Bulkan;
 using Bulkan.Utilities;
@@ -21,11 +22,15 @@ class CommandBuffer {
 	private VkCommandBuffer handle;
 	private bool building;
 
+	private append GpuQuery query = .();
+
 	private RenderPass currentPass;
 
 	// Properties
 
 	public VkCommandBuffer Vk => handle;
+
+	public TimeSpan Duration => query.Duration;
 
 	// Constructors / Destructors
 
@@ -43,7 +48,7 @@ class CommandBuffer {
 		};
 
 		vkBeginCommandBuffer(handle, &info);
-		vkCmdWriteTimestamp(handle, .VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, Gfx.Queries.pool, Gfx.Queries.Get());
+		BeginQuery(query);
 
 		building = true;
 	}
@@ -51,10 +56,20 @@ class CommandBuffer {
 	public void End() {
 		Runtime.Assert(building);
 
-		vkCmdWriteTimestamp(handle, .VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, Gfx.Queries.pool, Gfx.Queries.Get());
+		EndQuery(query);
 		vkEndCommandBuffer(handle);
 
 		building = false;
+	}
+
+	public void BeginQuery(GpuQuery query) {
+		Gfx.Queries.[Friend]Prepare(query);
+		vkCmdWriteTimestamp(handle, .VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, Gfx.Queries.pool, query.[Friend]startId);
+	}
+
+	public void EndQuery(GpuQuery query) {
+		Debug.Assert(query.[Friend]endId != GpuQueryManager.MAX_QUERIES);
+		vkCmdWriteTimestamp(handle, .VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, Gfx.Queries.pool, query.[Friend]endId);
 	}
 
 	public void TransitionImage(GpuImage image, ImageAccess next, int mipLevel = 0) {

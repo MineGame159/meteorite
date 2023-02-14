@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 
 using ImGui;
 
@@ -269,5 +270,109 @@ struct ImGuiButtons : IDisposable {
 		}
 
 		return ImGui.Button(label.ToScopeCStr!(), .(width, 0));
+	}
+}
+
+struct ImGuiTextList : IDisposable {
+	public const int MAX_COUNT = 32;
+
+	private IRawAllocator alloc;
+	private float spaceWidth;
+
+	private Entry[MAX_COUNT] entries;
+	private int entryCount;
+
+	public this(IRawAllocator alloc) {
+		this.alloc = alloc;
+		this.spaceWidth = ImGui.CalcTextSize(" ").x;
+
+		this.entries = ?;
+		this.entryCount = 0;
+	}
+
+	public void Dispose() {
+		// Calculate max left width
+		float leftWidth = 0;
+
+		for (int i < entryCount) {
+			let entry = entries[i];
+
+			if (!entry.separator) {
+				leftWidth = Math.Max(leftWidth, ImGui.CalcTextSize(entry.left.Ptr).x);
+			}
+		}
+
+		// Calculate max right width
+		float rightWidth = 0;
+
+		for (int i < entryCount) {
+			let entry = entries[i];
+
+			if (!entry.separator) {
+				rightWidth = Math.Max(rightWidth, ImGui.CalcTextSize(entry.right.Ptr).x);
+			}
+		}
+
+		// Calculate width
+		float width = Math.Max(leftWidth + spaceWidth * 2 + rightWidth, ImGui.GetContentRegionMax().x);
+
+		// Display
+		ImGui.PushItemWidth(width);
+
+		for (int i < entryCount) {
+			let entry = entries[i];
+
+			if (entry.separator) {
+				ImGui.Separator();
+			}
+			else {
+				ImGui.[Friend]TextImpl(entry.left.Ptr);
+
+				ImGui.SameLine(width - ImGui.CalcTextSize(entry.right.Ptr).x);
+				ImGui.[Friend]TextImpl(entry.right.Ptr);
+			}
+
+			entry.Delete(alloc);
+		}
+
+		ImGui.PopItemWidth();
+	}
+
+	public void Text(StringView left, StringView right) mut {
+		if (entryCount >= MAX_COUNT) Internal.FatalError("Exceeded maximum entry count");
+
+		mixin Alloc(StringView str) {
+			String copy = new:alloc .(str.Length + 1);
+
+			copy.Append(str);
+			copy.Append('\0');
+
+			copy
+		}
+
+		entries[entryCount++] = .(Alloc!(left), Alloc!(right), false);
+	}
+
+	public void Text(StringView left, String right) mut {
+		Text(left, (StringView) right);
+	}
+
+	public void Text<T>(StringView left, T right) mut {
+		Text(left, (StringView) right.ToString(.. scope .()));
+	}
+
+	public void Separator() mut {
+		if (entryCount >= MAX_COUNT) Internal.FatalError("Exceeded maximum entry count");
+
+		entries[entryCount++] = .(null, null, true);
+	}
+
+	struct Entry : this(String left, String right, bool separator) {
+		public void Delete(IRawAllocator alloc) {
+			if (!separator) {
+				delete:alloc left;
+				delete:alloc right;
+			}
+		}
 	}
 }

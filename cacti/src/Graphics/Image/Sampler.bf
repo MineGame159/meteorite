@@ -47,6 +47,8 @@ typealias Sampler = VkSampler;
 class SamplerManager {
 	private Dictionary<VkSamplerCreateInfo, Sampler> samplers = new .() ~ delete _;
 
+	public int Count => samplers.Count;
+
 	public ~this() {
 		for (let sampler in samplers.Values) {
 			vkDestroySampler(Gfx.Device, sampler, null);

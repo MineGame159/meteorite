@@ -10,6 +10,8 @@ class FramebufferManager {
 	private Dictionary<Layout, Dictionary<Info, VkFramebuffer>> cache = new .() ~ delete _;
 	private int count;
 
+	public int Count => count;
+
 	public void Destroy() {
 		for (let (layout, framebuffers) in cache) {
 			for (let (info, framebuffer) in framebuffers) {
@@ -22,6 +24,7 @@ class FramebufferManager {
 		}
 
 		cache.Clear();
+		count = 0;
 	}
 
 	public void NewFrame() {
@@ -44,6 +47,7 @@ class FramebufferManager {
 					vkDestroyFramebuffer(Gfx.Device, framebuffer, null);
 	
 					@info.Remove();
+					count--;
 				}
 			}
 		}

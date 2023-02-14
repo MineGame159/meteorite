@@ -39,7 +39,7 @@ static class Gfx {
 	public static RenderPassManager RenderPasses;
 
 	public static UploadManager Uploads;
-	public static Queries Queries;
+	public static GpuQueryManager Queries;
 
 	public static Swapchain Swapchain;
 
