@@ -205,7 +205,7 @@ namespace Meteorite {
 				matrix = matrix.Rotate(.(0, 0, 1), 90);
 				pc1.projectionView = baseMatrix * matrix;
 
-				pass.SetPushConstants(pc1);
+				pass.SetPushConstants(pc1.projectionView);
 				MeshBuilder mb = scope .();
 
 				Color color = .(sunriseColor.Value.x, sunriseColor.Value.y, sunriseColor.Value.z, sunriseColor.Value.w);

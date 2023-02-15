@@ -4,12 +4,22 @@ using System.Collections;
 
 namespace Cacti.Graphics;
 
-class ShaderInfo {
+class ShaderInfo : IEquatable<Self>, IEquatable, IHashable {
 	private Dictionary<int, DescriptorType>[PipelineInfo.MAX_DESCRIPTOR_SETS] sets;
 	private uint32 pushConstantSize;
 
 	public Dictionary<int, DescriptorType>[PipelineInfo.MAX_DESCRIPTOR_SETS] Sets => sets;
 	public uint32 PushConstantSize => pushConstantSize;
+
+	public int SetCount { get {
+		int count = 0;
+
+		for (let set in sets) {
+			if (set != null) count++;
+		}
+
+		return count;
+	} }
 
 	public this() {}
 
@@ -109,6 +119,49 @@ class ShaderInfo {
 		}
 
 		types
+	}
+
+	public bool Equals(Self other) {
+		if (pushConstantSize != other.pushConstantSize) return false;
+
+		for (int i < sets.Count) {
+			let set1 = sets[i];
+			let set2 = other.sets[i];
+
+			if (set1.Count != set2.Count) return false;
+
+			for (let (location, type) in set1) {
+				DescriptorType otherType;
+
+				if (set2.TryGetValue(location, out otherType)) {
+					if (type != otherType) return false;
+				}
+				else {
+					return false;
+				}
+			}
+		}
+
+		return true;
+	}
+
+	public bool Equals(Object other) {
+		return (other is Self) ? Equals((Self) other) : false;
+	}
+
+	public int GetHashCode() {
+		int hash = Utils.CombineHashCode(pushConstantSize, sets.Count);
+
+		for (let set in sets) {
+			if (set == null) continue;
+
+			for (let (location, type) in set) {
+				Utils.CombineHashCode(ref hash, location);
+				Utils.CombineHashCode(ref hash, type);
+			}
+		}
+
+		return hash;
 	}
 }
 

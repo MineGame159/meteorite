@@ -30,9 +30,9 @@ class PipelineLayoutManager {
 		}
 
 		// Create layout
-		VkDescriptorSetLayout* setLayouts = scope .[info.Sets.Count]*;
+		VkDescriptorSetLayout* setLayouts = scope .[info.SetCount]*;
 
-		for (int i < info.Sets.Count) {
+		for (int i < info.SetCount) {
 			setLayouts[i] = Gfx.DescriptorSetLayouts.Get(info.GetSet!(i));
 		}
 
@@ -42,7 +42,7 @@ class PipelineLayoutManager {
 		};
 
 		VkPipelineLayoutCreateInfo createInfo = .() {
-			setLayoutCount = (.) info.Sets.Count,
+			setLayoutCount = (.) info.SetCount,
 			pSetLayouts = setLayouts,
 			pushConstantRangeCount = info.PushConstantSize > 0 ? 1 : 0,
 			pPushConstantRanges = &pushConstants

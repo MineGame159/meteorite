@@ -8,6 +8,7 @@ namespace Cacti {
 	static class Utils {
 		public static Random RANDOM = new .() ~ delete _;
 
+		[NoDiscard]
 		public static int CombineHashCode(int h1, int h2) => (((h1 << 5) + h1) ^ h2);
 
 		public static void CombineHashCode(ref int hash, int other) => hash = CombineHashCode(hash, other);
