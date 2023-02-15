@@ -308,21 +308,33 @@ static class Gfx {
 		VkPhysicalDevice[] devices = scope .[count];
 		vkEnumeratePhysicalDevices(Instance, &count, devices.Ptr);
 
+		VkPhysicalDevice lastValidDevice = .Null;
+		VkPhysicalDeviceProperties lastValidDeviceProperties = ?;
+
 		for (let device in devices) {
 			VkPhysicalDeviceProperties properties = ?;
 			vkGetPhysicalDeviceProperties(device, &properties);
 
 			QueueFamilyIndices indices = FindQueueFamilies(device);
 
-			if (properties.deviceType == .VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && indices.Complete) {
-				PhysicalDevice = device;
+			if (indices.Complete) {
+				lastValidDevice = device;
+				lastValidDeviceProperties = properties;
 
-				Log.Info("GPU: {}", properties.deviceName);
-				return .Ok;
+				if (properties.deviceType == .VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+					break;
+				}
 			}
 		}
 
-		return Log.ErrorResult("Failed to find a suitable GPU");
+		if (lastValidDevice == .Null) {
+			return Log.ErrorResult("Failed to find a suitable GPU");
+		}
+
+		Log.Info("GPU: {}", lastValidDeviceProperties.deviceName);
+		PhysicalDevice = lastValidDevice;
+
+		return .Ok;
 	}
 
 	private static Result<void> CreateDevice() {
