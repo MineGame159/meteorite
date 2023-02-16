@@ -82,9 +82,9 @@ class Swapchain {
 			info.queueFamilyIndexCount = 2;
 			info.pQueueFamilyIndices = &queueFamilyIndices;
 		}
-
-		vkCreateSwapchainKHR(Gfx.Device, &info, null, &handle);
-		if (handle == .Null) return Log.ErrorResult("Failed to create Vulkan swapchain");
+		
+		VkResult result = vkCreateSwapchainKHR(Gfx.Device, &info, null, &handle);
+		if (result != .VK_SUCCESS) return Log.ErrorResult("Failed to create Vulkan swapchain: {}", result);
 
 		if (info.imageExtent.width != size.x || info.imageExtent.height != size.y) {
 			Log.Warning("Selected swapchain size does not match requested size. Selected: [{}, {}] Requested: [{}, {}]", info.imageExtent.width, info.imageExtent.height, size.x, size.y);

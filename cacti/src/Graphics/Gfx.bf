@@ -161,11 +161,11 @@ static class Gfx {
 
 		// Call managers
 		FrameAllocator.FreeAll();
+		Queries.NewFrame();
 		DescriptorSets.NewFrame();
 		CommandBuffers.NewFrame();
 		RenderPasses.NewFrame();
 		Uploads.NewFrame();
-		Queries.NewFrame();
 
 		// Release reference counted items
 		ReleaseItems();
