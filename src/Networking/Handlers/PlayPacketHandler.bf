@@ -62,12 +62,21 @@ namespace Meteorite {
 				}
 			}
 
-			Runtime.Assert(dimensionType != null, "Failed to find dimenstion type");
+			Runtime.Assert(dimensionType != null, "Failed to find dimension type");
 
 			me.world = new .(dimensionType);
 			me.worldRenderer = new .();
 
 			firstPlayerPositionAndLook = true;
+
+			// Read biomes registry
+			if (packet.registryCodec.Contains(BuiltinRegistries.BIOMES.Key.Full)) {
+				Registry<Biome> biomes = new .(BuiltinRegistries.BIOMES.Key);
+
+				biomes.Parse(packet.registryCodec[BuiltinRegistries.BIOMES.Key.Full]["value"], scope => Biomes.Parse);
+
+				me.world.registries.Biomes = biomes;
+			}
 		}
 
 		private void OnPlayerAbilities(PlayerAbilitiesS2CPacket packet) {

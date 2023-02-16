@@ -3,7 +3,7 @@ using System;
 using Cacti;
 
 namespace Meteorite {
-	class Biome : IID {
+	class Biome : IRegistryEntry {
 		private static Color[] GRASS_COLORS ~ delete _;
 		private static Color[] FOLIAGE_COLORS ~ delete _;
 
@@ -28,14 +28,20 @@ namespace Meteorite {
 			}
 		}
 
-		public String name ~ delete _;
-		public int32 id { get; set; }
+		private ResourceKey key;
+		private int32 id;
 
 		public float temperature, downfall;
 		public Color waterColor, skyColor, fogColor;
 
-		public this(StringView name, int32 id, float temperature, float downfall, Color waterColor, Color skyColor, Color fogColor) {
-			this.name = new .(name);
+		public ResourceKey Key => key;
+		public int32 Id => id;
+
+		[AllowAppend]
+		public this(ResourceKey key, int32 id, float temperature, float downfall, Color waterColor, Color skyColor, Color fogColor) {
+			ResourceKey _key = append .(key);
+
+			this.key = _key;
 			this.id = id;
 
 			this.temperature = temperature;

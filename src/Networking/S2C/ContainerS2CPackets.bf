@@ -48,7 +48,7 @@ class SetContainerItemS2CPacket : S2CPacket {
 		bool present = buf.ReadBool();
 		if (!present) return null;
 
-		Item item = Items.ITEMS[buf.ReadVarInt()];
+		Item item = BuiltinRegistries.ITEMS.Get(buf.ReadVarInt());
 		int stackSize = buf.ReadByte();
 
 		Tag? nbt;

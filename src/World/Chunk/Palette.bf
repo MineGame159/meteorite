@@ -8,7 +8,7 @@ namespace Meteorite {
 		int32 GetId(T value);
 	}
 
-	class IndirectPalette<T> : IPalette<T> where T : IID {
+	class IndirectPalette<T> : IPalette<T> where T : IRegistryEntry {
 		private T[] global;
 		private List<int32> list ~ delete _;
 
@@ -23,15 +23,15 @@ namespace Meteorite {
 
 		public int32 GetId(T value) {
 			for (int32 i < (.) list.Count) {
-				if (list[i] == value.id) return i;
+				if (list[i] == value.Id) return i;
 			}
 
-			list.Add(value.id);
+			list.Add(value.Id);
 			return (.) list.Count - 1;
 		}
 	}
 
-	class DirectPalette<T> : IPalette<T> where T : IID {
+	class DirectPalette<T> : IPalette<T> where T : IRegistryEntry {
 		private T[] global;
 
 		public this(T[] global) {
@@ -40,6 +40,6 @@ namespace Meteorite {
 
 		public T GetValue(int32 id) => global[id];
 		
-		public int32 GetId(T value) => value.id;
+		public int32 GetId(T value) => value.Id;
 	}
 }

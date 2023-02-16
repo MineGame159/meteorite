@@ -17,16 +17,22 @@ class ItemSettings {
 	}
 }
 
-class Item {
-	public String id ~ delete _;
-	public int32 rawId;
+class Item : IRegistryEntry {
+	private ResourceKey key;
+	private int32 id;
 
 	public int stackSize;
 	public int durability;
 
-	public this(StringView id, int32 rawId, ItemSettings settings) {
-		this.id = new .(id);
-		this.rawId = rawId;
+	public ResourceKey Key => key;
+	public int32 Id => id;
+
+	[AllowAppend]
+	public this(ResourceKey key, int32 id, ItemSettings settings) {
+		ResourceKey _key = append .(key);
+
+		this.key = _key;
+		this.id = id;
 
 		stackSize = settings.stackSize;
 		durability = settings.durability;

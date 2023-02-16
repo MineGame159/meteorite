@@ -6,6 +6,7 @@ using Cacti;
 
 namespace Meteorite {
 	class World : IBlockGetter {
+		public append Registries registries = .();
 		public DimensionType dimension ~ delete _;
 
 		private Dictionary<ChunkPos, Chunk> chunks;
@@ -251,7 +252,7 @@ namespace Meteorite {
 
 		public Vec3f GetSkyColor(Vec3f cameraPos, double tickDelta) {
 			float f = GetSkyAngle();
-			Vec3f vec3 = (cameraPos - Vec3f(2, 2, 2)) * Vec3f(0.25f, 0.25f, 0.25f);
+			Vec3f vec3 = cameraPos - Vec3f(2, 2, 2);
 			Vec3f vec32 = CubicSampler.SampleColor(vec3, scope (x, y, z) => GetBiome(x, y, z).skyColor.ToVec3f);
 			float g = Math.Cos(f * (float) (Math.PI_d * 2)) * 2.0F + 0.5F;
 			g = Math.Clamp(g, 0.0F, 1.0F);
@@ -358,7 +359,7 @@ namespace Meteorite {
 				float t = (float)vec3.y;
 				float u = (float)vec3.z;
 				float v = Math.Clamp(Math.Cos(GetSkyAngle() * (float) (Math.PI_f * 2)) * 2.0F + 0.5F, 0.0F, 1.0F);
-				Vec3f vec32 = (camera.pos.ToFloat - Vec3f(2, 2, 2)) * Vec3f(0.25f, 0.25f, 0.25f);
+				Vec3f vec32 = camera.pos.ToFloat - Vec3f(2, 2, 2);
 				Vec3f vec33 = CubicSampler.SampleColor(vec32, scope (x, y, z) => GetBrightnessDependentFogColor(GetBiome(x, y, z).fogColor.ToVec3f, v));
 				fogRed = (float)vec33.x;
 				fogGreen = (float)vec33.y;

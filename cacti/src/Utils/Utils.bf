@@ -98,6 +98,18 @@ namespace Cacti {
 			return nulable.HasValue ? nulable.Value.GetHashCode() : 159;
 		}
 
+		public static T SwapBytes<T>(T value) where T : struct {
+#unwarn
+			uint8* bytes = (.) &value;
+
+			uint8[sizeof(T)] newBytes = ?;
+			for (int i < sizeof(T)) {
+				newBytes[i] = bytes[sizeof(T) - 1 - i];
+			}
+
+			return *(T*) &newBytes;
+		}
+
 #if BF_PLATFORM_WINDOWS
 		[CRepr]
 		struct ProcessMemoryCounters {

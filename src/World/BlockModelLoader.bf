@@ -20,12 +20,12 @@ namespace Meteorite{
 			Dictionary<String, List<Quad>> textures = new .();
 
 			// Load models
-			for (Block block in Registry.BLOCKS) {
+			for (Block block in BuiltinRegistries.BLOCKS) {
 				// Read blockstate json
 				Json? blockstateJson = GetMergedBlockstateJson(block);
 
 				if (blockstateJson == null) {
-					Log.Error("Failed to find blockstate file for block with id '{}'", block.id);
+					Log.Error("Failed to find blockstate file for block with id '{}'", block.Key);
 				}
 
 				// Loop all block states
@@ -89,7 +89,7 @@ namespace Meteorite{
 		}
 
 		private static Json? GetMergedBlockstateJson(Block block) {
-			String path = scope $"blockstates/{block.id}.json";
+			String path = scope $"blockstates/{block.Key.Path}.json";
 			Json? json = null;
 
 			Meteorite.INSTANCE.resources.ReadJsons(path, scope [&](j) => {

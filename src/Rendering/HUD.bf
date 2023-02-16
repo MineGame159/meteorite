@@ -77,7 +77,7 @@ namespace Meteorite {
 			if (biome != null) {
 				biomeName.Clear();
 
-				String str = scope .(biome.name);
+				String str = scope .(biome.Key);
 				str.Replace(':', '.');
 
 				I18N.Translate(scope $"biome.{str}", biomeName);
@@ -91,7 +91,7 @@ namespace Meteorite {
 				BlockState blockState = me.world.GetBlock(me.player.selection.blockPos);
 
 				String blockName = scope .();
-				I18N.Translate(scope $"block.minecraft.{blockState.block.id}", blockName);
+				I18N.Translate(scope $"block.minecraft.{blockState.block.Key.Path}", blockName);
 
 				ImGui.Text("Selection: {} ({}, {}, {})", blockName, pos.x, pos.y, pos.z);
 			}

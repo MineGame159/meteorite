@@ -190,38 +190,32 @@ namespace Meteorite {
 
 		public uint16 ReadUShort() {
 			pos += 2;
-			uint8[2] bytes = .(data[pos - 1], data[pos - 2]);
-			return *(uint16*)(&bytes);
+			return Utils.SwapBytes(*(uint16*) &data[pos - 2]);
 		}
 
 		public int16 ReadShort() {
 			pos += 2;
-			uint8[2] bytes = .(data[pos - 1], data[pos - 2]);
-			return *(int16*)(&bytes);
+			return Utils.SwapBytes(*(int16*) &data[pos - 2]);
 		}
 
 		public int32 ReadInt() {
 			pos += 4;
-			uint8[4] bytes = .(data[pos - 1], data[pos - 2], data[pos - 3], data[pos - 4]);
-			return *(int32*)(&bytes);
+			return Utils.SwapBytes(*(int32*) &data[pos - 4]);
 		}
 
 		public int64 ReadLong() {
 			pos += 8;
-			uint8[8] bytes = .(data[pos - 1], data[pos - 2], data[pos - 3], data[pos - 4], data[pos - 5], data[pos - 6], data[pos - 7], data[pos - 8]);
-			return *(int64*)(&bytes);
+			return Utils.SwapBytes(*(int64*) &data[pos - 8]);
 		}
 
 		public float ReadFloat() {
 			pos += 4;
-			uint8[4] bytes = .(data[pos - 1], data[pos - 2], data[pos - 3], data[pos - 4]);
-			return *(float*)(&bytes);
+			return Utils.SwapBytes(*(float*) &data[pos - 4]);
 		}
 
 		public double ReadDouble() {
 			pos += 8;
-			uint8[8] bytes = .(data[pos - 1], data[pos - 2], data[pos - 3], data[pos - 4], data[pos - 5], data[pos - 6], data[pos - 7], data[pos - 8]);
-			return *(double*)(&bytes);
+			return Utils.SwapBytes(*(double*) &data[pos - 8]);
 		}
 
 		public int32 ReadVarInt() {

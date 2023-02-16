@@ -25,7 +25,7 @@ namespace Meteorite {
 
 		private static void ReadOptions(BlockState blockState) {
 			// Build property string
-			STR1.Append(blockState.block.id);
+			STR1.Append(blockState.block.Key.Path);
 			defer STR1.Clear();
 
 			for (int i < blockState.properties.Count) {
@@ -44,7 +44,7 @@ namespace Meteorite {
 			Json json = JSON[STR1];
 
 			if (json.IsObject) {
-				blockState.id = (.) json.GetInt("id", 0);
+				blockState.[Friend]id = (.) json.GetInt("id", 0);
 				blockState.luminance = (.) json.GetInt("luminance", 0);
 				blockState.emissive = json.GetBool("emissive");
 
@@ -53,7 +53,7 @@ namespace Meteorite {
 				}
 			}
 			else {
-				blockState.id = (.) json.AsNumber;
+				blockState.[Friend]id = (.) json.AsNumber;
 			}
 		}
 
@@ -72,14 +72,14 @@ namespace Meteorite {
 
 					block.AddBlockState(blockState);
 					
-					BLOCKSTATES[blockState.id] = blockState;
+					BLOCKSTATES[blockState.Id] = blockState;
 				}
 				else LoopProperties(block, properties, values, i + 1);
 			}
 		}
 
 		private static Block Register(Block block, params PropertyInfo[] properties) {
-			Registry.BLOCKS.Register(block.id, block);
+			BuiltinRegistries.BLOCKS.Register(block);
 
 			if (properties.IsEmpty) {
 				BlockState blockState = new .(block, new .());
@@ -87,7 +87,7 @@ namespace Meteorite {
 				
 				block.AddBlockState(blockState);
 
-				BLOCKSTATES[blockState.id] = blockState;
+				BLOCKSTATES[blockState.Id] = blockState;
 			}
 			else {
 				int[] values = scope int[properties.Count];

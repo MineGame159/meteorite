@@ -65,7 +65,7 @@ namespace Meteorite {
 		public static Shapes Get(BlockState blockState) {
 			String s = scope .();
 
-			s.Append(blockState.block.id);
+			s.Append(blockState.block.Key.Path);
 			s.Append('[');
 			for (let property in blockState.properties) {
 				if (@property.Index > 0) s.Append(',');

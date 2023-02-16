@@ -11,13 +11,23 @@ namespace Meteorite {
 		Misc
 	}
 
-	class EntityType {
-		public String id ~ delete _;
+	class EntityType : IRegistryEntry {
+		private ResourceKey key;
+		private int32 id;
+
 		public EntityGroup group;
 		public double width, height;
 
-		public this(StringView id, EntityGroup group, double width, double height) {
-			this.id = new .(id);
+		public ResourceKey Key => key;
+		public int32 Id => id;
+
+		[AllowAppend]
+		public this(ResourceKey key, int32 id, EntityGroup group, double width, double height) {
+			ResourceKey _key = append .(key);
+
+			this.key = _key;
+			this.id = id;
+
 			this.group = group;
 			this.width = width;
 			this.height = height;

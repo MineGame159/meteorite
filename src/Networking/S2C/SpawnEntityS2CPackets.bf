@@ -14,7 +14,7 @@ namespace Meteorite {
 		public override void Read(NetBuffer buf) {
 			entityId = buf.ReadVarInt();
 			buf.Skip(16);
-			type = EntityTypes.ENTITY_TYPES[buf.ReadVarInt()];
+			type = BuiltinRegistries.ENTITY_TYPES.Get(buf.ReadVarInt());
 			x = buf.ReadDouble();
 			y = buf.ReadDouble() - me.world.dimension.minY;
 			z = buf.ReadDouble();

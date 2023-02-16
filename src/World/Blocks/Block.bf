@@ -11,15 +11,25 @@ enum BlockOffsetType {
 	XYZ
 }
 
-class Block : IEnumerable<BlockState> {
-	public String id ~ delete _;
+class Block : IRegistryEntry, IEnumerable<BlockState> {
+	private ResourceKey key;
+	private int32 id;
+
 	public bool transparent;
 
 	private List<BlockState> blockStates ~ DeleteContainerAndItems!(_);
 	public BlockState defaultBlockState;
 
-	public this(StringView id, BlockSettings settings) {
-		this.id = new .(id);
+	public ResourceKey Key => key;
+	public int32 Id => id;
+
+	[AllowAppend]
+	public this(ResourceKey key, int32 id, BlockSettings settings) {
+		ResourceKey _key = append .(key);
+
+		this.key = _key;
+		this.id = id;
+
 		this.transparent = settings.transparent;
 
 		this.blockStates = new .();
@@ -37,9 +47,9 @@ class Block : IEnumerable<BlockState> {
 	public virtual VoxelShape GetRaycastShape(BlockState blockState) => blockState.[Friend]shapes.raycast;
 }
 
-class BlockState : IID {
+class BlockState : IRegistryEntry {
 	public Block block;
-	public int32 id { get; set; };
+	private int32 id;
 
 	public uint8 luminance;
 	public bool emissive;
@@ -50,6 +60,9 @@ class BlockState : IID {
 	public List<Property> properties ~ delete _;
 
 	private VoxelShapes.Shapes shapes;
+
+	public ResourceKey Key => block.Key;
+	public int32 Id => id;
 
 	public this(Block block, List<Property> properties) {
 		this.block = block;

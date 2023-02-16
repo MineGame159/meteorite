@@ -21,7 +21,7 @@ namespace Meteorite {
 		public static void Init() {
 			Meteorite.INSTANCE.resources.ReadJsons("data/block_colors.json", scope (json) => {
 				for (let pair in json.AsObject) {
-					Block block = Registry.BLOCKS.Get(pair.key);
+					Block block = BuiltinRegistries.BLOCKS.Get(scope .("minecraft", pair.key));
 
 					if (pair.value.IsString) {
 						String str = pair.value.AsString;

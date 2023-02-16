@@ -55,7 +55,7 @@ namespace Meteorite {
 			Vec3d vec = end - start;
 			if (vec.LengthSquared < 1.0E-7) return null;
 
-			Vec3d vec2 = start + (vec * 0.001);
+			//Vec3d vec2 = start + (vec * 0.001);
 			// TODO
 
 			return AABB.Raycast(boxes, start, end, pos);

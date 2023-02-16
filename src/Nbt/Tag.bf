@@ -168,8 +168,13 @@ namespace Meteorite {
 		public int32[] AsInts => data.ints;
 		public int64[] AsLongs => data.longs;
 
-		public Tag this[String key] {
-			get => AsCompound.GetValueOrDefault(key);
+		public Tag this[StringView key] {
+			get {
+				Tag tag;
+				if (AsCompound.TryGetValueAlt(key, out tag)) return tag;
+
+				Internal.FatalError("Invalid key");
+			}
 			set { Remove(key); AsCompound[new .(key)] = value; }
 		}
 
@@ -177,10 +182,10 @@ namespace Meteorite {
 			AsList.Add(tag);
 		}
 
-		public bool Contains(String key) => AsCompound.ContainsKey(key);
+		public bool Contains(StringView key) => AsCompound.ContainsKeyAlt(key);
 
-		public void Remove(String key) {
-			if (AsCompound.GetAndRemove(key) case .Ok(let pair)) {
+		public void Remove(StringView key) {
+			if (AsCompound.GetAndRemoveAlt(key) case .Ok(let pair)) {
 				delete pair.key;
 				pair.value.Dispose();
 			}

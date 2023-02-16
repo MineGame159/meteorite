@@ -81,7 +81,7 @@ namespace Meteorite {
 				{
 					// Biomes
 					uint8 bitsPerEntry = buf.ReadUByte();
-					IPalette<Biome> palette = ReadPalette(buf, bitsPerEntry, 3, Biomes.BIOMES);
+					IPalette<Biome> palette = ReadPalette(buf, bitsPerEntry, 3, me.world.registries.BiomeLookup);
 
 					int dataSize = buf.ReadVarInt();
 					IBitStorage storage = ReadStorage(buf, bitsPerEntry, dataSize);
@@ -147,7 +147,7 @@ namespace Meteorite {
 			delete lightData;
 		}
 
-		private static IPalette<T> ReadPalette<T>(NetBuffer buf, int bitsPerEntry, int maxIndirect, T[] global) where T : IID {
+		private static IPalette<T> ReadPalette<T>(NetBuffer buf, int bitsPerEntry, int maxIndirect, T[] global) where T : IRegistryEntry {
 			if (bitsPerEntry <= maxIndirect) {
 				List<int32> list;
 

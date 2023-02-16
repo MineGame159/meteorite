@@ -1,0 +1,1073 @@
+[
+    {
+      "name": "minecraft:allay",
+      "id": 0,
+      "element": {
+        "group": "creature",
+        "width": 0.35,
+        "height": 0.6
+      }
+    },
+    {
+      "name": "minecraft:area_effect_cloud",
+      "id": 1,
+      "element": {
+        "group": "misc",
+        "width": 6.0,
+        "height": 0.5
+      }
+    },
+    {
+      "name": "minecraft:armor_stand",
+      "id": 2,
+      "element": {
+        "group": "misc",
+        "width": 0.5,
+        "height": 1.975
+      }
+    },
+    {
+      "name": "minecraft:arrow",
+      "id": 3,
+      "element": {
+        "group": "misc",
+        "width": 0.5,
+        "height": 0.5
+      }
+    },
+    {
+      "name": "minecraft:axolotl",
+      "id": 4,
+      "element": {
+        "group": "water",
+        "width": 0.75,
+        "height": 0.42
+      }
+    },
+    {
+      "name": "minecraft:bat",
+      "id": 5,
+      "element": {
+        "group": "ambient",
+        "width": 0.5,
+        "height": 0.9
+      }
+    },
+    {
+      "name": "minecraft:bee",
+      "id": 6,
+      "element": {
+        "group": "creature",
+        "width": 0.7,
+        "height": 0.6
+      }
+    },
+    {
+      "name": "minecraft:blaze",
+      "id": 7,
+      "element": {
+        "group": "monster",
+        "width": 0.6,
+        "height": 1.8
+      }
+    },
+    {
+      "name": "minecraft:boat",
+      "id": 8,
+      "element": {
+        "group": "misc",
+        "width": 1.375,
+        "height": 0.5625
+      }
+    },
+    {
+      "name": "minecraft:chest_boat",
+      "id": 9,
+      "element": {
+        "group": "misc",
+        "width": 1.375,
+        "height": 0.5625
+      }
+    },
+    {
+      "name": "minecraft:cat",
+      "id": 10,
+      "element": {
+        "group": "creature",
+        "width": 0.6,
+        "height": 0.7
+      }
+    },
+    {
+      "name": "minecraft:camel",
+      "id": 11,
+      "element": {
+        "group": "creature",
+        "width": 1.7,
+        "height": 2.375
+      }
+    },
+    {
+      "name": "minecraft:cave_spider",
+      "id": 12,
+      "element": {
+        "group": "monster",
+        "width": 0.7,
+        "height": 0.5
+      }
+    },
+    {
+      "name": "minecraft:chicken",
+      "id": 13,
+      "element": {
+        "group": "creature",
+        "width": 0.4,
+        "height": 0.7
+      }
+    },
+    {
+      "name": "minecraft:cod",
+      "id": 14,
+      "element": {
+        "group": "water",
+        "width": 0.5,
+        "height": 0.3
+      }
+    },
+    {
+      "name": "minecraft:cow",
+      "id": 15,
+      "element": {
+        "group": "creature",
+        "width": 0.9,
+        "height": 1.4
+      }
+    },
+    {
+      "name": "minecraft:creeper",
+      "id": 16,
+      "element": {
+        "group": "monster",
+        "width": 0.6,
+        "height": 1.7
+      }
+    },
+    {
+      "name": "minecraft:dolphin",
+      "id": 17,
+      "element": {
+        "group": "water",
+        "width": 0.9,
+        "height": 0.6
+      }
+    },
+    {
+      "name": "minecraft:donkey",
+      "id": 18,
+      "element": {
+        "group": "creature",
+        "width": 1.3964844,
+        "height": 1.5
+      }
+    },
+    {
+      "name": "minecraft:dragon_fireball",
+      "id": 19,
+      "element": {
+        "group": "misc",
+        "width": 1.0,
+        "height": 1.0
+      }
+    },
+    {
+      "name": "minecraft:drowned",
+      "id": 20,
+      "element": {
+        "group": "monster",
+        "width": 0.6,
+        "height": 1.95
+      }
+    },
+    {
+      "name": "minecraft:elder_guardian",
+      "id": 21,
+      "element": {
+        "group": "monster",
+        "width": 1.9975,
+        "height": 1.9975
+      }
+    },
+    {
+      "name": "minecraft:end_crystal",
+      "id": 22,
+      "element": {
+        "group": "misc",
+        "width": 2.0,
+        "height": 2.0
+      }
+    },
+    {
+      "name": "minecraft:ender_dragon",
+      "id": 23,
+      "element": {
+        "group": "monster",
+        "width": 16.0,
+        "height": 8.0
+      }
+    },
+    {
+      "name": "minecraft:enderman",
+      "id": 24,
+      "element": {
+        "group": "monster",
+        "width": 0.6,
+        "height": 2.9
+      }
+    },
+    {
+      "name": "minecraft:endermite",
+      "id": 25,
+      "element": {
+        "group": "monster",
+        "width": 0.4,
+        "height": 0.3
+      }
+    },
+    {
+      "name": "minecraft:evoker",
+      "id": 26,
+      "element": {
+        "group": "monster",
+        "width": 0.6,
+        "height": 1.95
+      }
+    },
+    {
+      "name": "minecraft:evoker_fangs",
+      "id": 27,
+      "element": {
+        "group": "misc",
+        "width": 0.5,
+        "height": 0.8
+      }
+    },
+    {
+      "name": "minecraft:experience_orb",
+      "id": 28,
+      "element": {
+        "group": "misc",
+        "width": 0.5,
+        "height": 0.5
+      }
+    },
+    {
+      "name": "minecraft:eye_of_ender",
+      "id": 29,
+      "element": {
+        "group": "misc",
+        "width": 0.25,
+        "height": 0.25
+      }
+    },
+    {
+      "name": "minecraft:falling_block",
+      "id": 30,
+      "element": {
+        "group": "misc",
+        "width": 0.98,
+        "height": 0.98
+      }
+    },
+    {
+      "name": "minecraft:firework_rocket",
+      "id": 31,
+      "element": {
+        "group": "misc",
+        "width": 0.25,
+        "height": 0.25
+      }
+    },
+    {
+      "name": "minecraft:fox",
+      "id": 32,
+      "element": {
+        "group": "creature",
+        "width": 0.6,
+        "height": 0.7
+      }
+    },
+    {
+      "name": "minecraft:frog",
+      "id": 33,
+      "element": {
+        "group": "creature",
+        "width": 0.5,
+        "height": 0.5
+      }
+    },
+    {
+      "name": "minecraft:ghast",
+      "id": 34,
+      "element": {
+        "group": "monster",
+        "width": 4.0,
+        "height": 4.0
+      }
+    },
+    {
+      "name": "minecraft:giant",
+      "id": 35,
+      "element": {
+        "group": "monster",
+        "width": 3.6,
+        "height": 12.0
+      }
+    },
+    {
+      "name": "minecraft:glow_item_frame",
+      "id": 36,
+      "element": {
+        "group": "misc",
+        "width": 0.5,
+        "height": 0.5
+      }
+    },
+    {
+      "name": "minecraft:glow_squid",
+      "id": 37,
+      "element": {
+        "group": "water",
+        "width": 0.8,
+        "height": 0.8
+      }
+    },
+    {
+      "name": "minecraft:goat",
+      "id": 38,
+      "element": {
+        "group": "creature",
+        "width": 0.9,
+        "height": 1.3
+      }
+    },
+    {
+      "name": "minecraft:guardian",
+      "id": 39,
+      "element": {
+        "group": "monster",
+        "width": 0.85,
+        "height": 0.85
+      }
+    },
+    {
+      "name": "minecraft:hoglin",
+      "id": 40,
+      "element": {
+        "group": "monster",
+        "width": 1.3964844,
+        "height": 1.4
+      }
+    },
+    {
+      "name": "minecraft:horse",
+      "id": 41,
+      "element": {
+        "group": "creature",
+        "width": 1.3964844,
+        "height": 1.6
+      }
+    },
+    {
+      "name": "minecraft:husk",
+      "id": 42,
+      "element": {
+        "group": "monster",
+        "width": 0.6,
+        "height": 1.95
+      }
+    },
+    {
+      "name": "minecraft:illusioner",
+      "id": 43,
+      "element": {
+        "group": "monster",
+        "width": 0.6,
+        "height": 1.95
+      }
+    },
+    {
+      "name": "minecraft:iron_golem",
+      "id": 44,
+      "element": {
+        "group": "misc",
+        "width": 1.4,
+        "height": 2.7
+      }
+    },
+    {
+      "name": "minecraft:item",
+      "id": 45,
+      "element": {
+        "group": "misc",
+        "width": 0.25,
+        "height": 0.25
+      }
+    },
+    {
+      "name": "minecraft:item_frame",
+      "id": 46,
+      "element": {
+        "group": "misc",
+        "width": 0.5,
+        "height": 0.5
+      }
+    },
+    {
+      "name": "minecraft:fireball",
+      "id": 47,
+      "element": {
+        "group": "misc",
+        "width": 1.0,
+        "height": 1.0
+      }
+    },
+    {
+      "name": "minecraft:leash_knot",
+      "id": 48,
+      "element": {
+        "group": "misc",
+        "width": 0.375,
+        "height": 0.5
+      }
+    },
+    {
+      "name": "minecraft:lightning_bolt",
+      "id": 49,
+      "element": {
+        "group": "misc",
+        "width": 0.0,
+        "height": 0.0
+      }
+    },
+    {
+      "name": "minecraft:llama",
+      "id": 50,
+      "element": {
+        "group": "creature",
+        "width": 0.9,
+        "height": 1.87
+      }
+    },
+    {
+      "name": "minecraft:llama_spit",
+      "id": 51,
+      "element": {
+        "group": "misc",
+        "width": 0.25,
+        "height": 0.25
+      }
+    },
+    {
+      "name": "minecraft:magma_cube",
+      "id": 52,
+      "element": {
+        "group": "monster",
+        "width": 2.04,
+        "height": 2.04
+      }
+    },
+    {
+      "name": "minecraft:marker",
+      "id": 53,
+      "element": {
+        "group": "misc",
+        "width": 0.0,
+        "height": 0.0
+      }
+    },
+    {
+      "name": "minecraft:minecart",
+      "id": 54,
+      "element": {
+        "group": "misc",
+        "width": 0.98,
+        "height": 0.7
+      }
+    },
+    {
+      "name": "minecraft:chest_minecart",
+      "id": 55,
+      "element": {
+        "group": "misc",
+        "width": 0.98,
+        "height": 0.7
+      }
+    },
+    {
+      "name": "minecraft:command_block_minecart",
+      "id": 56,
+      "element": {
+        "group": "misc",
+        "width": 0.98,
+        "height": 0.7
+      }
+    },
+    {
+      "name": "minecraft:furnace_minecart",
+      "id": 57,
+      "element": {
+        "group": "misc",
+        "width": 0.98,
+        "height": 0.7
+      }
+    },
+    {
+      "name": "minecraft:hopper_minecart",
+      "id": 58,
+      "element": {
+        "group": "misc",
+        "width": 0.98,
+        "height": 0.7
+      }
+    },
+    {
+      "name": "minecraft:spawner_minecart",
+      "id": 59,
+      "element": {
+        "group": "misc",
+        "width": 0.98,
+        "height": 0.7
+      }
+    },
+    {
+      "name": "minecraft:tnt_minecart",
+      "id": 60,
+      "element": {
+        "group": "misc",
+        "width": 0.98,
+        "height": 0.7
+      }
+    },
+    {
+      "name": "minecraft:mule",
+      "id": 61,
+      "element": {
+        "group": "creature",
+        "width": 1.3964844,
+        "height": 1.6
+      }
+    },
+    {
+      "name": "minecraft:mooshroom",
+      "id": 62,
+      "element": {
+        "group": "creature",
+        "width": 0.9,
+        "height": 1.4
+      }
+    },
+    {
+      "name": "minecraft:ocelot",
+      "id": 63,
+      "element": {
+        "group": "creature",
+        "width": 0.6,
+        "height": 0.7
+      }
+    },
+    {
+      "name": "minecraft:painting",
+      "id": 64,
+      "element": {
+        "group": "misc",
+        "width": 0.5,
+        "height": 0.5
+      }
+    },
+    {
+      "name": "minecraft:panda",
+      "id": 65,
+      "element": {
+        "group": "creature",
+        "width": 1.3,
+        "height": 1.25
+      }
+    },
+    {
+      "name": "minecraft:parrot",
+      "id": 66,
+      "element": {
+        "group": "creature",
+        "width": 0.5,
+        "height": 0.9
+      }
+    },
+    {
+      "name": "minecraft:phantom",
+      "id": 67,
+      "element": {
+        "group": "monster",
+        "width": 0.9,
+        "height": 0.5
+      }
+    },
+    {
+      "name": "minecraft:pig",
+      "id": 68,
+      "element": {
+        "group": "creature",
+        "width": 0.9,
+        "height": 0.9
+      }
+    },
+    {
+      "name": "minecraft:piglin",
+      "id": 69,
+      "element": {
+        "group": "monster",
+        "width": 0.6,
+        "height": 1.95
+      }
+    },
+    {
+      "name": "minecraft:piglin_brute",
+      "id": 70,
+      "element": {
+        "group": "monster",
+        "width": 0.6,
+        "height": 1.95
+      }
+    },
+    {
+      "name": "minecraft:pillager",
+      "id": 71,
+      "element": {
+        "group": "monster",
+        "width": 0.6,
+        "height": 1.95
+      }
+    },
+    {
+      "name": "minecraft:polar_bear",
+      "id": 72,
+      "element": {
+        "group": "creature",
+        "width": 1.4,
+        "height": 1.4
+      }
+    },
+    {
+      "name": "minecraft:tnt",
+      "id": 73,
+      "element": {
+        "group": "misc",
+        "width": 0.98,
+        "height": 0.98
+      }
+    },
+    {
+      "name": "minecraft:pufferfish",
+      "id": 74,
+      "element": {
+        "group": "water",
+        "width": 0.7,
+        "height": 0.7
+      }
+    },
+    {
+      "name": "minecraft:rabbit",
+      "id": 75,
+      "element": {
+        "group": "creature",
+        "width": 0.4,
+        "height": 0.5
+      }
+    },
+    {
+      "name": "minecraft:ravager",
+      "id": 76,
+      "element": {
+        "group": "monster",
+        "width": 1.95,
+        "height": 2.2
+      }
+    },
+    {
+      "name": "minecraft:salmon",
+      "id": 77,
+      "element": {
+        "group": "water",
+        "width": 0.7,
+        "height": 0.4
+      }
+    },
+    {
+      "name": "minecraft:sheep",
+      "id": 78,
+      "element": {
+        "group": "creature",
+        "width": 0.9,
+        "height": 1.3
+      }
+    },
+    {
+      "name": "minecraft:shulker",
+      "id": 79,
+      "element": {
+        "group": "monster",
+        "width": 1.0,
+        "height": 1.0
+      }
+    },
+    {
+      "name": "minecraft:shulker_bullet",
+      "id": 80,
+      "element": {
+        "group": "misc",
+        "width": 0.3125,
+        "height": 0.3125
+      }
+    },
+    {
+      "name": "minecraft:silverfish",
+      "id": 81,
+      "element": {
+        "group": "monster",
+        "width": 0.4,
+        "height": 0.3
+      }
+    },
+    {
+      "name": "minecraft:skeleton",
+      "id": 82,
+      "element": {
+        "group": "monster",
+        "width": 0.6,
+        "height": 1.99
+      }
+    },
+    {
+      "name": "minecraft:skeleton_horse",
+      "id": 83,
+      "element": {
+        "group": "creature",
+        "width": 1.3964844,
+        "height": 1.6
+      }
+    },
+    {
+      "name": "minecraft:slime",
+      "id": 84,
+      "element": {
+        "group": "monster",
+        "width": 2.04,
+        "height": 2.04
+      }
+    },
+    {
+      "name": "minecraft:small_fireball",
+      "id": 85,
+      "element": {
+        "group": "misc",
+        "width": 0.3125,
+        "height": 0.3125
+      }
+    },
+    {
+      "name": "minecraft:snow_golem",
+      "id": 86,
+      "element": {
+        "group": "misc",
+        "width": 0.7,
+        "height": 1.9
+      }
+    },
+    {
+      "name": "minecraft:snowball",
+      "id": 87,
+      "element": {
+        "group": "misc",
+        "width": 0.25,
+        "height": 0.25
+      }
+    },
+    {
+      "name": "minecraft:spectral_arrow",
+      "id": 88,
+      "element": {
+        "group": "misc",
+        "width": 0.5,
+        "height": 0.5
+      }
+    },
+    {
+      "name": "minecraft:spider",
+      "id": 89,
+      "element": {
+        "group": "monster",
+        "width": 1.4,
+        "height": 0.9
+      }
+    },
+    {
+      "name": "minecraft:squid",
+      "id": 90,
+      "element": {
+        "group": "water",
+        "width": 0.8,
+        "height": 0.8
+      }
+    },
+    {
+      "name": "minecraft:stray",
+      "id": 91,
+      "element": {
+        "group": "monster",
+        "width": 0.6,
+        "height": 1.99
+      }
+    },
+    {
+      "name": "minecraft:strider",
+      "id": 92,
+      "element": {
+        "group": "creature",
+        "width": 0.9,
+        "height": 1.7
+      }
+    },
+    {
+      "name": "minecraft:tadpole",
+      "id": 93,
+      "element": {
+        "group": "creature",
+        "width": 0.4,
+        "height": 0.3
+      }
+    },
+    {
+      "name": "minecraft:egg",
+      "id": 94,
+      "element": {
+        "group": "misc",
+        "width": 0.25,
+        "height": 0.25
+      }
+    },
+    {
+      "name": "minecraft:ender_pearl",
+      "id": 95,
+      "element": {
+        "group": "misc",
+        "width": 0.25,
+        "height": 0.25
+      }
+    },
+    {
+      "name": "minecraft:experience_bottle",
+      "id": 96,
+      "element": {
+        "group": "misc",
+        "width": 0.25,
+        "height": 0.25
+      }
+    },
+    {
+      "name": "minecraft:potion",
+      "id": 97,
+      "element": {
+        "group": "misc",
+        "width": 0.25,
+        "height": 0.25
+      }
+    },
+    {
+      "name": "minecraft:trident",
+      "id": 98,
+      "element": {
+        "group": "misc",
+        "width": 0.5,
+        "height": 0.5
+      }
+    },
+    {
+      "name": "minecraft:trader_llama",
+      "id": 99,
+      "element": {
+        "group": "creature",
+        "width": 0.9,
+        "height": 1.87
+      }
+    },
+    {
+      "name": "minecraft:tropical_fish",
+      "id": 100,
+      "element": {
+        "group": "water",
+        "width": 0.5,
+        "height": 0.4
+      }
+    },
+    {
+      "name": "minecraft:turtle",
+      "id": 101,
+      "element": {
+        "group": "creature",
+        "width": 1.2,
+        "height": 0.4
+      }
+    },
+    {
+      "name": "minecraft:vex",
+      "id": 102,
+      "element": {
+        "group": "monster",
+        "width": 0.4,
+        "height": 0.8
+      }
+    },
+    {
+      "name": "minecraft:villager",
+      "id": 103,
+      "element": {
+        "group": "misc",
+        "width": 0.6,
+        "height": 1.95
+      }
+    },
+    {
+      "name": "minecraft:vindicator",
+      "id": 104,
+      "element": {
+        "group": "monster",
+        "width": 0.6,
+        "height": 1.95
+      }
+    },
+    {
+      "name": "minecraft:wandering_trader",
+      "id": 105,
+      "element": {
+        "group": "creature",
+        "width": 0.6,
+        "height": 1.95
+      }
+    },
+    {
+      "name": "minecraft:warden",
+      "id": 106,
+      "element": {
+        "group": "monster",
+        "width": 0.9,
+        "height": 2.9
+      }
+    },
+    {
+      "name": "minecraft:witch",
+      "id": 107,
+      "element": {
+        "group": "monster",
+        "width": 0.6,
+        "height": 1.95
+      }
+    },
+    {
+      "name": "minecraft:wither",
+      "id": 108,
+      "element": {
+        "group": "monster",
+        "width": 0.9,
+        "height": 3.5
+      }
+    },
+    {
+      "name": "minecraft:wither_skeleton",
+      "id": 109,
+      "element": {
+        "group": "monster",
+        "width": 0.7,
+        "height": 2.4
+      }
+    },
+    {
+      "name": "minecraft:wither_skull",
+      "id": 110,
+      "element": {
+        "group": "misc",
+        "width": 0.3125,
+        "height": 0.3125
+      }
+    },
+    {
+      "name": "minecraft:wolf",
+      "id": 111,
+      "element": {
+        "group": "creature",
+        "width": 0.6,
+        "height": 0.85
+      }
+    },
+    {
+      "name": "minecraft:zoglin",
+      "id": 112,
+      "element": {
+        "group": "monster",
+        "width": 1.3964844,
+        "height": 1.4
+      }
+    },
+    {
+      "name": "minecraft:zombie",
+      "id": 113,
+      "element": {
+        "group": "monster",
+        "width": 0.6,
+        "height": 1.95
+      }
+    },
+    {
+      "name": "minecraft:zombie_horse",
+      "id": 114,
+      "element": {
+        "group": "creature",
+        "width": 1.3964844,
+        "height": 1.6
+      }
+    },
+    {
+      "name": "minecraft:zombie_villager",
+      "id": 115,
+      "element": {
+        "group": "monster",
+        "width": 0.6,
+        "height": 1.95
+      }
+    },
+    {
+      "name": "minecraft:zombified_piglin",
+      "id": 116,
+      "element": {
+        "group": "monster",
+        "width": 0.6,
+        "height": 1.95
+      }
+    },
+    {
+      "name": "minecraft:player",
+      "id": 117,
+      "element": {
+        "group": "misc",
+        "width": 0.6,
+        "height": 1.8
+      }
+    },
+    {
+      "name": "minecraft:fishing_bobber",
+      "id": 118,
+      "element": {
+        "group": "misc",
+        "width": 0.25,
+        "height": 0.25
+      }
+    }
+  ]
