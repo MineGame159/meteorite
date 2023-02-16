@@ -40,6 +40,11 @@ namespace Meteorite {
 		
 		[Tracy.Profile]
 		public void Render(RenderPass pass, float delta) {
+			pass.Bind(Gfxa.TEX_QUADS_PIPELINE);
+
+			Mat4 pc = me.camera.proj2d;
+			pass.SetPushConstants(pc);
+
 			me.textRenderer.Begin();
 			MeshBuilder mb = scope .(false);
 

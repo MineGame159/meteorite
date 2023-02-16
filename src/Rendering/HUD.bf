@@ -15,6 +15,9 @@ namespace Meteorite {
 
 		public ChatRenderer chat = new .() ~ delete _;
 
+		private Pipeline crosshairPipeline ~ ReleaseAndNullify!(_);
+		private GpuImage iconsImage ~ ReleaseAndNullify!(_);
+
 		private SimpleBumpAllocator alloc = new .() ~ delete _;
 
 		private Average<60> fps = new .() ~ delete _;
@@ -25,18 +28,27 @@ namespace Meteorite {
 		private char8*[?] aos = .("None", "Vanilla", "SSAO", "Both");
 
 		private bool debug = false;
+
+		public this() {
+			crosshairPipeline = Gfx.Pipelines.Create(scope PipelineInfo("Crosshair")
+				.VertexFormat(Pos2DUVColorVertex.FORMAT)
+				.Shader(.File(Gfxa.POS_TEX_COLOR_VERT), .File(Gfxa.POS_TEX_COLOR_FRAG))
+				.Targets(
+					.(.BGRA, .Enabled(
+						.(.Add, .OneMinusDstColor, .OneMinusSrcColor),
+						.(.Add, .One, .Zero)
+					))
+				)
+			);
+
+			iconsImage = Gfxa.CreateImage("gui/icons.png");
+		}
 		
 		[Tracy.Profile]
 		public void Render(RenderPass pass, float delta) {
 			alloc.FreeAll();
 
 			if (me.world != null && me.worldRenderer != null) {
-				pass.Bind(Gfxa.TEX_QUADS_PIPELINE);
-				pass.Bind(0, Gfxa.PIXEL_DESCRIPTOR);
-	
-				Mat4 pc = me.camera.proj2d;
-				pass.SetPushConstants(pc);
-
 				RenderCrosshair(pass);
 				chat.Render(pass, delta);
 			}
@@ -144,28 +156,31 @@ namespace Meteorite {
 			ImGui.End();
 		}
 
+		[Tracy.Profile]
 		private void RenderCrosshair(RenderPass pass) {
-			Color color = .(200, 200, 200);
+			pass.Bind(crosshairPipeline);
+			pass.Bind(0, .SampledImage(iconsImage, Gfxa.NEAREST_SAMPLER));
+
+			Mat4 pc = me.camera.proj2d;
+			pass.SetPushConstants(pc);
+
+			Color color = .WHITE;
 			MeshBuilder mb = scope .();
 
-			float x = me.window.Width / 4f;
-			float y = me.window.Height / 4f;
+			float s1 = 15 / 2f;
+			float s2 = 15 / 2f;
 
-			float s1 = 6;
-			float s2 = 1;
+			float x = (me.window.Width - s1) / 4f;
+			float y = (me.window.Height - s2) / 4f;
 
-			mb.Quad(
-				mb.Vertex<Pos2DUVColorVertex>(.(.(x - s1, y - s2), .(), color)),
-				mb.Vertex<Pos2DUVColorVertex>(.(.(x - s1, y + s2), .(), color)),
-				mb.Vertex<Pos2DUVColorVertex>(.(.(x + s1, y + s2), .(), color)),
-				mb.Vertex<Pos2DUVColorVertex>(.(.(x + s1, y - s2), .(), color))
-			);
+			float u = 15f / iconsImage.GetWidth();
+			float v = 15f / iconsImage.GetHeight();
 
 			mb.Quad(
-				mb.Vertex<Pos2DUVColorVertex>(.(.(x - s2, y - s1), .(), color)),
-				mb.Vertex<Pos2DUVColorVertex>(.(.(x - s2, y + s1), .(), color)),
-				mb.Vertex<Pos2DUVColorVertex>(.(.(x + s2, y + s1), .(), color)),
-				mb.Vertex<Pos2DUVColorVertex>(.(.(x + s2, y - s1), .(), color))
+				mb.Vertex<Pos2DUVColorVertex>(.(.(x - s1, y - s2), .(0, 0), color)),
+				mb.Vertex<Pos2DUVColorVertex>(.(.(x - s1, y + s2), .(0, v), color)),
+				mb.Vertex<Pos2DUVColorVertex>(.(.(x + s1, y + s2), .(u, v), color)),
+				mb.Vertex<Pos2DUVColorVertex>(.(.(x + s1, y - s2), .(u, 0), color))
 			);
 
 			pass.Draw(mb.End());

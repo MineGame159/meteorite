@@ -69,6 +69,9 @@ enum BlendOp {
 enum BlendFactor {
 	case SrcAlpha,
 		 OneMinusSrcAlpha,
+		 OneMinusDstAlpha,
+		 OneMinusSrcColor,
+		 OneMinusDstColor,
 		 One,
 		 Zero;
 
@@ -76,6 +79,9 @@ enum BlendFactor {
 		switch (this) {
 		case .SrcAlpha:			return .VK_BLEND_FACTOR_SRC_ALPHA;
 		case .OneMinusSrcAlpha:	return .VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+		case .OneMinusDstAlpha:	return .VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA;
+		case .OneMinusSrcColor:	return .VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR;
+		case .OneMinusDstColor:	return .VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR;
 		case .One:				return .VK_BLEND_FACTOR_ONE;
 		case .Zero:				return .VK_BLEND_FACTOR_ZERO;
 		}
