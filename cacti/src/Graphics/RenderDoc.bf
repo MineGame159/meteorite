@@ -47,6 +47,7 @@ class RenderDoc {
 
 	public static void Init() {
 #if BF_PLATFORM_WINDOWS
+		Log.Info("Attaching RenderDoc");
 		Internal.LoadSharedLibrary("renderdoc");
 
 		Windows.HModule module = Windows.GetModuleHandleA("renderdoc.dll");
@@ -56,6 +57,8 @@ class RenderDoc {
 		getApi(10500, (.) &Api);
 
 		Loaded = true;
+#else
+		Log.Warning("Currently RenderDoc can only be automatically attached on Windows");
 #endif
 	}
 }

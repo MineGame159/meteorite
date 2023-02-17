@@ -11,6 +11,8 @@ using static Bulkan.Utilities.VulkanMemoryAllocator;
 namespace Cacti.Graphics;
 
 static class Gfx {
+	public static bool VULKAN_VALIDATION = false;
+
 	// Vulkan objects
 	public static VkInstance Instance;
 	public static VkSurfaceKHR Surface;
@@ -211,22 +213,22 @@ static class Gfx {
 
 		uint32 count = 0;
 
-#if DEBUG
 		// Layers
-		vkEnumerateInstanceLayerProperties(&count, null);
-
-		VkLayerProperties[] availableLayers = scope .[count];
-		vkEnumerateInstanceLayerProperties(&count, availableLayers.Ptr);
-
-		for (var layer in availableLayers) {
-			if (StringView(&layer.layerName) == "VK_LAYER_KHRONOS_validation") {
-				layers.Add("VK_LAYER_KHRONOS_validation");
-				break;
+		if (VULKAN_VALIDATION) {
+			vkEnumerateInstanceLayerProperties(&count, null);
+	
+			VkLayerProperties[] availableLayers = scope .[count];
+			vkEnumerateInstanceLayerProperties(&count, availableLayers.Ptr);
+	
+			for (var layer in availableLayers) {
+				if (StringView(&layer.layerName) == "VK_LAYER_KHRONOS_validation") {
+					layers.Add("VK_LAYER_KHRONOS_validation");
+					break;
+				}
 			}
+	
+			if (layers.IsEmpty) Log.Warning("Vulkan validation layer is not supported, try installing the Vulkan SDK");
 		}
-
-		if (layers.IsEmpty) Log.Warning("Vulkan validation layer is not supported, try installing the Vulkan SDK");
-#endif
 
 		// Extensions
 		vkEnumerateInstanceExtensionProperties(null, &count, null);
@@ -368,21 +370,20 @@ static class Gfx {
 			hostQueryReset = true
 		};
 
-		char8*[?] layers = .(
-#if DEBUG
-			"VK_LAYER_KHRONOS_validation"
-#endif
-		);
+		List<char8*> layers = scope .();
+
+		if (VULKAN_VALIDATION) {
+			layers.Add("VK_LAYER_KHRONOS_validation");
+		}
 
 		char8*[?] extensions = .("VK_KHR_swapchain");
 
-#unwarn
 		VkDeviceCreateInfo info = .() {
 			pNext = &features12,
 			queueCreateInfoCount = (.) queueInfos.Count,
 			pQueueCreateInfos = queueInfos.Ptr,
-			enabledLayerCount = layers.Count,
-			ppEnabledLayerNames = &layers,
+			enabledLayerCount = (.) layers.Count,
+			ppEnabledLayerNames = layers.Ptr,
 			enabledExtensionCount = extensions.Count,
 			ppEnabledExtensionNames = &extensions,
 			pEnabledFeatures = &features

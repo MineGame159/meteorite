@@ -19,8 +19,6 @@ namespace Cacti {
 
 			Tracy.Startup();
 			Tracy.RegisterCurrentThread();
-			
-			Log.AddLogger(new ConsoleLogger());
 
 			window = new .(title);
 
