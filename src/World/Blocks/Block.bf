@@ -24,7 +24,7 @@ class Block : IRegistryEntry, IEnumerable<BlockState> {
 	public int32 Id => id;
 
 	[AllowAppend]
-	public this(ResourceKey key, int32 id, BlockSettings settings) {
+	public this(StringView key, int32 id, BlockSettings settings) {
 		ResourceKey _key = append .(key);
 
 		this.key = _key;

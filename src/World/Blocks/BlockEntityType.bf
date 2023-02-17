@@ -4,16 +4,25 @@ using System.Collections;
 using Cacti;
 
 namespace Meteorite {
-	class BlockEntityType {
+	class BlockEntityType : IRegistryEntry {
 		public typealias Factory = delegate BlockEntity(Vec3i);
 
-		public String id ~ delete _;
+		private ResourceKey key;
+		private int32 id;
+
 		public Block[] blocks ~ delete _;
 
 		private Factory factory ~ delete _;
 
-		public this(StringView id, Block[] blocks, Factory factory) {
-			this.id = new .(id);
+		public ResourceKey Key => key;
+		public int32 Id => id;
+
+		[AllowAppend]
+		public this(StringView key, int32 id, Block[] blocks, Factory factory) {
+			ResourceKey _key = append .(key);
+
+			this.key = _key;
+			this.id = id;
 			this.blocks = blocks;
 			this.factory = factory;
 		}

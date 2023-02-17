@@ -28,7 +28,7 @@ class Item : IRegistryEntry {
 	public int32 Id => id;
 
 	[AllowAppend]
-	public this(ResourceKey key, int32 id, ItemSettings settings) {
+	public this(StringView key, int32 id, ItemSettings settings) {
 		ResourceKey _key = append .(key);
 
 		this.key = _key;
