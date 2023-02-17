@@ -95,7 +95,7 @@ class Shader {
 		reflect.Create(code, size).GetOrPropagate!();
 
 		info.Clear();
-		return reflect.GetDescriptors(info);
+		return reflect.Get(info);
 	}
 
 	// Shader

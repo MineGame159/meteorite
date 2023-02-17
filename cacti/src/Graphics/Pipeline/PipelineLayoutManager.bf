@@ -30,9 +30,9 @@ class PipelineLayoutManager {
 		}
 
 		// Create layout
-		VkDescriptorSetLayout* setLayouts = scope .[info.SetCount]*;
+		VkDescriptorSetLayout* setLayouts = scope .[info.Sets.Count]*; // TODO: Should re-order sets if there are holes
 
-		for (int i < info.SetCount) {
+		for (int i < info.Sets.Count) {
 			setLayouts[i] = Gfx.DescriptorSetLayouts.Get(info.GetSet!(i));
 		}
 
@@ -42,7 +42,7 @@ class PipelineLayoutManager {
 		};
 
 		VkPipelineLayoutCreateInfo createInfo = .() {
-			setLayoutCount = (.) info.SetCount,
+			setLayoutCount = (.) info.Sets.Count,
 			pSetLayouts = setLayouts,
 			pushConstantRangeCount = info.PushConstantSize > 0 ? 1 : 0,
 			pPushConstantRanges = &pushConstants

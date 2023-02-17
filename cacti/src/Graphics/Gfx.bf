@@ -376,6 +376,7 @@ static class Gfx {
 
 		char8*[?] extensions = .("VK_KHR_swapchain");
 
+#unwarn
 		VkDeviceCreateInfo info = .() {
 			pNext = &features12,
 			queueCreateInfoCount = (.) queueInfos.Count,

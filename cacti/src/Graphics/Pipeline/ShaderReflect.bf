@@ -180,7 +180,7 @@ class ShaderReflect {
 		delete module;
 	}
 
-	public Result<void> GetDescriptors(ShaderInfo info) {
+	public Result<void> Get(ShaderInfo info) {
 		// Descriptors
 		uint32 count = 0;
 		if (spvReflectEnumerateDescriptorBindings(module, &count, null) != 0) return .Err;
