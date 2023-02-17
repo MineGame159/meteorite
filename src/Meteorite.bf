@@ -25,6 +25,7 @@ namespace Meteorite {
 		public TextRenderer textRenderer;
 		public HudRenderer hud;
 
+		public ServerManager servers;
 		public AccountManager accounts;
 
 		public ClientConnection connection;
@@ -60,6 +61,7 @@ namespace Meteorite {
 			textRenderer = new .();
 			hud = new .();
 
+			servers = new .();
 			accounts = new .();
 
 			camera.pos.y = 160;
@@ -109,6 +111,7 @@ namespace Meteorite {
 			Buffers.Destroy();
 			Gfxa.Destroy();
 
+			delete servers;
 			delete accounts;
 
 			// Connection needs to be deleted before world

@@ -12,19 +12,31 @@ class AccountManager : IEnumerable<Account> {
 	public Account active;
 
 	public this() {
-		// Load accounts
+		// Open file and add a default cracked account if the file is not found
 		FileStream fs = scope .();
-		if (fs.Open("run/accounts.json") case .Err) return;
 
+		if (fs.Open("run/accounts.json") case .Err(let err)) {
+			fs.Close();
+
+			if (err == .NotFound) {
+				Add(new CrackedAccount("Meteorite"));
+			}
+
+			return;
+		}
+
+		// Parse json
 		Json json;
+		defer fs.Close();
+
 		switch (JsonParser.Parse(fs)) {
 		case .Ok(let val):	json = val;
 		case .Err:			return;
 		}
+
 		defer json.Dispose();
-
-		fs.Close();
-
+		
+		// Load accounts
 		for (let accountJson in json.AsArray) {
 			AccountType type = Enum.Parse<AccountType>(accountJson["type"].AsString);
 
@@ -36,15 +48,10 @@ class AccountManager : IEnumerable<Account> {
 			}
 		}
 
-		// Add a default cracked account if the list is empty {
-		if (IsEmpty) {
-			accounts.Add(new CrackedAccount("Meteorite"));
-		}
-
 		// Authenticate into active account
 		if (active.Authenticate() == .Err) {
 			Log.Error("Failed to authenticate into account with username '{}'", active.username);
-			Delete(active);
+			Remove(active);
 		}
 	}
 
@@ -63,14 +70,14 @@ class AccountManager : IEnumerable<Account> {
 			if (account.username.IsEmpty) Log.Error("Failed to authenticate into account");
 			else Log.Error("Failed to authenticate into account with username '{}'", account.username);
 
-			Delete(active);
+			Remove(active);
 		}
 
 		// Save
 		Save();
 	}
 
-	public void Delete(Account account) {
+	public void Remove(Account account) {
 		// Delete account
 		accounts.Remove(account);
 		if (account == active) active = null;
