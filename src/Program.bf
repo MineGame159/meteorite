@@ -6,6 +6,7 @@ using Cacti.Graphics;
 namespace Meteorite;
 
 class ProgramArgs {
+	public bool logFile;
 	public bool renderdoc;
 	public bool vulkanValidation;
 	public bool debugLog;
@@ -26,12 +27,14 @@ class Program {
 		// Setup options
 		CLI cli = scope .(args);
 
+		cli.Option("log-file", 'l', "Writes log output to a file named run/latest.log", ref ARGS.logFile);
 		cli.Option("renderdoc", 'r', "Attaches a RenderDoc instance to Meteorite" , ref ARGS.renderdoc);
 		cli.Option("vulkan-validation", 'v', "Starts Meteorite with Vulkan validation layer enabled", ref ARGS.vulkanValidation);
 		cli.Option("debug-log", 'd', "Enables logging of debug messages", ref ARGS.debugLog);
 
 		// Apply options
 		Log.AddLogger(new ConsoleLogger());
+		if (ARGS.logFile) Log.AddLogger(new FileLogger("run/latest.log"));
 		
 		Gfx.VULKAN_VALIDATION = ARGS.vulkanValidation;
 
@@ -39,12 +42,12 @@ class Program {
 			Log.MIN_LEVEL = .Debug;
 		}
 
-		if (ARGS.renderdoc) {
-			RenderDoc.Init();
-		}
-
 		// Start Meteorite
 		if (cli.Run) {
+			if (ARGS.renderdoc) {
+				RenderDoc.Init();
+			}
+											
 			scope Meteorite().Run();
 		}
 	}
