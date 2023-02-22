@@ -121,21 +121,26 @@ namespace Cacti {
 		}
 		
 		public static void OpenUrl(StringView url) {
-#if BF_PLATFORM_WINDOWS
-			Windows.ShellExecuteA(0, null, url.ToScopeCStr!(), null, null, Windows.SW_SHOW);
-#elif BF_PLATFORM_LINUX
 			ProcessStartInfo info = scope .();
 
+#if BF_PLATFORM_WINDOWS
+			info.SetFileName(url);
+#elif BF_PLATFORM_LINUX
 			info.SetFileName("xdg-open");
-			info.SetArguments(url);
+			info.SetArguments(scope $"\"{url}\"");
+#else
+			Log.Error("Cannot open URLs on this platform: {}", url);
+			return;
+#endif
 
 			SpawnedProcess process = scope .();
-			process.Start(info);
+
+			if (process.Start(info) == .Err) {
+				Log.Error("Failed to open URL: {}", url);
+				return;
+			}
 
 			process.WaitFor();
-#else
-			Runtime.NotImplemented();
-#endif
 		}
 
 		public static int GetNullableHashCode<T>(T? nulable) where T : struct, IHashable {
