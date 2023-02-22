@@ -27,8 +27,8 @@ class PipelineManager {
 		PipelineInfo copy = new .("");
 		info.CopyTo(copy);
 
-		Shader vertexShader = Gfx.Shaders.Create(.Vertex, copy.[Friend]vertexShaderSource, copy.[Friend]shaderPreprocessCallback).GetOrPropagate!();
-		Shader fragmentShader = Gfx.Shaders.Create(.Fragment, copy.[Friend]fragmentShaderSource, copy.[Friend]shaderPreprocessCallback).GetOrPropagate!();
+		Shader vertexShader = Gfx.Shaders.Get(.Vertex, copy.[Friend]vertexShaderSource, copy.[Friend]shaderPreprocessCallback).GetOrPropagate!();
+		Shader fragmentShader = Gfx.Shaders.Get(.Fragment, copy.[Friend]fragmentShaderSource, copy.[Friend]shaderPreprocessCallback).GetOrPropagate!();
 
 		Pipeline pipeline = new [Friend].(copy, vertexShader, fragmentShader);
 		pipelines.Add(pipeline);

@@ -21,6 +21,11 @@ namespace System {
 			if (this case .Err) return .Err;
 			Value
 		}
+
+		public mixin GetOrPropagateError() {
+			if (this case .Err(let err)) return .Err(err);
+			Value
+		}
 	}
 
 	extension StringView {

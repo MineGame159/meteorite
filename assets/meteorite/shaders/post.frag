@@ -15,24 +15,24 @@ layout(set = 2, binding = 0) uniform sampler2D u_SsaoTexture;
 
 layout(set = 3, binding = 0) uniform sampler2D u_SmaaBlendTexture;
 
-#ifdef SMAA
+#ifdef SMAA_ENABLED
     layout(location = 1) in vec4 v_Offset;
 
     #include <lib/smaa.glsl>
 #endif
 
-#ifdef SSAO
+#ifdef SSAO_ENABLED
     #include <lib/ssao.glsl>
 #endif
 
 void main() {
-    #ifdef SMAA
+    #ifdef SMAA_ENABLED
         color = SMAANeighborhoodBlendingPS(v_Texcoord, v_Offset, u_ColorTexture, u_SmaaBlendTexture);
     #else
         color = texelFetch(u_ColorTexture, ivec2(gl_FragCoord.xy), 0);
     #endif
 
-    #ifdef SSAO
+    #ifdef SSAO_ENABLED
         color.rgb *= ssao(v_Texcoord);
     #endif
 }

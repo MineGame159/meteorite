@@ -369,9 +369,7 @@ class RenderPassManager {
 
 		public static Self Point(RenderPassBuilder builder) => .(builder.[Friend]name, builder.[Friend]depthAttachment, builder.[Friend]colorAttachments, false);
 
-		public static Self Copy(Self info) {
-			return .(new .(info.name), info.depthAttachment, info.colorAttachments.Copy(), true);
-		}
+		public static Self Copy(Self info) => .(new .(info.name), info.depthAttachment, info.colorAttachments.Copy(), true);
 
 		public bool HasNoReferences() {
 			if (depthAttachment.HasValue && depthAttachment.Value.image.NoReferences) return true;

@@ -1,4 +1,7 @@
 using System;
+using System.IO;
+using System.Interop;
+using System.Collections;
 using System.Diagnostics;
 
 using GLFW;
@@ -52,8 +55,8 @@ namespace Cacti {
 			return time.Ticks / TimeSpan.TicksPerSecond;
 		} }
 
-		public static LineEnumerator Lines(StringView string) {
-			return .(string.Split('\n', .RemoveEmptyEntries));
+		public static LineEnumerator Lines(StringView string, bool removeEmpty = true) {
+			return .(string.Split('\n', removeEmpty ? .RemoveEmptyEntries : 0));
 		}
 
 		public static (uint8, bool) HexToByte(char8 x1, char8 x2) {
@@ -74,6 +77,47 @@ namespace Cacti {
 			}
 
 			return i;
+		}
+
+		public static void CombinePath(String target, StringView rest) {
+			// Collect all components into a single list
+			List<StringView> components = scope .();
+
+			for (let component in target.Split(scope char8[] ('/', '\\'), .RemoveEmptyEntries)) {
+				components.Add(scope:: String(component));
+			}
+
+			for (let component in rest.Split(scope char8[] ('/', '\\'), .RemoveEmptyEntries)) {
+				components.Add(component);
+			}
+
+			// Remove .. components
+			for (int i < components.Count) {
+				StringView component = components[i];
+
+				if (component == ".." && i > 0) {
+					components.RemoveAt(i);
+					components.RemoveAt(i - 1);
+
+					i -= 2;
+				}
+			}
+
+			// Combine
+			target.Clear();
+
+			for (let component in components) {
+				if (target.Length > 0 && !target.EndsWith('\\') && !target.EndsWith('/')) {
+					target.Append(Path.DirectorySeparatorChar);
+				}
+
+				target.Append(component);
+			}
+		}
+
+		public static int ReverseComparison(int comp) {
+			if (comp == 0) return 0;
+			return comp > 0 ? -1 : 1;
 		}
 		
 		public static void OpenUrl(StringView url) {

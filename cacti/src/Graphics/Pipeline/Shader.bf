@@ -18,16 +18,19 @@ enum ShaderSourceType {
 	File
 }
 
-class ShaderSource : IHashable, IEquatable, IEquatable<Self> {
+class ShaderSource : IEquatable<Self>, IEquatable, IHashable {
 	private ShaderSourceType type;
-	private append String string = .();
+	private String string;
 
 	public ShaderSourceType Type => type;
 	public StringView String => string;
 
+	[AllowAppend]
 	private this(ShaderSourceType type, StringView string) {
+		String _string = append .(string);
+
 		this.type = type;
-		this.string.Set(string);
+		this.string = _string;
 	}
 
 	public static Self String(StringView string) => new .(.String, string);
@@ -35,43 +38,26 @@ class ShaderSource : IHashable, IEquatable, IEquatable<Self> {
 
 	public Self Copy() => new .(type, string);
 
-	public bool Equals(Object other) {
-		return other is Self && Equals((Self) other);
-	}
+	public bool Equals(ShaderSource other) => type == other.type && string == other.string;
 
-	public bool Equals(ShaderSource other) {
-		return type == other.type && string == other.string;
-	}
+	public bool Equals(Object other) => other is Self && Equals((Self) other);
 
-	public int GetHashCode() {
-		return Utils.CombineHashCode(type.Underlying, string.GetHashCode());
-	}
+	public int GetHashCode() => Utils.CombineHashCode(type.Underlying, string.GetHashCode());
+
+	[Commutable]
+	public static bool operator==(Self lhs, Self rhs) => lhs.Equals(rhs);
 }
 
-struct ShaderPreProcessor {
-	private Shaderc.CompileOptions options;
-
-	private this(Shaderc.CompileOptions options) {
-		this.options = options;
-	}
-
-	public void Define(StringView name, StringView value = "TRUE") {
-		options.AddMacroDefinition(name, value);
-	}
-}
-
-delegate void ShaderPreProcessCallback(ShaderPreProcessor preProcessor);
-
-class Shader {
+class Shader : DoubleRefCounted{
 	// Fields
 
 	private VkShaderModule handle ~ vkDestroyShaderModule(Gfx.Device, _, null);
 
 	private ShaderType type;
-	private ShaderSource source;
-	private RefCounted<ShaderPreProcessCallback> preProcessCallback ~ _?.Release();
 
 	private append ShaderInfo info = .();
+
+	private bool valid = true;
 
 	// Properties
 	
@@ -83,11 +69,9 @@ class Shader {
 
 	// Constructors / Destructors
 
-	private this(VkShaderModule handle, ShaderType type, ShaderSource source, RefCounted<ShaderPreProcessCallback> preProcessCallback) {
+	private this(VkShaderModule handle, ShaderType type) {
 		this.handle = handle;
 		this.type = type;
-		this.source = source;
-		this.preProcessCallback = preProcessCallback != null ? preProcessCallback..AddRef() : null;
 	}
 
 	private Result<void> Reflect(uint size, void* code) {
@@ -98,16 +82,17 @@ class Shader {
 		return reflect.Get(info);
 	}
 
-	// Shader
+	// Reference counting
 
-	public Result<void> Reload() {
-		vkDestroyShaderModule(Gfx.Device, handle, null);
+	protected override void Delete() {
+		if (valid) {
+			AddWeakRef();
+			Gfx.ReleaseNextFrame(this);
 
-		let (handle, result) = Gfx.Shaders.[Friend]CreateRaw(type, source, preProcessCallback?.Value).GetOrPropagate!();
-
-		this.handle = handle;
-		defer delete result;
-
-		return Reflect(result.SpvLength * 4, result.Spv);
+			valid = false;
+		}
+		else {
+			delete this;
+		}
 	}
 }

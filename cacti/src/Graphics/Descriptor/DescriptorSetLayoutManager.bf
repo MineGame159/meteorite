@@ -20,9 +20,6 @@ class DescriptorSetLayoutManager {
 
 	[Tracy.Profile]
 	public Result<DescriptorSetLayout> Get(Span<DescriptorType> types) {
-		// Return null if types is empty
-		if (types.IsEmpty) return DescriptorSetLayout.Null;
-
 		// Get info
 		Info info = .Point(types);
 

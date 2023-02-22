@@ -81,9 +81,21 @@ namespace Meteorite {
 			FrameUniforms.Init();
 
 			Input.keyEvent.Add(new (key, scancode, action) => {
-				if (action == .Release && key == .O && !Input.capturingCharacters && world != null && player != null) {
+				if (world == null || player == null || Input.capturingCharacters || action != .Release) return false;
+
+				if (key == .O) {
 					if (Screen is OptionsScreen) Screen = null;
 					else Screen = new OptionsScreen();
+
+					return true;
+				}
+
+				if (key == .R) {
+					Log.Info("Reloading shaders");
+
+					if (Gfx.Shaders.Reload() == .Err) {
+						Log.Error("Failed to reload shaders");
+					}
 
 					return true;
 				}

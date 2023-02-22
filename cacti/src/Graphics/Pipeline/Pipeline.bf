@@ -17,8 +17,8 @@ class Pipeline : DoubleRefCounted {
 
 	private PipelineInfo info ~ delete _;
 
-	private Shader vertexShader ~ delete _;
-	private Shader fragmentShader ~ delete _;
+	private Shader vertexShader;
+	private Shader fragmentShader;
 
 	private append ShaderInfo shaderInfo = .();
 
@@ -36,10 +36,16 @@ class Pipeline : DoubleRefCounted {
 		this.info = info;
 		this.vertexShader = vertexShader;
 		this.fragmentShader = fragmentShader;
+
+		vertexShader.AddWeakRef();
+		fragmentShader.AddWeakRef();
 	}
 
 	public ~this() {
 		delete handles;
+
+		vertexShader.ReleaseWeak();
+		fragmentShader.ReleaseWeak();
 
 		Gfx.Pipelines.[Friend]pipelines.Remove(this);
 	}
@@ -128,13 +134,24 @@ class Pipeline : DoubleRefCounted {
 
 	public Result<void> Reload() {
 		// Reload shaders
-		vertexShader.Reload().GetOrPropagate!();
-		fragmentShader.Reload().GetOrPropagate!();
+		vertexShader.ReleaseWeak();
+		fragmentShader.ReleaseWeak();
+
+		vertexShader = Gfx.Shaders.Get(.Vertex, info.[Friend]vertexShaderSource, info.[Friend]shaderPreprocessCallback).GetOrPropagate!()..AddWeakRef();
+		fragmentShader = Gfx.Shaders.Get(.Fragment, info.[Friend]fragmentShaderSource, info.[Friend]shaderPreprocessCallback).GetOrPropagate!()..AddWeakRef();
 
 		Init();
 		
 		// Destroy handles
-		DestroyHandles();
+		Gfx.RunOnNewFrame(new => DestroyHandles);
+
+		return .Ok;
+	}
+
+	public Result<void> ReloadIfOutdatedShaders() {
+		if (vertexShader.NoReferences || fragmentShader.NoReferences) {
+			return Reload();
+		}
 
 		return .Ok;
 	}

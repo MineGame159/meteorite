@@ -67,10 +67,10 @@ namespace Cacti {
 			String msg = scope .("[");
 			level.ToString(msg);
 	
-	#if BF_PLATFORM_WINDOWS
-				DateTime time = .Now;
-				msg.AppendF(" - {:D2}:{:D2}:{:D2}", time.Hour, time.Minute, time.Second);
-	#endif
+#if BF_PLATFORM_WINDOWS
+			DateTime time = .Now;
+			msg.AppendF(" - {:D2}:{:D2}:{:D2}", time.Hour, time.Minute, time.Second);
+#endif
 			
 			msg.Append("] ");
 	

@@ -83,12 +83,9 @@ namespace Meteorite {
 
 		// Init
 		public static void Init() {
-			Gfx.Shaders.SetReadCallback(new (path) => {
-				String buffer = scope .();
-				bool result = Meteorite.INSTANCE.resources.ReadString(scope $"shaders/{path}", buffer);
-
-				if (result) return ShaderReadResult.New(path, buffer);
-				return ShaderReadResult.New("", "");
+			Gfx.Shaders.SetReadCallback(new (path, output) => {
+				bool result = Meteorite.INSTANCE.resources.ReadString(scope $"shaders/{path}", output);
+				return result ? .Ok : .Err;
 			});
 
 			// Pipelines
@@ -190,14 +187,14 @@ namespace Meteorite {
 			return gpuImage;
 		}
 
-		private static void PostPreProcessor(ShaderPreProcessor preProcessor) {
-			if (Meteorite.INSTANCE.options.aa.enabled) preProcessor.Define("SMAA");
-			if (Meteorite.INSTANCE.options.ao.HasSSAO) preProcessor.Define("SSAO");
+		private static void PostPreProcessor(ShaderPreProcessOptions preProcessor) {
+			if (Meteorite.INSTANCE.options.aa.enabled) preProcessor.Define("SMAA_ENABLED");
+			if (Meteorite.INSTANCE.options.ao.HasSSAO) preProcessor.Define("SSAO_ENABLED");
 
 			SMAAPreProcessor(preProcessor);
 		}
 
-		private static void SMAAPreProcessor(ShaderPreProcessor preProcessor) {
+		private static void SMAAPreProcessor(ShaderPreProcessOptions preProcessor) {
 			AAOptions options = Meteorite.INSTANCE.options.aa;
 
 			// Edge detection

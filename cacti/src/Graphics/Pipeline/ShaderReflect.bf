@@ -42,6 +42,8 @@ class ShaderInfo : IEquatable<Self>, IEquatable, IHashable {
 	}
 
 	public Result<void> AddDescriptor(int setI, int location, DescriptorType type) {
+		if (setI >= PipelineInfo.MAX_DESCRIPTOR_SETS) return .Err;
+
 		// Get descriptor set
 		if (setI >= sets.Count) {
 			Log.Error("Failed to parse shader, maximum number of descriptor sets is {}", sets.Count);

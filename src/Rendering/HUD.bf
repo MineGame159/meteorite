@@ -134,6 +134,7 @@ namespace Meteorite {
 					list.Text("Buffers:", Gfx.Buffers.Count);
 					list.Text("Images:", Gfx.Images.Count);
 					list.Text("Samplers:", Gfx.Samplers.Count);
+					list.Text("Shaders:", Gfx.Shaders.Count);
 					list.Separator();
 
 					list.Text("Descriptor Sets:", scope $"{Gfx.DescriptorSets.Count} / {Gfx.DescriptorSetLayouts.Count}");

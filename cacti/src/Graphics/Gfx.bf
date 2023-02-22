@@ -52,6 +52,7 @@ static class Gfx {
 	private static bool firstFrame = true;
 
 	private static List<DoubleRefCounted> toRelease = new .() ~ delete _;
+	private static List<delegate void()> newFrameActions = new .() ~ delete _;
 
 	public static Result<void> Init(Window window) {
 		// Initialize Vulkan library
@@ -113,6 +114,7 @@ static class Gfx {
 		// Destroy helper objects
 		DescriptorSets.Destroy();
 		RenderPasses.Destroy();
+		Shaders.Destroy();
 
 		// Delete helper objects 1
 		DeleteAndNullify!(Swapchain);
@@ -153,6 +155,10 @@ static class Gfx {
 		toRelease.Add(item);
 	}
 
+	public static void RunOnNewFrame(delegate void() action) {
+		newFrameActions.Add(action);
+	}
+
 	[Tracy.Profile]
 	public static void NewFrame() {
 		// Skip first frame
@@ -171,6 +177,14 @@ static class Gfx {
 
 		// Release reference counted items
 		ReleaseItems();
+
+		// Run new frame actions
+		for (let action in newFrameActions) {
+			action();
+			delete action;
+		}
+
+		newFrameActions.Clear();
 	}
 
 	public static uint64 UsedMemory { get {
