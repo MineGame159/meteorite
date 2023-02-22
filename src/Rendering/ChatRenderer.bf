@@ -26,7 +26,7 @@ namespace Meteorite {
 		public this() {
 			Input.keyEvent.Add(new => OnKey);
 			Input.charEvent.Add(new => OnChar);
-			Input.scrollEvent.Add(new => OnScroll);
+			Input.scrollEvent.Add(new => OnScroll, 10);
 		}
 
 		public void AddMessage(Text message) {
@@ -79,10 +79,10 @@ namespace Meteorite {
 			}
 
 			// Render messages while having the chat open
-			float y = 2 + me.textRenderer.Height + 8;
+			float y = 2 + me.textRenderer.Height + 28;
 
 			if (typing) {
-				for (int i = renderFrom; i < Math.Min(messages.Count, renderFrom + 16); i++) {
+				for (int i = Math.Max(0, renderFrom); i < Math.Min(messages.Count, renderFrom + 16); i++) {
 					float x = 4;
 					messages[i].Visit(scope [&](text, color) => x = me.textRenderer.Render(x, y, text, color));
 
@@ -262,7 +262,7 @@ namespace Meteorite {
 
 			if (typing) {
 				renderFrom += (.) scroll;
-				renderFrom = Math.Clamp(renderFrom, 0, messages.Count - 16 - 1);
+				renderFrom = Math.Clamp(renderFrom, 0, messages.Count - 16);
 				return true;
 			}
 

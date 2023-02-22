@@ -28,6 +28,13 @@ namespace Meteorite {
 
 		public bool onGround;
 
+		public int food;
+		public float foodSaturation;
+
+		public int xpTotal;
+		public int xpLevel;
+		public float xpProgress;
+
 		public this(int32 id, Vec3d pos, float yaw, float pitch, Gamemode gamemode, PlayerAbilities abilities) : base(EntityTypes.PLAYER, id, pos) {
 			this.gamemode = gamemode;
 			this.abilities = abilities;
@@ -42,6 +49,8 @@ namespace Meteorite {
 
 			SetInput(new PlayerKeyboardInput());
 		}
+
+		public override float GetMaxHealth() => (.) GetAttribute(EntityAttributes.GENERIC_MAX_HEALTH, 20);
 
 		public void SetInput(PlayerInput input) {
 			if (this.input != null) delete this.input;

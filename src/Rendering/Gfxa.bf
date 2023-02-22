@@ -177,8 +177,8 @@ namespace Meteorite {
 			ReleaseAndNullify!(TEX_QUADS_PIPELINE);
 		}
 
-		public static GpuImage CreateImage(StringView path) {
-			Image image = Meteorite.INSTANCE.resources.ReadImage(path);
+		public static GpuImage CreateImage(StringView path, bool flip = false) {
+			Image image = Meteorite.INSTANCE.resources.ReadImage(path, flip);
 			defer delete image;
 
 			GpuImage gpuImage = Gfx.Images.Create(path, .RGBA, .Normal, image.size);

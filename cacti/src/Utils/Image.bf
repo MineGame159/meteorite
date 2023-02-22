@@ -184,7 +184,7 @@ namespace Cacti {
 		}
 		// Loading
 
-		public static Result<Image> Read(StringView path, int components = 4) {
+		public static Result<Image> Read(StringView path, int components = 4, bool flip = false) {
 			int32 width = 0;
 			int32 height = 0;
 			int32 comp = 0;
@@ -192,6 +192,7 @@ namespace Cacti {
 			FileStream fs = scope .();
 			if (fs.Open(path, .Read, .Read) case .Err) return .Err;
 
+			stbi.stbi_set_flip_vertically_on_load(flip);
 			uint8* pixels = stbi.stbi_load_from_callbacks(&IO_CALLBACKS, Internal.UnsafeCastToPtr(fs), &width, &height, &comp, (.) components);
 			if (pixels == null) return .Err;
 

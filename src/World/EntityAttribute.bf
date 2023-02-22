@@ -5,6 +5,7 @@ namespace Meteorite;
 
 static class EntityAttributes {
 	public const String GENERIC_MOVEMENT_SPEED = "minecraft:generic.movement_speed";
+	public const String GENERIC_MAX_HEALTH = "minecraft:generic.max_health";
 }
 
 class EntityAttribute {

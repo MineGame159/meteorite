@@ -85,11 +85,11 @@ namespace Meteorite {
 			return ImageInfo.Read(path2);
 		}
 
-		public Result<Image> ReadImage(StringView path) {
+		public Result<Image> ReadImage(StringView path, bool flip = false) {
 			String path2 = GetPath(scope $"textures/{path}", .. scope .());
 			if (path2 == "") return .Err;
 
-			return Image.Read(path2);
+			return Image.Read(path2, flip: flip);
 		}
 
 		public Result<Json> ReadJson(StringView path) {

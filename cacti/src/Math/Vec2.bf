@@ -81,4 +81,8 @@ namespace Cacti {
 		public static bool operator<(Self lhs, T rhs) => lhs.Length < rhs;
 		public static bool operator<(T lhs, Self rhs) => lhs < rhs.Length;
 	}
+
+	extension Vec2<int> {
+		public Vec2<float> ToFloat => .(x, y);
+	}
 }

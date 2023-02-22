@@ -103,6 +103,21 @@ namespace Meteorite {
 				return false;
 			});
 
+			Input.scrollEvent.Add(new (scroll) => {
+				if (world == null || player == null) return false;
+
+				Meteorite me = .INSTANCE;
+
+				me.player.inventory.selectedSlot -= (.) scroll;
+
+				if (me.player.inventory.selectedSlot < 0) me.player.inventory.selectedSlot = 8;
+				else if (me.player.inventory.selectedSlot > 8) me.player.inventory.selectedSlot = 0;
+
+				me.connection.Send(scope SetSelectedSlotC2SPacket(me.player.inventory.selectedSlot));
+
+				return true;
+			});
+
 			window.MouseHidden = true;
 			Screen = new MainMenuScreen();
 		}

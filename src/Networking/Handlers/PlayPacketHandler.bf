@@ -252,6 +252,19 @@ namespace Meteorite {
 			else me.player.inventory.selectedSlot = packet.slot;
 		}
 
+		private void OnSetHealthAndFood(SetHealthAndFoodS2CPacket packet) {
+			me.player.health = packet.health;
+
+			me.player.food = packet.food;
+			me.player.foodSaturation = packet.foodSaturation;
+		}
+
+		private void OnSetXP(SetXPS2CPacket packet) {
+			me.player.xpTotal = packet.xpTotal;
+			me.player.xpLevel = packet.xpLevel;
+			me.player.xpProgress = packet.xpProgress;
+		}
+
 		private void OnDisconnect(DisconnectS2CPacket packet) {
 			me.Disconnect(packet.reason);
 		}
@@ -285,6 +298,8 @@ namespace Meteorite {
 			case SetContainerItemS2CPacket.ID:			return new SetContainerItemS2CPacket();
 			case SetSelectedSlotS2CPacket.ID:			return new SetSelectedSlotS2CPacket();
 			case DisconnectS2CPacket.ID:				return new DisconnectS2CPacket();
+			case SetHealthAndFoodS2CPacket.ID:			return new SetHealthAndFoodS2CPacket();
+			case SetXPS2CPacket.ID:						return new SetXPS2CPacket();
 			}
 
 			return null;
@@ -325,6 +340,8 @@ namespace Meteorite {
 			case SetContainerItemS2CPacket.ID:			OnSetContainerItem((.) packet);
 			case SetSelectedSlotS2CPacket.ID:			OnSetSelectedSlot((.) packet);
 			case DisconnectS2CPacket.ID:				OnDisconnect((.) packet);
+			case SetHealthAndFoodS2CPacket.ID:			OnSetHealthAndFood((.) packet);
+			case SetXPS2CPacket.ID:						OnSetXP((.) packet);
 			}
 		}
 	}

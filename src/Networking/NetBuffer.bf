@@ -71,7 +71,11 @@ namespace Meteorite {
 		}
 
 		public void WriteShort(int16 v) {
-			*((int16*) &data[size]) = v;
+#unwarn
+			uint8* va = (.) &v;
+			uint8* d = &data[size];
+			d[0] = va[1];
+			d[1] = va[0];
 			size += 2;
 		}
 
@@ -81,9 +85,6 @@ namespace Meteorite {
 		}
 
 		public void WriteLong(int64 v) {
-			/**((int64*) &data[size]) = v;
-			size += 8;*/
-
 #unwarn			
 			uint8* va = (.) &v;
 			uint8* d = &data[size];
