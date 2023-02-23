@@ -271,78 +271,14 @@ namespace Meteorite {
 
 		// Base
 
-		public override S2CPacket GetPacket(int32 id) {
-			switch (id) {
-			case KeepAliveS2CPacket.ID:					return new KeepAliveS2CPacket();
-			case PlayerInfoS2CPacket.ID:				return new PlayerInfoS2CPacket();
-			case JoinGameS2CPacket.ID:					return new JoinGameS2CPacket();
-			case PlayerAbilitiesS2CPacket.ID:			return new PlayerAbilitiesS2CPacket();
-			case PlayerPositionAndLookS2CPacket.ID:		return new PlayerPositionAndLookS2CPacket();
-			case ChunkDataS2CPacket.ID:					return new ChunkDataS2CPacket();
-			//case LightDataS2CPacket.ID:				return new LightDataS2CPacket(); :skoll:
-			case BlockChangeS2CPacket.ID:				return new BlockChangeS2CPacket();
-			case MultiBlockChangeS2CPacket.ID:			return new MultiBlockChangeS2CPacket();
-			case BlockEntityDataS2CPacket.ID:			return new BlockEntityDataS2CPacket();
-			case SpawnEntityS2CPacket.ID:				return new SpawnEntityS2CPacket();
-			case DestroyEntitiesS2CPacket.ID:			return new DestroyEntitiesS2CPacket();
-			case EntityPositionS2CPacket.ID:			return new EntityPositionS2CPacket();
-			case EntityRotationS2CPacket.ID:			return new EntityRotationS2CPacket();
-			case EntityPositionAndRotationS2CPacket.ID: return new EntityPositionAndRotationS2CPacket();
-			case EntityTeleportS2CPacket.ID:			return new EntityTeleportS2CPacket();
-			case TimeUpdateS2CPacket.ID:				return new TimeUpdateS2CPacket();
-			case ChangeGameStateS2CPacket.ID:			return new ChangeGameStateS2CPacket();
-			case SystemChatMessageS2CPacket.ID:			return new SystemChatMessageS2CPacket();
-			case PlayerCharMessageS2CPacket.ID:			return new PlayerCharMessageS2CPacket();
-			case UpdateAttributesS2CPacket.ID:			return new UpdateAttributesS2CPacket();
-			case SetContainerItemsS2CPacket.ID:			return new SetContainerItemsS2CPacket();
-			case SetContainerItemS2CPacket.ID:			return new SetContainerItemS2CPacket();
-			case SetSelectedSlotS2CPacket.ID:			return new SetSelectedSlotS2CPacket();
-			case DisconnectS2CPacket.ID:				return new DisconnectS2CPacket();
-			case SetHealthAndFoodS2CPacket.ID:			return new SetHealthAndFoodS2CPacket();
-			case SetXPS2CPacket.ID:						return new SetXPS2CPacket();
-			}
-
-			return null;
-		}
+		public override S2CPacket GetPacket(int32 id) => Impl.GetPacket(id);
 
 		public override void Handle(S2CPacket packet) {
-			if (packet.synchronised) me.Execute(new () => Dispatch(packet));
-			else Dispatch(packet);
+			if (packet.synchronised) me.Execute(new () => Impl.Dispatch(this, packet));
+			else Impl.Dispatch(this, packet);
 		}
 
-		private void Dispatch(S2CPacket packet) {
-			defer delete packet;
-			CheckPacketCondition!(packet);
-
-			switch (packet.id) {
-			case KeepAliveS2CPacket.ID:					OnKeepAlive((.) packet);
-			case PlayerInfoS2CPacket.ID:				OnPlayerInfo((.) packet);
-			case JoinGameS2CPacket.ID:					OnJoinGame((.) packet);
-			case PlayerAbilitiesS2CPacket.ID:			OnPlayerAbilities((.) packet);
-			case PlayerPositionAndLookS2CPacket.ID:		OnPlayerPositionAndLook((.) packet);
-			case ChunkDataS2CPacket.ID:					OnChunkData((.) packet);
-			case LightDataS2CPacket.ID:					OnLightData((.) packet);
-			case BlockChangeS2CPacket.ID:				OnBlockChange((.) packet);
-			case MultiBlockChangeS2CPacket.ID:			OnMultiBlockChange((.) packet);
-			case BlockEntityDataS2CPacket.ID:			OnBlockEntityData((.) packet);
-			case SpawnEntityS2CPacket.ID:				OnSpawnEntity((.) packet);
-			case DestroyEntitiesS2CPacket.ID:			OnDestroyEntities((.) packet);
-			case EntityPositionS2CPacket.ID:			OnEntityPosition((.) packet);
-			case EntityRotationS2CPacket.ID:			OnEntityPosition((.) packet);
-			case EntityPositionAndRotationS2CPacket.ID:	OnEntityPosition((.) packet);
-			case EntityTeleportS2CPacket.ID:			OnEntityPosition((.) packet);
-			case TimeUpdateS2CPacket.ID:				OnTimeUpdate((.) packet);
-			case ChangeGameStateS2CPacket.ID:			OnChangeGameState((.) packet);
-			case SystemChatMessageS2CPacket.ID:			OnSystemChatMessage((.) packet);
-			case PlayerCharMessageS2CPacket.ID:			OnPlayerChatMessage((.) packet);
-			case UpdateAttributesS2CPacket.ID:			OnUpdateAttributes((.) packet);
-			case SetContainerItemsS2CPacket.ID:			OnSetContainerItems((.) packet);
-			case SetContainerItemS2CPacket.ID:			OnSetContainerItem((.) packet);
-			case SetSelectedSlotS2CPacket.ID:			OnSetSelectedSlot((.) packet);
-			case DisconnectS2CPacket.ID:				OnDisconnect((.) packet);
-			case SetHealthAndFoodS2CPacket.ID:			OnSetHealthAndFood((.) packet);
-			case SetXPS2CPacket.ID:						OnSetXP((.) packet);
-			}
-		}
+		[PacketHandlerImpl]
+		static class Impl {}
 	}
 }

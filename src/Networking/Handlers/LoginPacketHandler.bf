@@ -110,29 +110,14 @@ namespace Meteorite {
 
 		// Base
 
-		public override S2CPacket GetPacket(int32 id) {
-			switch (id) {
-			case LoginDisconnectS2CPacket.ID:	return new LoginDisconnectS2CPacket();
-			case EncryptionRequestS2CPacket.ID:	return new EncryptionRequestS2CPacket();
-			case LoginSuccessS2CPacket.ID:		return new LoginSuccessS2CPacket();
-			}
-
-			return null;
-		}
+		public override S2CPacket GetPacket(int32 id) => Impl.GetPacket(id);
 
 		public override void Handle(S2CPacket packet) {
-			if (packet.synchronised) me.Execute(new () => Dispatch(packet));
-			else Dispatch(packet);
+			if (packet.synchronised) me.Execute(new () => Impl.Dispatch(this, packet));
+			else Impl.Dispatch(this, packet);
 		}
 
-		private void Dispatch(S2CPacket packet) {
-			switch (packet.id) {
-			case LoginDisconnectS2CPacket.ID:	OnLoginDisconnect((.) packet);
-			case EncryptionRequestS2CPacket.ID:	OnEncryptionRequest((.) packet);
-			case LoginSuccessS2CPacket.ID:		OnLoginSuccess((.) packet);
-			}
-
-			delete packet;
-		}
+		[PacketHandlerImpl]
+		static class Impl {}
 	}
 }

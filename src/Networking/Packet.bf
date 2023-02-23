@@ -37,4 +37,7 @@ namespace Meteorite {
 
 		public abstract void Write(NetBuffer buf);
 	}
+
+	[AttributeUsage(.Class)]
+	struct PacketSubTypeAttribute : this(Type type), Attribute {}
 }

@@ -2,108 +2,112 @@ using System;
 
 using Cacti;
 
-namespace Meteorite {
-	abstract class BaseEntityPositionS2CPacket : S2CPacket {
-		public int entityId;
+namespace Meteorite;
 
-		public bool hasPosition;
-		public int16 deltaX, deltaY, deltaZ;
+[PacketSubType(typeof(EntityPositionS2CPacket))]
+[PacketSubType(typeof(EntityRotationS2CPacket))]
+[PacketSubType(typeof(EntityPositionAndRotationS2CPacket))]
+[PacketSubType(typeof(EntityTeleportS2CPacket))]
+abstract class BaseEntityPositionS2CPacket : S2CPacket {
+	public int entityId;
 
-		public bool teleport;
-		public double x, y, z;
+	public bool hasPosition;
+	public int16 deltaX, deltaY, deltaZ;
 
-		public bool hasRotation;
-		public float yaw, pitch;
+	public bool teleport;
+	public double x, y, z;
 
-		public this(int32 id) : base(id, .World) {}
+	public bool hasRotation;
+	public float yaw, pitch;
 
-		public override void Read(NetBuffer buf) {
-			entityId = buf.ReadVarInt();
-		}
+	public this(int32 id) : base(id, .World) {}
 
-		protected void ReadPosition(NetBuffer buf) {
-			hasPosition = true;
-			deltaX = buf.ReadShort();
-			deltaY = buf.ReadShort();
-			deltaZ = buf.ReadShort();
-		}
-
-		protected void ReadRotation(NetBuffer buf) {
-			hasRotation = true;
-			yaw = buf.ReadAngle();
-			pitch = buf.ReadAngle();
-		}
-
-		public Vec3d GetPos(Entity entity) {
-			if (teleport) return .(x, y, z);
-
-			double x = deltaX == 0 ? entity.trackedPos.x : DecodePacketCoordinate(EncodePacketCoordinate(entity.trackedPos.x) + (int64) deltaX);
-			double y = deltaY == 0 ? entity.trackedPos.y : DecodePacketCoordinate(EncodePacketCoordinate(entity.trackedPos.y) + (int64) deltaY);
-			double z = deltaZ == 0 ? entity.trackedPos.z : DecodePacketCoordinate(EncodePacketCoordinate(entity.trackedPos.z) + (int64) deltaZ);
-
-			return .(x, y, z);
-		}
-
-		private static double DecodePacketCoordinate(int64 coord) => coord / 4096.0;
-		private static int64 EncodePacketCoordinate(double coord) => Utils.Lfloor(coord * 4096.0);
+	public override void Read(NetBuffer buf) {
+		entityId = buf.ReadVarInt();
 	}
 
-	class EntityPositionS2CPacket : BaseEntityPositionS2CPacket {
-		public const int32 ID = 0x27;
-
-		public this() : base(ID) {}
-
-		public override void Read(NetBuffer buf) {
-			base.Read(buf);
-
-			ReadPosition(buf);
-		}
+	protected void ReadPosition(NetBuffer buf) {
+		hasPosition = true;
+		deltaX = buf.ReadShort();
+		deltaY = buf.ReadShort();
+		deltaZ = buf.ReadShort();
 	}
 
-	class EntityRotationS2CPacket : BaseEntityPositionS2CPacket {
-		public const int32 ID = 0x29;
-
-		public this() : base(ID) {}
-
-		public override void Read(NetBuffer buf) {
-			base.Read(buf);
-
-			ReadRotation(buf);
-		}
+	protected void ReadRotation(NetBuffer buf) {
+		hasRotation = true;
+		yaw = buf.ReadAngle();
+		pitch = buf.ReadAngle();
 	}
 
-	class EntityPositionAndRotationS2CPacket : BaseEntityPositionS2CPacket {
-		public const int32 ID = 0x28;
+	public Vec3d GetPos(Entity entity) {
+		if (teleport) return .(x, y, z);
 
-		public this() : base(ID) {}
+		double x = deltaX == 0 ? entity.trackedPos.x : DecodePacketCoordinate(EncodePacketCoordinate(entity.trackedPos.x) + (int64) deltaX);
+		double y = deltaY == 0 ? entity.trackedPos.y : DecodePacketCoordinate(EncodePacketCoordinate(entity.trackedPos.y) + (int64) deltaY);
+		double z = deltaZ == 0 ? entity.trackedPos.z : DecodePacketCoordinate(EncodePacketCoordinate(entity.trackedPos.z) + (int64) deltaZ);
 
-		public override void Read(NetBuffer buf) {
-			base.Read(buf);
-
-			ReadPosition(buf);
-			ReadRotation(buf);
-		}
+		return .(x, y, z);
 	}
 
-	class EntityTeleportS2CPacket : BaseEntityPositionS2CPacket {
-		public const int32 ID = 0x64;
+	private static double DecodePacketCoordinate(int64 coord) => coord / 4096.0;
+	private static int64 EncodePacketCoordinate(double coord) => Utils.Lfloor(coord * 4096.0);
+}
 
-		public bool onGround;
+class EntityPositionS2CPacket : BaseEntityPositionS2CPacket {
+	public const int32 ID = 0x27;
 
-		public this() : base(ID) {}
+	public this() : base(ID) {}
 
-		public override void Read(NetBuffer buf) {
-			base.Read(buf);
+	public override void Read(NetBuffer buf) {
+		base.Read(buf);
 
-			hasPosition = true;
-			teleport = true;
-			x = buf.ReadDouble();
-			y = buf.ReadDouble() - me.world.dimension.minY;
-			z = buf.ReadDouble();
+		ReadPosition(buf);
+	}
+}
 
-			ReadRotation(buf);
+class EntityRotationS2CPacket : BaseEntityPositionS2CPacket {
+	public const int32 ID = 0x29;
 
-			onGround = buf.ReadBool();
-		}
+	public this() : base(ID) {}
+
+	public override void Read(NetBuffer buf) {
+		base.Read(buf);
+
+		ReadRotation(buf);
+	}
+}
+
+class EntityPositionAndRotationS2CPacket : BaseEntityPositionS2CPacket {
+	public const int32 ID = 0x28;
+
+	public this() : base(ID) {}
+
+	public override void Read(NetBuffer buf) {
+		base.Read(buf);
+
+		ReadPosition(buf);
+		ReadRotation(buf);
+	}
+}
+
+class EntityTeleportS2CPacket : BaseEntityPositionS2CPacket {
+	public const int32 ID = 0x64;
+
+	public bool onGround;
+
+	public this() : base(ID) {}
+
+	public override void Read(NetBuffer buf) {
+		base.Read(buf);
+
+		hasPosition = true;
+		teleport = true;
+		x = buf.ReadDouble();
+		y = buf.ReadDouble() - me.world.dimension.minY;
+		z = buf.ReadDouble();
+
+		ReadRotation(buf);
+
+		onGround = buf.ReadBool();
 	}
 }
