@@ -16,7 +16,7 @@ namespace System {
 		}
 	}
 
-	extension Result<T, E> {
+	extension Result<T, TErr> {
 		public mixin GetOrPropagate() {
 			if (this case .Err) return .Err;
 			Value

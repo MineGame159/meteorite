@@ -58,7 +58,7 @@ class PipelineLayoutManager {
 			VkDebugUtilsObjectNameInfoEXT nameInfo = .() {
 				objectType = .VK_OBJECT_TYPE_PIPELINE_LAYOUT,
 				objectHandle = layout,
-				pObjectName = scope $"[PIPELINE_LAYOUT] {layouts.Count - 1}"
+				pObjectName = scope $"[PIPELINE_LAYOUT] {layouts.Count}"
 			};
 			vkSetDebugUtilsObjectNameEXT(Gfx.Device, &nameInfo);
 		}

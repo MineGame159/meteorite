@@ -10,6 +10,7 @@ static class ImGuiCacti {
 	private static bool firstFrame = true;
 	private static bool newFrameCalled;
 
+	private static SimpleBumpAllocator frameAlloc = new .() ~ delete _;
 	private static int id;
 
 	public static bool customSize = false;
@@ -41,6 +42,8 @@ static class ImGuiCacti {
 
 	public static bool NewFrame() {
 		if (!initialized) return false;
+
+		frameAlloc.FreeAll();
 
 		if (firstFrame) {
 			ImGuiImplCacti.CreateFontsTexture();
@@ -276,14 +279,12 @@ struct ImGuiButtons : IDisposable {
 struct ImGuiTextList : IDisposable {
 	public const int MAX_COUNT = 32;
 
-	private IRawAllocator alloc;
 	private float spaceWidth;
 
 	private Entry[MAX_COUNT] entries;
 	private int entryCount;
 
-	public this(IRawAllocator alloc) {
-		this.alloc = alloc;
+	public this() {
 		this.spaceWidth = ImGui.CalcTextSize(" ").x;
 
 		this.entries = ?;
@@ -332,7 +333,7 @@ struct ImGuiTextList : IDisposable {
 				ImGui.[Friend]TextImpl(entry.right.Ptr);
 			}
 
-			entry.Delete(alloc);
+			entry.Delete(ImGuiCacti.[Friend]frameAlloc);
 		}
 
 		ImGui.PopItemWidth();
@@ -342,6 +343,7 @@ struct ImGuiTextList : IDisposable {
 		if (entryCount >= MAX_COUNT) Internal.FatalError("Exceeded maximum entry count");
 
 		mixin Alloc(StringView str) {
+			let alloc = ImGuiCacti.[Friend]frameAlloc;
 			String copy = new:alloc .(str.Length + 1);
 
 			copy.Append(str);

@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 
 using Bulkan;
 using static Bulkan.VulkanNative;
@@ -115,6 +116,7 @@ class RenderPass : IDisposable {
 	}
 
 	public void SetPushConstants(void* value, uint32 size) {
+		Debug.Assert(size <= boundPipeline.[Friend]shaderInfo.PushConstantSize);
 		vkCmdPushConstants(cmds.Vk, boundPipeline.Layout, .VK_SHADER_STAGE_VERTEX_BIT | .VK_SHADER_STAGE_FRAGMENT_BIT, 0, size, value);
 	}
 
