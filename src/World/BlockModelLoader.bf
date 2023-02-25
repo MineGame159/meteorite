@@ -316,7 +316,7 @@ namespace Meteorite{
 					matrix = matrix.Rotate(axis, angle).Translate(-origin);
 
 					for (int i < 4) {
-						positions[i] = .(matrix * Vec4f(positions[i], 1));
+						positions[i] = (matrix * Vec4f(positions[i], 1)).XYZ;
 					}
 				}
 

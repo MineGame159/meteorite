@@ -88,9 +88,9 @@ namespace Cacti {
 			m.vecs[0].z = f.x;
 			m.vecs[1].z = f.y;
 			m.vecs[2].z = f.z;
-			m.vecs[3].x = -s.Dot(eye);
-			m.vecs[3].y = -u.Dot(eye);
-			m.vecs[3].z = -f.Dot(eye);
+			m.vecs[3].x = (.) -s.Dot(eye);
+			m.vecs[3].y = (.) -u.Dot(eye);
+			m.vecs[3].z = (.) -f.Dot(eye);
 			return m;
 		}
 

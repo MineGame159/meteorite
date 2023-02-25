@@ -19,7 +19,7 @@ struct Plane : this(float distanceToOrigin, Vec3f normal) {
 		if (normal.y > 0) point.y = max.y;
 		if (normal.z > 0) point.z = max.z;
 
-		return point.Dot(normal) + distanceToOrigin;
+		return (.) point.Dot(normal) + distanceToOrigin;
 	}
 }
 
@@ -149,5 +149,5 @@ class Camera {
 		return true;
 	}
 
-	public bool IsBoxVisible(Vec3d min, Vec3d max) => IsBoxVisible(min.ToFloat, max.ToFloat);
+	public bool IsBoxVisible(Vec3d min, Vec3d max) => IsBoxVisible((Vec3f) min, (Vec3f) max);
 }

@@ -42,7 +42,7 @@ class ChunkRenderer : IEnumerable<Chunk> {
 	public void Setup() {
 		visibleChunks.Clear();
 
-		Vec3d cameraPos = me.camera.pos.ToFloat;
+		Vec3d cameraPos = me.camera.pos;
 
 		// Frustum cull and schedule rebuilds
 		for (Chunk chunk in me.world.Chunks) {
@@ -165,7 +165,7 @@ class ChunkRenderer : IEnumerable<Chunk> {
 
 			// Bind chunk specific state
 			pass.Bind(data.gpuBuffer);
-			pass.SetPushConstants((Vec3d(chunk.pos.x * Section.SIZE, 0, chunk.pos.z * Section.SIZE) - cameraPos).ToFloat);
+			pass.SetPushConstants((Vec3f) (Vec3d(chunk.pos.x * Section.SIZE, 0, chunk.pos.z * Section.SIZE) - cameraPos));
 			
 			// Render sides
 			Draw!(layerData, QuadCullFace.None);

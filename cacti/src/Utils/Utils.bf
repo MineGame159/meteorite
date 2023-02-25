@@ -18,8 +18,8 @@ namespace Cacti {
 
 		public static void CombineHashCode<T>(ref int hash, T other) where T : IHashable => hash = CombineHashCode(hash, other.GetHashCode());
 
-		public static T Lerp<T>(T delta, T start, T end) where T : operator T - T, operator T * T, operator T + T {
-			return start + delta * (end - start);
+		public static T Lerp<T>(double delta, T start, T end) where T : operator T - T, operator T * T, operator T + T, var {
+			return (.) ((double) start + (double) delta * ((double) end - (double) start));
 		}
 
 		public static int64 Lfloor(double value) {
@@ -77,6 +77,11 @@ namespace Cacti {
 			}
 
 			return i;
+		}
+
+		public static void Capitalize(String string) {
+			if (string.IsEmpty) return;
+			string[0] = string[0].ToUpper;
 		}
 
 		public static void CombinePath(String target, StringView rest) {

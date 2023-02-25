@@ -26,7 +26,7 @@ namespace Meteorite {
 		public void Render(BlockEntity blockEntity, double offsetY, float tickDelta) {
 			matrices.Push();
 			matrices.Translate(.(blockEntity.pos.x, blockEntity.pos.y + (.) offsetY, blockEntity.pos.z));
-			matrices.Translate(-Meteorite.INSTANCE.camera.pos.ToFloat);
+			matrices.Translate((.) -Meteorite.INSTANCE.camera.pos);
 
 			BlockState blockState = Meteorite.INSTANCE.world.GetBlock(blockEntity.pos.x, blockEntity.pos.y, blockEntity.pos.z);
 

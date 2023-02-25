@@ -1,88 +1,175 @@
 using System;
 
-namespace Cacti {
-	typealias Vec2f = Vec2<float>;
-	typealias Vec2d = Vec2<double>;
-	typealias Vec2i = Vec2<int>;
+namespace Cacti;
 
-	struct Vec2<T> : IEquatable, IEquatable<Self>, IHashable where T : var, operator T + T, operator T * T, operator T / T, operator T % T, IHashable {
-		public static Self ZERO = .();
+typealias Vec2f = Vec2<float>;
+typealias Vec2d = Vec2<double>;
+typealias Vec2i = Vec2<int>;
 
-		public T x, y;
+//[VecBase(2)]
+//[VecSwizzle(2)]
+[CRepr]
+struct Vec2<T> : IEquatable<Self>, IEquatable, IHashable where T : var {
+	// Constants
 
-		public this(T x, T y) {
-			this.x = x;
-			this.y = y;
-		}
+	public const Self ZERO = .(0);
+	public const Self ONE = .(1);
 
-		public this(Vec4<T> v) : this(v.x, v.y) {}
-		public this(Vec3<T> v) : this(v.x, v.y) {}
-		public this() : this(0, 0) {}
+	// Fields
 
-		public T this[int index] {
-			get {
-				return index == 1 ? y : x;
-			}
-			set mut {
-				if (index == 1) y = value;
-				else x = value;
-			}
-		}
+	public T x, y;
 
-		public bool IsZero => x == 0 && y == 0;
+	// Constructors
 
-		public int IntX => (.) Math.Floor(x);
-		public int IntY => (.) Math.Floor(y);
-
-		public double Length => Math.Sqrt(x * x + y * y);
-		public double LengthSquared => x * x + y * y;
-
-		public Self Normalize() {
-			double l = Length;
-			return .((.) (x / l), (.) (y / l));
-		}
-
-		public float Dot(Self v) => x * v.x + y * v.y;
-
-		public Self Clamp(T min, T max) => .(Math.Clamp(x, min, max), Math.Clamp(y, min, max));
-		public Self Lerp(T delta, Self end) => .(Utils.Lerp(delta, x, end.x), Utils.Lerp(delta, y, end.y));
-
-		public bool Equals(Object o) => (o is Self) ? Equals((Self) o) : false;
-		public bool Equals(Self v) => x == v.x && y == v.y;
-
-		public int GetHashCode() => Utils.CombineHashCode(x.GetHashCode(), y.GetHashCode());
-
-		public override void ToString(String str) => str.AppendF("[{:0.00}, {:0.00}]", x, y);
-
-		public static Self operator+(Self lhs, Self rhs) => .(lhs.x + rhs.x, lhs.y + rhs.y);
-		public static Self operator-(Self lhs, Self rhs) => .(lhs.x - rhs.x, lhs.y - rhs.y);
-		public static Self operator*(Self lhs, Self rhs) => .(lhs.x * rhs.x, lhs.y * rhs.y);
-		public static Self operator/(Self lhs, Self rhs) => .(lhs.x / rhs.x, lhs.y / rhs.y);
-		public static Self operator%(Self lhs, Self rhs) => .(lhs.x % rhs.x, lhs.y % rhs.y);
-
-		[Commutable]
-		public static Self operator+(Self lhs, T rhs) => .(lhs.x + rhs, lhs.y + rhs);
-		public static Self operator-(Self lhs, T rhs) => .(lhs.x - rhs, lhs.y - rhs);
-		public static Self operator-(T lhs, Self rhs) => .(lhs - rhs.x, lhs - rhs.y);
-		[Commutable]
-		public static Self operator*(Self lhs, T rhs) => .(lhs.x * rhs, lhs.y * rhs);
-		public static Self operator/(Self lhs, T rhs) => .(lhs.x / rhs, lhs.y / rhs);
-		public static Self operator/(T lhs, Self rhs) => .(lhs / rhs.x, lhs / rhs.y);
-		public static Self operator%(Self lhs, T rhs) => .(lhs.x % rhs, lhs.y % rhs);
-		public static Self operator%(T lhs, Self rhs) => .(lhs % rhs.x, lhs % rhs.y);
-
-		//public static Self operator-(Self rhs) => .(-rhs.x, -rhs.y);
-
-		public static bool operator>(Self lhs, Self rhs) => lhs.Length > rhs.Length;
-		public static bool operator>(Self lhs, T rhs) => lhs.Length > rhs;
-		public static bool operator>(T lhs, Self rhs) => lhs > rhs.Length;
-
-		public static bool operator<(Self lhs, Self rhs) => lhs.Length < rhs.Length;
-		public static bool operator<(Self lhs, T rhs) => lhs.Length < rhs;
-		public static bool operator<(T lhs, Self rhs) => lhs < rhs.Length;
+	public this(T x, T y) {
+		this.x = x;
+		this.y = y;
 	}
 
-	extension Vec2<int> {
-		public Vec2<float> ToFloat => .(x, y);
+	public this(T value) {
+		this.x = value;
+		this.y = value;
 	}
+
+	public this() {
+		this.x = 0;
+		this.y = 0;
+	}
+
+	// Indexer
+
+	public T this[int index] {
+		get {
+			switch (index) {
+			case 0: return x;
+			case 1: return y;
+			default: Runtime.FatalError();
+			}
+		}
+		set mut {
+			switch (index) {
+			case 0: x = value;
+			case 1: y = value;
+			default: Runtime.FatalError();
+			}
+		}
+	}
+
+	// Basic properties
+
+	public bool IsZero => x == 0 && y == 0;
+
+	public double LengthSquared => x * x + y * y;
+
+	public double Length => Math.Sqrt(LengthSquared);
+
+	// Basic methods
+
+	public Self Normalize() {
+		double l = Length;
+		return .((.) (x / l), (.) (y / l));
+	}
+
+	public double Dot(Self vec) => x * vec.x + y * vec.y;
+
+	public Self Min(Self vec) => .(Math.Min(x, vec.x), Math.Min(y, vec.y));
+	public Self Max(Self vec) => .(Math.Max(x, vec.x), Math.Max(y, vec.y));
+
+	public Self Clamp(T min, T max) => .(Math.Clamp(x, min, max), Math.Clamp(y, min, max));
+
+	public Self Lerp(double delta, Self end) => .(Utils.Lerp(delta, x, end.x), Utils.Lerp(delta, y, end.y));
+
+
+	// Equals
+
+	public bool Equals(Self vec) => x == vec.x && y == vec.y;
+	public bool Equals(Object other) => (other is Self) ? Equals((Self) other) : false;
+
+	[Commutable]
+	public static bool operator==(Self lhs, Self rhs) => lhs.Equals(rhs);
+
+	// Hash code
+
+	public int GetHashCode() {
+		int hash = 0;
+		Utils.CombineHashCode(ref hash, x);
+		Utils.CombineHashCode(ref hash, y);
+		return hash;
+	}
+
+	// To string
+
+	public override void ToString(String str) => str.AppendF("[{:0.00}, {:0.00}]", x, y);
+
+	// Math operators
+
+	public static Self operator+(Self lhs, Self rhs) => .(lhs.x + rhs.x, lhs.y + rhs.y);
+	[Commutable]
+	public static Self operator+(Self lhs, T rhs) where T : INumeric => .(lhs.x + rhs, lhs.y + rhs);
+	public static Self operator-(Self lhs, Self rhs) => .(lhs.x - rhs.x, lhs.y - rhs.y);
+	[Commutable]
+	public static Self operator-(Self lhs, T rhs) where T : INumeric => .(lhs.x - rhs, lhs.y - rhs);
+	public static Self operator*(Self lhs, Self rhs) => .(lhs.x * rhs.x, lhs.y * rhs.y);
+	[Commutable]
+	public static Self operator*(Self lhs, T rhs) where T : INumeric => .(lhs.x * rhs, lhs.y * rhs);
+	public static Self operator/(Self lhs, Self rhs) => .(lhs.x / rhs.x, lhs.y / rhs.y);
+	[Commutable]
+	public static Self operator/(Self lhs, T rhs) where T : INumeric => .(lhs.x / rhs, lhs.y / rhs);
+	public static Self operator%(Self lhs, Self rhs) => .(lhs.x % rhs.x, lhs.y % rhs.y);
+	[Commutable]
+	public static Self operator%(Self lhs, T rhs) where T : INumeric => .(lhs.x % rhs, lhs.y % rhs);
+
+	// Comparison operators
+
+	public static bool operator>(Self lhs, Self rhs) => lhs.LengthSquared > rhs.LengthSquared;
+	[Commutable]
+	public static bool operator>(Self lhs, T rhs) where T : INumeric => lhs.LengthSquared > rhs;
+	public static bool operator<(Self lhs, Self rhs) => lhs.LengthSquared < rhs.LengthSquared;
+	[Commutable]
+	public static bool operator<(Self lhs, T rhs) where T : INumeric => lhs.LengthSquared < rhs;
+
+#region Swizzling
+	[NoShow] public Vec2<T> XX => .(x, x);
+	[NoShow] public Vec2<T> YX => .(y, x);
+	[NoShow] public Vec2<T> XY => .(x, y);
+	[NoShow] public Vec2<T> YY => .(y, y);
+#endregion
 }
+
+extension Vec2<T> where T : operator -T {
+	public static Self operator-(Self rhs) => .(-rhs.x, -rhs.y);
+}
+
+#region Conversions
+
+// To float
+
+extension Vec2<T> where T : operator implicit Float {
+	public static implicit operator Vec2f(Self vec) => .(vec.x, vec.y);
+}
+
+extension Vec2<T> where T : operator explicit Float {
+	public static explicit operator Vec2f(Self vec) => .((.) vec.x, (.) vec.y);
+}
+
+// To double
+
+extension Vec2<T> where T : operator implicit Double {
+	public static implicit operator Vec2d(Self vec) => .(vec.x, vec.y);
+}
+
+extension Vec2<T> where T : operator explicit Double {
+	public static explicit operator Vec2d(Self vec) => .((.) vec.x, (.) vec.y);
+}
+
+// To int
+
+extension Vec2<T> where T : operator implicit Int {
+	public static implicit operator Vec2i(Self vec) => .(vec.x, vec.y);
+}
+
+extension Vec2<T> where T : operator explicit Int {
+	public static explicit operator Vec2i(Self vec) => .((.) vec.x, (.) vec.y);
+}
+
+#endregion

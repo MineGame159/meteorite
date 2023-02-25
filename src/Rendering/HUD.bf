@@ -76,7 +76,8 @@ namespace Meteorite {
 			}
 			ImGui.Separator();
 
-			Biome biome = me.world.GetBiome(me.player.pos.IntX, me.player.pos.IntY, me.player.pos.IntZ);
+			Vec3i posI = (.) me.player.pos;
+			Biome biome = me.world.GetBiome(posI.x, posI.y, posI.z);
 			String biomeName = scope .("Unknown");
 
 			if (biome != null) {
@@ -89,7 +90,7 @@ namespace Meteorite {
 			}
 
 			ImGui.Text("Pos: {:0.0} {:0.0} {:0.0}", me.camera.pos.x, me.camera.pos.y, me.camera.pos.z);
-			ImGui.Text("Chunk: {} {}", me.player.pos.IntX >> 4, me.player.pos.IntZ >> 4);
+			ImGui.Text("Chunk: {} {}", posI.x >> 4, posI.z >> 4);
 			ImGui.Text("Biome: {}", biomeName);
 			if (me.player.selection != null && !me.player.selection.missed) {
 				Vec3i pos = me.player.selection.blockPos;

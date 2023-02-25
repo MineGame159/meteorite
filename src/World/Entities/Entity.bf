@@ -55,15 +55,17 @@ namespace Meteorite {
 		
 		[Tracy.Profile]
 		public void Render(MeshBuilder mb, double tickDelta) {
-			Chunk chunk = Meteorite.INSTANCE.world.GetChunk(pos.IntX >> 4, pos.IntZ >> 4);
+			Vec3i posI = (.) pos;
+
+			Chunk chunk = Meteorite.INSTANCE.world.GetChunk(posI.x >> 4, posI.z >> 4);
 			uint32 lightUv = BlockRenderer.FULL_BRIGHT_UV;
 
 			if (chunk != null) {
-				int x = pos.IntX & 15;
-				int z = pos.IntZ & 15;
+				int x = posI.x & 15;
+				int z = posI.z & 15;
 
-				uint32 sky = (.) chunk.GetLight(.Sky, x, pos.IntY, z);
-				uint32 block = (.) chunk.GetLight(.Block, x, pos.IntY, z);
+				uint32 sky = (.) chunk.GetLight(.Sky, x, posI.y, z);
+				uint32 block = (.) chunk.GetLight(.Block, x, posI.y, z);
 
 				lightUv = BlockRenderer.PackLightmapUv(sky, block);
 			}

@@ -174,7 +174,7 @@ namespace Meteorite {
 		public static void Render(RenderPass pass, World world, Camera camera, double tickDelta) {
 			pass.PushDebugGroup("Sky");
 
-			Vec3f skyColor = world.GetSkyColor(camera.pos.ToFloat, tickDelta);
+			Vec3f skyColor = world.GetSkyColor((.) camera.pos, tickDelta);
 			Mat4 baseMatrix = camera.proj * camera.viewRotationOnly;
 
 			PushConstaints1 pc1 = .();

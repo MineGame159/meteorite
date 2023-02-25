@@ -142,18 +142,13 @@ static class BlockCollision {
 
 		min = min.Min(min + velocity);
 		max = max.Max(max + velocity);
-		
-		int startX = min.IntX - 1;
-		int startY = min.IntY - 1;
-		int startZ = min.IntZ - 1;
 
-		int endX = max.IntX + 1;
-		int endY = max.IntY + 1;
-		int endZ = max.IntZ + 1;
+		Vec3i start = (.) min - 1;
+		Vec3i end = (.) max + 1;
 
-		for (int x = startX; x <= endX; x++) {
-			for (int y = startY; y <= endY; y++) {
-				for (int z = startZ; z <= endZ; z++) {
+		for (int x = start.x; x <= end.x; x++) {
+			for (int y = start.y; y <= end.y; y++) {
+				for (int z = start.z; z <= end.z; z++) {
 					CheckBoundingBox(x, y, z, velocity, entityPosition, boundingBox, getter, finalResult);
 				}
 			}

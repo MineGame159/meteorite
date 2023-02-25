@@ -96,7 +96,7 @@ namespace Meteorite {
 			Vec3d min = .(pos.x, pos.y, pos.z) + aabb.min;
 			Vec3d max = .(pos.x, pos.y, pos.z) + aabb.max;
 
-			Vec3f cameraPos = me.camera.pos.ToFloat;
+			Vec3f cameraPos = (.) me.camera.pos;
 
 			uint32 ib1 = mb.Vertex<PosColorVertex>(.(.((.) min.x, (.) min.y, (.) min.z) - cameraPos, color));
 			uint32 ib2 = mb.Vertex<PosColorVertex>(.(.((.) min.x, (.) min.y, (.) max.z) - cameraPos, color));
@@ -177,7 +177,7 @@ namespace Meteorite {
 		}
 
 		private void Line(MeshBuilder mb, int x, int z, Color color) {
-			Vec3f cameraPos = me.camera.pos.ToFloat;
+			Vec3f cameraPos = (.) me.camera.pos;
 
 			mb.Line(
 				mb.Vertex<PosColorVertex>(.(.(x, 0, z) - cameraPos, color)),
