@@ -310,7 +310,8 @@ class MainMenuScreen : Screen {
 			return .Err;
 		}
 
-		Json json = response.GetJson().GetOrPropagate!();
+		JsonTree tree = response.GetJson().GetOrPropagate!();
+		Json json = tree.root;
 
 		if (json.GetBool("online")) {
 			ip.Set(json["ip"].AsString);
@@ -323,7 +324,7 @@ class MainMenuScreen : Screen {
 			return .Ok;
 		}
 
-		json.Dispose();
+		delete tree;
 		return .Err;
 	}
 

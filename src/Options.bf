@@ -34,14 +34,13 @@ struct AAOptions {
 	public AAEdgeDetection edgeDetection = .Fast;
 	public AAQuality quality = .Balanced;
 
-	public Json ToJson() {
-		Json json = .Object();
+	public void ToJson(JsonWriter json) {
+		using (json.Object()) {
+			json.Bool("enabled", enabled);
 
-		json["enabled"] = .Bool(enabled);
-		json["edge_detection"] = .String(edgeDetection.ToString(.. scope .()));
-		json["quality"] = .String(quality.ToString(.. scope .()));
-
-		return json;
+			json.String("edge_detection", edgeDetection);
+			json.String("quality", quality);
+		}
 	}
 
 	public void FromJson(Json json) mut {
@@ -90,7 +89,8 @@ class Options {
 			return;
 		}
 
-		Json json = JsonParser.Parse(s);
+		JsonTree tree = JsonParser.Parse(s);
+		Json json = tree.root;
 
 		vsync = json.GetBool("vsync", true);
 
@@ -108,30 +108,36 @@ class Options {
 			}
 		}
 
-		json.Dispose();
+		delete tree;
 	}
 
 	public void Write() {
-		Json json = .Object();
+		FileStream fs = scope .();
 
-		json["vsync"] = .Bool(vsync);
-
-		json["render_distance"] = .Number(renderDistance);
-		json["fov"] = .Number(fov);
-		json["mouse_sensitivity"] = .Number(mouseSensitivity);
-
-		json["ao"] = .String(ao.ToString(.. scope .()));
-
-		json["anti_aliasing"] = aa.ToJson();
-
-		Json resourcePacksJson = json["resource_packs"] =.Array();
-		for (let resourcePack in resourcePacks) {
-			resourcePacksJson.Add(.String(resourcePack));
+		if (fs.Create("run/options.json", .Write) case .Err) {
+			Log.Error("Failed to save options to 'run/options.json'");
+			return;
 		}
 
-		String str = JsonWriter.Write(json, .. scope .(), true);
-		File.WriteAllText("run/options.json", str);
+		JsonWriter json = scope .(scope MyStreamWriter(fs), true);
 
-		json.Dispose();
+		using (json.Object()) {
+			json.Bool("vsync", vsync);
+
+			json.Number("render_distance", renderDistance);
+			json.Number("fov", fov);
+			json.Number("mouse_sensitivity", mouseSensitivity);
+
+			json.String("ao", ao);
+
+			json.SetNextValueName("anti_aliasing");
+			aa.ToJson(json);
+
+			using (json.Array("resource_packs")) {
+				for (String resourcePack in resourcePacks) {
+					json.String(resourcePack);
+				}
+			}
+		}
 	}
 }

@@ -50,13 +50,14 @@ static class MsAuth {
 		defer delete response;
 		if (response.Status != .OK) return .Err;
 
-		Json json = response.GetJson();
+		JsonTree tree = response.GetJson();
+		Json json = tree.root;
 		
 		data.msaAccessToken.Set(json["access_token"].AsString);
 		data.msaRefreshToken.Set(json["refresh_token"].AsString);
 		data.msaValidUntil = DateTime.Now + TimeSpan.FromSeconds(json["expires_in"].AsNumber);
 
-		json.Dispose();
+		delete tree;
 		return .Ok;
 	}
 
@@ -71,13 +72,14 @@ static class MsAuth {
 		defer delete response;
 		if (response.Status != .OK) return .Err;
 
-		Json json = response.GetJson();
+		JsonTree tree = response.GetJson();
+		Json json = tree.root;
 
 		data.xblToken.Set(json["Token"].AsString);
 		data.xblUserHash.Set(json["DisplayClaims"]["xui"].AsArray[0]["uhs"].AsString);
 		data.xblValidUntil = ParseTime(json["NotAfter"].AsString);
 
-		json.Dispose();
+		delete tree;
 		return .Ok;
 	}
 
@@ -92,12 +94,13 @@ static class MsAuth {
 		defer delete response;
 		if (response.Status != .OK) return .Err;
 
-		Json json = response.GetJson();
+		JsonTree tree = response.GetJson();
+		Json json = tree.root;
 
 		data.xstsToken.Set(json["Token"].AsString);
 		data.xstsValidUntil = ParseTime(json["NotAfter"].AsString);
 
-		json.Dispose();
+		delete tree;
 		return .Ok;
 	}
 
@@ -112,12 +115,13 @@ static class MsAuth {
 		defer delete response;
 		if (response.Status != .OK) return .Err;
 
-		Json json = response.GetJson();
+		JsonTree tree = response.GetJson();
+		Json json = tree.root;
 
 		data.mcAccessToken.Set(json["access_token"].AsString);
 		data.mcValidUntil = DateTime.Now + TimeSpan.FromSeconds(json["expires_in"].AsNumber);
 
-		json.Dispose();
+		delete tree;
 		return .Ok;
 	}
 
@@ -130,11 +134,12 @@ static class MsAuth {
 		defer delete response;
 		if (response.Status != .OK) return .Err;
 
-		Json json = response.GetJson();
+		JsonTree tree = response.GetJson();
+		Json json = tree.root;
 
 		data.ownsMc = !json["items"].AsArray.IsEmpty;
 
-		json.Dispose();
+		delete tree;
 		return .Ok;
 	}
 
@@ -176,13 +181,14 @@ static class MsAuth {
 		defer delete response;
 		if (response.Status != .OK) return .Err;
 
-		Json json = response.GetJson();
+		JsonTree tree = response.GetJson();
+		Json json = tree.root;
 
 		data.msaAccessToken.Set(json["access_token"].AsString);
 		data.msaRefreshToken.Set(json["refresh_token"].AsString);
 		data.msaValidUntil = DateTime.Now + TimeSpan.FromSeconds(json["expires_in"].AsNumber);
 
-		json.Dispose();
+		delete tree;
 		return .Ok;
 	}
 

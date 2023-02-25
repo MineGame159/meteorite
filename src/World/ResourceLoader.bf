@@ -93,14 +93,14 @@ class ResourceLoader {
 		return Image.Read(path2, flip: flip);
 	}
 
-	public Result<Json> ReadJson(StringView path) {
+	public Result<JsonTree> ReadJson(StringView path) {
 		FileStream fs = scope .();
 		if (!GetStream(path, fs)) return .Err;
 
 		return JsonParser.Parse(fs);
 	}
 
-	public void ReadJsons(StringView path, delegate void(Json json) callback) {
+	public void ReadJsons(StringView path, delegate void(JsonTree tree) callback) {
 		for (int i < locations.Count) {
 			String fullPath = scope $"{locations[i]}/{path}";
 			FileStream fs = scope .();

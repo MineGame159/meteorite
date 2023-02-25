@@ -20,25 +20,25 @@ static class BlockColors {
 	private static Color[16] redstoneColors;
 
 	public static void Init() {
-		Meteorite.INSTANCE.resources.ReadJsons("data/block_colors.json", scope (json) => {
-			for (let pair in json.AsObject) {
+		Meteorite.INSTANCE.resources.ReadJsons("data/block_colors.json", scope (tree) => {
+			for (let pair in tree.root.AsObject) {
 				Block block = BuiltinRegistries.BLOCKS.Get(scope .("minecraft", pair.key));
 
 				if (pair.value.IsString) {
-					String str = pair.value.AsString;
-
-					if (str == "grass") colors[block] = .Grass;
-					else if (str == "foliage") colors[block] = .Foliage;
-					else if (str == "water") colors[block] = .Water;
-					else if (str == "redstone") colors[block] = .Redstone;
-					else if (str == "stem") colors[block] = .Stem;
+					switch (pair.value.AsString) {
+					case "grass":		colors[block] = .Grass;
+					case "foliage":		colors[block] = .Foliage;
+					case "water":		colors[block] = .Water;
+					case "redstone":	colors[block] = .Redstone;
+					case "stem":		colors[block] = .Stem;
+					}
 				}
 				else if (pair.value.IsNumber) {
 					colors[block] = .Custom(.((.) pair.value.AsNumber));
 				}
 			}
 
-			json.Dispose();
+			delete tree;
 		});
 
 		for (int i < redstoneColors.Count) {

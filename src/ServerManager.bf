@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Collections;
 
+using Cacti;
 using Cacti.Json;
 
 namespace Meteorite;
@@ -10,13 +11,11 @@ class Server {
 	public String name = new .() ~ delete _;
 	public String address = new .() ~ delete _;
 
-	public Json ToJson() {
-		Json json = .Object();
-
-		json["name"] = .String(name);
-		json["address"] = .String(address);
-
-		return json;
+	public void ToJson(JsonWriter json) {
+		using (json.Object()) {
+			json.String("name", name);
+			json.String("address", address);
+		}
 	}
 
 	public void FromJson(Json json) {
@@ -50,18 +49,18 @@ class ServerManager : IEnumerable<Server> {
 		}
 
 		// Parse json
-		Json json;
+		JsonTree tree;
 		defer fs.Close();
 
 		switch (JsonParser.Parse(fs)) {
-		case .Ok(let val):	json = val;
+		case .Ok(let val):	tree = val;
 		case .Err:			return;
 		}
 
-		defer json.Dispose();
+		defer delete tree;
 
 		// Load servers
-		for (let element in json.AsArray) {
+		for (let element in tree.root.AsArray) {
 			Server server = new .();
 			server.FromJson(element);
 
@@ -116,14 +115,19 @@ class ServerManager : IEnumerable<Server> {
 	public List<Server>.Enumerator GetEnumerator() => servers.GetEnumerator();
 
 	private void Save() {
-		Json json = .Array();
-		defer json.Dispose();
+		FileStream fs = scope .();
 
-		for (Server server in servers) {
-			json.Add(server.ToJson());
+		if (fs.Create("run/servers.json", .Write) case .Err) {
+			Log.Error("Failed to save server list to 'run/servers.json'");
+			return;
 		}
 
-		String data = JsonWriter.Write(json, .. scope .(), true);
-		File.WriteAllText("run/servers.json", data);
+		JsonWriter json = scope .(scope MyStreamWriter(fs), true);
+
+		using (json.Array()) {
+			for (Server server in servers) {
+				server.ToJson(json);
+			}
+		}
 	}
 }

@@ -34,14 +34,18 @@ abstract class Account {
 
 	public abstract Result<void> Authenticate();
 
-	public virtual Json ToJson() {
-		Json json = .Object();
+	public virtual void ToJson(bool active, JsonWriter json) {
+		using (json.Object()) {
+			ToJsonBase(active, json);
+		}
+	}
 
-		json["type"] = .String(type.ToString(.. scope .()));
-		json["username"] = .String(username);
-		json["uuid"] = .String(uuid.ToString(.. scope .()));
+	protected void ToJsonBase(bool active, JsonWriter json) {
+		json.Bool("active", active);
 
-		return json;
+		json.String("type", type);
+		json.String("username", username);
+		json.String("uuid", uuid);
 	}
 
 	public virtual void FromJson(Json json) {
@@ -79,21 +83,23 @@ class MicrosoftAccount : Account {
 		defer delete response;
 		if (response.Status != .OK) return .Err;
 
-		Json json = response.GetJson();
+		JsonTree tree = response.GetJson();
+		Json json = tree.root;
 
 		username.Set(json["name"].AsString);
 		uuid = .Parse(json["id"].AsString, true);
 
-		json.Dispose();
+		delete tree;
 		return .Ok;
 	}
 
-	public override Json ToJson() {
-		Json json = base.ToJson();
+	public override void ToJson(bool active, JsonWriter json) {
+		using (json.Object()) {
+			ToJsonBase(active, json);
 
-		json["auth"] = authData.ToJson();
-
-		return json;
+			json.SetNextValueName("auth");
+			authData.ToJson(json);
+		}
 	}
 
 	public override void FromJson(Json json) {

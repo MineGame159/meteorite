@@ -9,7 +9,7 @@ namespace Meteorite;
 extension Blocks {
 	public static BlockState[] BLOCKSTATES = new .[MAX_ID + 1] ~ delete _;
 
-	private static Json JSON;
+	private static JsonTree JSON;
 	private static String STR1, STR2;
 
 	private static void BeforeRegister() {
@@ -19,7 +19,7 @@ extension Blocks {
 	}
 
 	private static void AfterRegister() {
-		JSON.Dispose();
+		delete JSON;
 		delete STR1;
 		delete STR2;
 	}
@@ -42,7 +42,7 @@ extension Blocks {
 		}
 
 		// Read options
-		Json json = JSON[STR1];
+		Json json = JSON.root[STR1];
 
 		if (json.IsObject) {
 			blockState.[Friend]id = (.) json.GetInt("id", 0);

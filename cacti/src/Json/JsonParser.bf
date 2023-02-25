@@ -6,6 +6,8 @@ namespace Cacti.Json;
 class JsonParser {
 	private JsonLexer lexer ~ delete _;
 
+	private JsonTree tree;
+
 	private JsonToken current, next;
 	private Json json;
 
@@ -13,19 +15,29 @@ class JsonParser {
 		this.lexer = new .(stream);
 	}
 
-	public static Result<Json> Parse(Stream stream) => scope Self(stream).Parse();
+	public static Result<JsonTree> Parse(Stream stream) => scope Self(stream).Parse();
 
-	public static Result<Json> Parse(StringView string) => scope Self(scope SpanMemoryStream(.((.) string.Ptr, string.Length))).Parse();
+	public static Result<JsonTree> Parse(StringView string) => scope Self(scope SpanMemoryStream(.((.) string.Ptr, string.Length))).Parse();
 
-	private Result<Json> Parse() {
+	private Result<JsonTree> Parse() {
 		Handle!(Advance());
 		Handle!(Advance());
+
+		tree = new .();
+
+		defer {
+			if (@return == .Err) {
+				delete tree;
+			}
+		}
 
 		switch (current) {
-		case .LeftBracket:	return ParseArray();
-		case .LeftBrace:	return ParseObject();
+		case .LeftBracket:	tree.root = ParseArray().GetOrPropagate!();
+		case .LeftBrace:	tree.root = ParseObject().GetOrPropagate!();
 		default:			return .Err;
 		}
+
+		return tree;
 	}
 
 	private Result<Json> ParseElement() {
@@ -39,7 +51,7 @@ class JsonParser {
 		case .True:					Return!(Json.Bool(true));
 		case .False:				Return!(Json.Bool(false));
 		case .Number(let value):	Return!(Json.Number(value));
-		case .String(let value):	Return!(Json.String(value));
+		case .String(let value):	Return!(tree.String(value));
 		case .LeftBracket:			return Handle!(ParseArray());
 		case .LeftBrace:			return Handle!(ParseObject());
 		default:					return .Err;
@@ -48,7 +60,7 @@ class JsonParser {
 
 	private Result<Json> ParseArray() {
 		Handle!(Advance());
-		Json json = .Array();
+		Json json = tree.Array();
 
 		defer {
 			if (@return == .Err) {
@@ -70,7 +82,7 @@ class JsonParser {
 
 	private Result<Json> ParseObject() {
 		Handle!(Advance());
-		Json json = .Object();
+		Json json = tree.Object();
 
 		defer {
 			if (@return == .Err) {
@@ -90,7 +102,9 @@ class JsonParser {
 			Expect!(JsonToken.Colon);
 
 			Json element = Handle!(ParseElement());
-			json[name] = element;
+
+			BumpAllocator alloc = tree.[Friend]alloc;
+			json.Put(new:alloc String(name), element, false);
 
 			if (current != .RightBrace) Expect!(JsonToken.Comma);
 		}

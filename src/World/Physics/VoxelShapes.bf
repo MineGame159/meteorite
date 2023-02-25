@@ -24,7 +24,9 @@ static class VoxelShapes {
 	}
 
 	public static void Init() {
-		Json json = Meteorite.INSTANCE.resources.ReadJson("data/voxel_shapes.json");
+		JsonTree tree = Meteorite.INSTANCE.resources.ReadJson("data/voxel_shapes.json");
+		Json json = tree.root;
+
 		SHAPES = new .((.) json.AsObject.Count);
 
 		for (let pair in json.AsObject) {
@@ -35,7 +37,7 @@ static class VoxelShapes {
 			SHAPES[new .(pair.key)] = .(shape, collision, raycast);
 		}
 
-		json.Dispose();
+		delete tree;
 	}
 
 	private static VoxelShape ParseShape(Json json) {

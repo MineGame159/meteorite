@@ -11,6 +11,8 @@ extension Math {
 }
 
 extension Result<T> {
+	public Result<void> IgnoreValue() => this == .Err ? .Err : .Ok;
+
 	public mixin GetOrPropagate() {
 		if (this == .Err) return .Err;
 		Value
@@ -18,6 +20,8 @@ extension Result<T> {
 }
 
 extension Result<T, TErr> {
+	public Result<void> IgnoreValue() => this case .Err ? .Err : .Ok;
+
 	public mixin GetOrPropagate() {
 		if (this case .Err) return .Err;
 		Value

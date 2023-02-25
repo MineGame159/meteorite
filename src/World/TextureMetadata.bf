@@ -10,14 +10,14 @@ class TextureMetadata {
 	public TextureAnimationMetadata animation ~ delete _;
 
 	public static TextureMetadata Parse(StringView path) {
-		Result<Json> result = Meteorite.INSTANCE.resources.ReadJson(scope $"textures/{path}.mcmeta");
+		Result<JsonTree> result = Meteorite.INSTANCE.resources.ReadJson(scope $"textures/{path}.mcmeta");
 		if (result == .Err) return null;
-		Json json = result.Get();
+		JsonTree tree = result.Get();
 
 		TextureMetadata metadata = new .();
 
-		if (json.Contains("animation")) {
-			Json j = json["animation"];
+		if (tree.root.Contains("animation")) {
+			Json j = tree.root["animation"];
 			TextureAnimationMetadata animation = new .();
 
 			animation.width = j.GetInt("width", -1);
@@ -44,7 +44,7 @@ class TextureMetadata {
 			metadata.animation = animation;
 		}
 
-		json.Dispose();
+		delete tree;
 		return metadata;
 	}
 }

@@ -9,7 +9,8 @@ static class ChatTypes {
 	public static ChatType[] TYPES ~ DeleteContainerAndItems!(_);
 
 	public static void Register() {
-		Json json = Meteorite.INSTANCE.resources.ReadJson("data/chat_types.json");
+		JsonTree tree = Meteorite.INSTANCE.resources.ReadJson("data/chat_types.json");
+		Json json = tree.root;
 
 		TYPES = new .[json.AsArray.Count];
 
@@ -32,6 +33,6 @@ static class ChatTypes {
 			TYPES[id] = new .(translationKey, parameters, color);
 		}
 
-		json.Dispose();
+		delete tree;
 	}
 }

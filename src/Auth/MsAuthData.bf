@@ -22,24 +22,22 @@ class MsAuthData {
 
 	public bool ownsMc;
 
-	public Json ToJson() {
-		Json json = .Object();
+	public void ToJson(JsonWriter json) {
+		using (json.Object()) {
+			json.String("msa_access_token", msaAccessToken);
+			json.String("msa_refresh_token", msaRefreshToken);
+			json.String("msa_valid_until", msaValidUntil.Ticks);
 
-		json["msa_access_token"] = .String(msaAccessToken);
-		json["msa_refresh_token"] = .String(msaRefreshToken);
-		json["msa_valid_until"] = .String(msaValidUntil.Ticks.ToString(.. scope .()));
+			json.String("xbl_token", xblToken);
+			json.String("xbl_user_hash", xblUserHash);
+			json.String("xbl_valid_until", xblValidUntil.Ticks);
 
-		json["xbl_token"] = .String(xblToken);
-		json["xbl_user_hash"] = .String(xblUserHash);
-		json["xbl_valid_until"] = .String(xblValidUntil.Ticks.ToString(.. scope .()));
+			json.String("xsts_token", xstsToken);
+			json.String("xsts_valid_until", xstsValidUntil.Ticks);
 
-		json["xsts_token"] = .String(xstsToken);
-		json["xsts_valid_until"] = .String(xstsValidUntil.Ticks.ToString(.. scope .()));
-
-		json["mc_access_token"] = .String(mcAccessToken);
-		json["mc_valid_until"] = .String(mcValidUntil.Ticks.ToString(.. scope .()));
-
-		return json;
+			json.String("mc_access_token", mcAccessToken);
+			json.String("mc_valid_until", mcValidUntil.Ticks);
+		}
 	}
 
 	public void FromJson(Json json) {

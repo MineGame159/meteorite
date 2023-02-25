@@ -11,9 +11,9 @@ static class EntityTypes {
 	public static EntityType SALMON;
 
 	public static void Register() {
-		Json json = Meteorite.INSTANCE.resources.ReadJson("data/entity_types.json");
+		JsonTree tree = Meteorite.INSTANCE.resources.ReadJson("data/entity_types.json");
 
-		BuiltinRegistries.ENTITY_TYPES.Parse(json, scope (key, id, json) => {
+		BuiltinRegistries.ENTITY_TYPES.Parse(tree.root, scope (key, id, json) => {
 			EntityType type = new .(
 				key,
 				id,
@@ -28,6 +28,6 @@ static class EntityTypes {
 			return type;
 		});
 
-		json.Dispose();
+		delete tree;
 	}
 }

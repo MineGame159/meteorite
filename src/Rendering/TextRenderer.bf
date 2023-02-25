@@ -14,14 +14,16 @@ class TextRenderer {
 	public int Height => font.height;
 
 	public this() {
-		Json json = Meteorite.INSTANCE.resources.ReadJson("font/default.json");
-		for (let j in json["providers"].AsArray) {
+		JsonTree tree = Meteorite.INSTANCE.resources.ReadJson("font/default.json");
+
+		for (let j in tree.root["providers"].AsArray) {
 			if (j.Contains("file") && j["file"].AsString.EndsWith("ascii.png")) {
 				font = Font.Parse(j);
 				break;
 			}
 		}
-		json.Dispose();
+
+		delete tree;
 
 		if (font == null) Log.Error("Failed to load default/ascii font");
 	}

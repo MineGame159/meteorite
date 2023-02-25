@@ -6,45 +6,12 @@ using Cacti.Json;
 
 namespace Cacti.Http;
 
-enum HttpMessageData : IEquatable<Self>, IEquatable<StringView>, IHashable, IDisposable {
-	case Empty;
-	case Owned(String string);
-	case View(StringView string);
-
-	public StringView String { get {
-		switch (this) {
-		case .Empty:				return "";
-		case .Owned(let string):	return string;
-		case .View(let string):		return string;
-		}
-	} }
-
-	public bool Equals(HttpMessageData other) => String == other.String;
-	public bool Equals(StringView other) => String == other;
-	
-	public int GetHashCode() {
-		switch (this) {
-		case .Empty:				return "".GetHashCode();
-		case .Owned(let string):	return string.GetHashCode();
-		case .View(let string):		return string.GetHashCode();
-		}
-	}
-
-	public void Dispose() {
-		if (this case .Owned(let string)) {
-			delete string;
-		}
-	}
-
-	public static operator StringView(Self data) => data.String;
-}
-
 typealias HttpHeader = (HttpHeaderName name, StringView value);
 
 abstract class HttpMessage {
-	protected HttpMessageData data ~ _.Dispose();
+	protected OwnableString data ~ _.Dispose();
 
-	protected Dictionary<HttpHeaderName, HttpMessageData> headers = new .() ~ delete _;
+	protected Dictionary<HttpHeaderName, OwnableString> headers = new .() ~ delete _;
 	protected HttpStream body ~ delete _;
 
 	public ~this() {
@@ -55,7 +22,7 @@ abstract class HttpMessage {
 
 	public Self SetHeader(HttpHeaderName name, StringView value, bool replace = true) {
 		HttpHeaderName outKey;
-		HttpMessageData outValue;
+		OwnableString outValue;
 
 		if (headers.TryGetAlt(name, out outKey, out outValue)) {
 			if (replace) outValue.Dispose();
@@ -67,7 +34,7 @@ abstract class HttpMessage {
 	}
 
 	public StringView GetHeader(HttpHeaderName name) {
-		HttpMessageData value;
+		OwnableString value;
 		if (headers.TryGetValueAlt(name, out value)) return value.String;
 
 		return "";
@@ -97,7 +64,7 @@ abstract class HttpMessage {
 	}
 
 	public Self SetBody(Json json) {
-		String string = JsonWriter.Write(json, .. new .());
+		String string = JsonWriter.Write(json, .. new .(), false);
 
 		SetHeader(.ContentType, "application/json");
 		SetHeader(.ContentLength, string.Length.ToString(.. scope .()));
@@ -131,7 +98,7 @@ abstract class HttpMessage {
 
 	protected abstract void GetPayloadStatus(String string);
 
-	public Result<void> Parse(HttpMessageData data) {
+	public Result<void> Parse(OwnableString data) {
 		this.data = data;
 		
 		// Parse
@@ -159,7 +126,7 @@ abstract class HttpMessage {
 
 			StringView value = headerSplit.GetNext().GetOrPropagate!()..Trim();
 			
-			headers[name] = .View(value);
+			headers[name] = value;
 		}
 
 		return .Ok;
@@ -213,7 +180,7 @@ abstract class HttpMessage {
 	}
 
 	public struct HttpHeaderEnumerator : IEnumerator<HttpHeader> {
-		private Dictionary<HttpHeaderName, HttpMessageData>.Enumerator enumerator;
+		private Dictionary<HttpHeaderName, OwnableString>.Enumerator enumerator;
 
 		public this(HttpMessage message) {
 			this.enumerator = message.headers.GetEnumerator();

@@ -16,37 +16,43 @@ enum JsonType {
 struct JsonData {
 	public bool bool;
 	public double number;
-	public String string;
+	public OwnableString string;
 	public List<Json> list;
-	public Dictionary<String, Json> dict;
+	public Dictionary<OwnableString, Json> dict;
 }
 
 struct Json : IDisposable {
-	private static Json NULL = .(.Null, default);
+	private static Json NULL = .(.Null, default, false);
 
 	private JsonType type;
-	private JsonData data;
 
-	private this(JsonType type, JsonData data) {
+	private JsonData data;
+	private bool ownsData;
+
+	private this(JsonType type, JsonData data, bool ownsData) {
 		this.type = type;
+
 		this.data = data;
+		this.ownsData = ownsData;
 	}
 
 	// Constructors
 
 	public static Json Null() => NULL;
 
-	public static Json Bool(bool bool) => .(.Bool, .() { bool = bool });
+	public static Json Bool(bool bool) => .(.Bool, .() { bool = bool }, false);
+	public static operator Self(bool bool) => Bool(bool);
 
-	public static Json Number(double number) => .(.Number, .() { number = number });
+	public static Json Number(double number) => .(.Number, .() { number = number }, false);
+	public static operator Self(double number) => Number(number);
+	
+	public static Json String(OwnableString string) => .(.String, .() { string = string }, string case .Owned);
 
-	public static Json String(StringView string) => .(.String, .() { string = new .(string) });
+	public static Json Array(List<Json> list, bool owns = false) => .(.Array, .() { list = list }, owns);
+	public static Json Array() => Array(new .(), true);
 
-	public static Json Array(List<Json> list) => .(.Array, .() { list = list });
-	public static Json Array() => Array(new .());
-
-	public static Json Object(Dictionary<String, Json> dict) => .(.Object, .() { dict = dict });
-	public static Json Object() => Object(new .());
+	public static Json Object(Dictionary<OwnableString, Json> dict, bool owns = false) => .(.Object, .() { dict = dict }, owns);
+	public static Json Object() => Object(new .(), true);
 
 	// Basic type methods
 
@@ -69,7 +75,7 @@ struct Json : IDisposable {
 		Runtime.FatalError(scope $"Tried to get a Json.Number from a Json.{type}");
 	} }
 
-	public String AsString { get {
+	public StringView AsString { get {
 		if (IsString) return data.string;
 		Runtime.FatalError(scope $"Tried to get a Json.String from a Json.{type}");
 	} }
@@ -79,7 +85,7 @@ struct Json : IDisposable {
 		Runtime.FatalError(scope $"Tried to get a Json.Array from a Json.{type}");
 	} }
 
-	public Dictionary<String, Json> AsObject { get {
+	public Dictionary<OwnableString, Json> AsObject { get {
 		if (IsObject) return data.dict;
 		Runtime.FatalError(scope $"Tried to get a Json.Object from a Json.{type}");
 	} }
@@ -93,10 +99,12 @@ struct Json : IDisposable {
 
 			return ref NULL;
 		}
-		set {
-			Remove(name);
-			AsObject[new .(name)] = value;
-		}
+		set => Put(name, value, true);
+	}
+
+	public void Put(OwnableString name, Json value, bool copyName = true) {
+		Remove(name);
+		AsObject[copyName ? name.Copy() : name] = value;
 	}
 
 	public bool GetBool(StringView name, bool defaultValue = false) {
@@ -129,9 +137,10 @@ struct Json : IDisposable {
 	public bool Remove(StringView name) {
 		switch (AsObject.GetAndRemoveAlt(name)) {
 		case .Ok(let val):
-			delete val.key;
+			val.key.Dispose();
 			val.value.Dispose();
 			return true;
+
 		case .Err:
 			return false;
 		}
@@ -156,7 +165,7 @@ struct Json : IDisposable {
 			ClearAndDisposeItems!(data.list);
 		case .Object:
 			for (let (key, json) in data.dict) {
-				delete key;
+				key.Dispose();
 				json.Dispose();
 			}
 
@@ -218,15 +227,24 @@ struct Json : IDisposable {
 
 	public void Dispose() {
 		switch (type) {
-		case .String:	delete data.string;
-		case .Array:	DeleteContainerAndDisposeItems!(data.list);
+		case .String:
+			if (ownsData) data.string.Dispose();
+
+		case .Array:
+			for (let child in data.list) {
+				child.Dispose();
+			}
+
+			if (ownsData) delete data.list;
+
 		case .Object:
 			for (let pair in data.dict) {
-				delete pair.key;
+				pair.key.Dispose();
 				pair.value.Dispose();
 			}
 			
-			delete data.dict;
+			if (ownsData) delete data.dict;
+
 		default:
 		}
 	}

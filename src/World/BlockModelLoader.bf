@@ -11,7 +11,7 @@ static class BlockModelLoader {
 	private static float MIN_SCALE = 1f / Math.Cos(0.3926991f) - 1f;
 	private static float MAX_SCALE = 1f / Math.Cos(0.7853981852531433f) - 1f;
 
-	private static Dictionary<String, Json> MODEL_CACHE;
+	private static Dictionary<String, JsonTree> MODEL_CACHE;
 
 	public static void LoadModels() {
 		Stopwatch sw = scope .(true);
@@ -23,7 +23,7 @@ static class BlockModelLoader {
 		// Load models
 		for (Block block in BuiltinRegistries.BLOCKS) {
 			// Read blockstate json
-			Json? blockstateJson = GetMergedBlockstateJson(block);
+			JsonTree blockstateJson = GetMergedBlockstateJson(block);
 
 			if (blockstateJson == null) {
 				Log.Error("Failed to find blockstate file for block with id '{}'", block.Key);
@@ -34,8 +34,8 @@ static class BlockModelLoader {
 				Model model = new .();
 
 				if (blockstateJson != null) {
-					if (blockstateJson.Value.Contains("multipart")) {
-						List<RawModel> modelJsons = GetMultipartModels(blockState, blockstateJson.Value);
+					if (blockstateJson.root.Contains("multipart")) {
+						List<RawModel> modelJsons = GetMultipartModels(blockState, blockstateJson.root);
 
 						for (RawModel rawModel in modelJsons) {
 							for (let j in rawModel.json["elements"].AsArray) {
@@ -46,7 +46,7 @@ static class BlockModelLoader {
 						DeleteContainerAndDisposeItems!(modelJsons);
 					}
 					else {
-						if (GetVariantModel(block, blockState, blockstateJson.Value) case .Ok(let rawModel)) {
+						if (GetVariantModel(block, blockState, blockstateJson.root) case .Ok(let rawModel)) {
 							if (rawModel.json.Contains("elements")) {
 								for (let j in rawModel.json["elements"].AsArray) {
 									ParseElement(block, textures, model, rawModel.json, j, rawModel.rotation, rawModel.uvlock);
@@ -62,7 +62,7 @@ static class BlockModelLoader {
 				blockState.model = model;
 			}
 
-			blockstateJson.Value.Dispose();
+			delete blockstateJson;
 		}
 
 		// Create texture atlas
@@ -81,7 +81,7 @@ static class BlockModelLoader {
 
 		for (let pair in MODEL_CACHE) {
 			delete pair.key;
-			pair.value.Dispose();
+			delete pair.value;
 		}
 		delete MODEL_CACHE;
 
@@ -89,19 +89,19 @@ static class BlockModelLoader {
 		Log.Info("Loaded block models in {:0.000} ms", sw.Elapsed.TotalMilliseconds);
 	}
 
-	private static Json? GetMergedBlockstateJson(Block block) {
+	private static JsonTree GetMergedBlockstateJson(Block block) {
 		String path = scope $"blockstates/{block.Key.Path}.json";
-		Json? json = null;
+		JsonTree json = null;
 
-		Meteorite.INSTANCE.resources.ReadJsons(path, scope [&](j) => {
+		Meteorite.INSTANCE.resources.ReadJsons(path, scope [&](tree) => {
 			if (json == null) {
-				json = j;
+				json = tree;
 				return;
 			}
 
-			if (json.Value.Contains("variants") && j.Contains("variants")) {
-				Json variants1 = json.Value["variants"];
-				Json variants2 = j["variants"];
+			if (json.root.Contains("variants") && tree.root.Contains("variants")) {
+				Json variants1 = json.root["variants"];
+				Json variants2 = tree.root["variants"];
 
 				for (let pair in variants2.AsObject) {
 					if (variants1.Contains(pair.key)) variants1.Remove(pair.key);
@@ -112,7 +112,7 @@ static class BlockModelLoader {
 				}
 			}
 
-			j.Dispose();
+			delete tree;
 		});
 
 		return json;
@@ -136,7 +136,7 @@ static class BlockModelLoader {
 			Vec2f[4] uvs = .();
 			float light = 1;
 
-			switch (pair.key) {
+			switch (pair.key.String) {
 			case "up":
 				direction = .Up;
 				positions[0] = .(from.x, to.y, from.z);
@@ -391,10 +391,14 @@ static class BlockModelLoader {
 			if (!json.GetBool("shade", true)) light = 1;
 
 			// Resolve texture
-			String _texture = ResolveTexture(modelJson, pair.value["texture"].AsString);
-			if (_texture == null) continue;
+			String texture = scope .();
+			texture.Set(ResolveTexture(modelJson, pair.value["texture"].AsString));
 
-			String texture = _texture.Contains(':') ? scope .(_texture.Substring(10)) : _texture;
+			if (texture.IsEmpty) continue;
+
+			if (texture.Contains(':')) {
+				texture.Remove(0, 10);
+			}
 
 			List<Quad> textureQuads = textures.GetValueOrDefault(texture);
 			if (textureQuads == null) {
@@ -489,12 +493,12 @@ static class BlockModelLoader {
 		return rots[(rots.Count + pos + offset) % rots.Count];
 	}
 
-	private static String ResolveTexture(Json json, String name) {
+	private static StringView ResolveTexture(Json json, StringView name) {
 		var name;
 
 		while (name.StartsWith('#')) {
 			String key = scope .(name.Substring(1));
-			if (!json["textures"].Contains(key)) return null;
+			if (!json["textures"].Contains(key)) return "";
 
 			name = json["textures"][key].AsString;
 		}
@@ -520,7 +524,7 @@ static class BlockModelLoader {
 
 			if (apply) {
 				Json a = json["apply"];
-				String b;
+				StringView b;
 
 				if (a.IsObject) b = a["model"].AsString;
 				else b = a[0]["model"].AsString;
@@ -649,12 +653,12 @@ static class BlockModelLoader {
 
 			// Check cache
 			String _;
-			Json cachedJson;
+			JsonTree cachedJson;
 			if (MODEL_CACHE.TryGet(scope .(modelPath), out _, out cachedJson)) {
-				Merge(json, cachedJson);
+				Merge(json, cachedJson.root);
 			} else {
 				// Merge and add to cache
-				Result<Json> j = Meteorite.INSTANCE.resources.ReadJson(modelPath);
+				Result<JsonTree> j = Meteorite.INSTANCE.resources.ReadJson(modelPath);
 
 				if (j == .Err) {
 					Log.Error("Failed to find model file with path '{}'", modelPath);
@@ -662,7 +666,7 @@ static class BlockModelLoader {
 				}
 
 				MODEL_CACHE[new .(modelPath)] = j;
-				Merge(json, j);
+				Merge(json, j.Value.root);
 			}
 		}
 
@@ -678,7 +682,7 @@ static class BlockModelLoader {
 							
 			if (pair.key.IsEmpty) continue;
 
-			for (StringView property in pair.key.Split(',')) {
+			for (StringView property in pair.key.String.Split(',')) {
 				var e = property.Split('=');
 				variant[e.GetNext()] = e.GetNext();
 			}

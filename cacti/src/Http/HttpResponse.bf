@@ -24,7 +24,7 @@ class HttpResponse : HttpMessage {
 		return .Ok;
 	}
 
-	public Result<Json> GetJson() {
+	public Result<JsonTree> GetJson() {
 		String string = new .(512);
 
 		if (GetString(string) == .Err) {
@@ -32,7 +32,7 @@ class HttpResponse : HttpMessage {
 			return .Err;
 		}
 		
-		Result<Json> result = JsonParser.Parse(string);
+		Result<JsonTree> result = JsonParser.Parse(string);
 
 		delete string; // defer does not seem to be working once again
 		return result;

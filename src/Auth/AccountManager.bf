@@ -26,15 +26,16 @@ class AccountManager : IEnumerable<Account> {
 		}
 
 		// Parse json
-		Json json;
+		JsonTree tree;
 		defer fs.Close();
 
 		switch (JsonParser.Parse(fs)) {
-		case .Ok(let val):	json = val;
+		case .Ok(let val):	tree = val;
 		case .Err:			return;
 		}
 
-		defer json.Dispose();
+		defer delete tree;
+		Json json = tree.root;
 		
 		// Load accounts
 		for (let accountJson in json.AsArray) {
@@ -94,19 +95,20 @@ class AccountManager : IEnumerable<Account> {
 	}
 
 	public void Save() {
-		Json json = .Array();
-		defer json.Dispose();
+		FileStream fs = scope .();
 
-		for (Account account in accounts) {
-			Json accountJson = account.ToJson();
-
-			accountJson["active"] = .Bool(account == active);
-
-			json.Add(accountJson);
+		if (fs.Create("run/accounts.json", .Write) case .Err) {
+			Log.Error("Failed to save account list to 'run/accounts.json'");
+			return;
 		}
 
-		String data = JsonWriter.Write(json, .. scope .(), true);
-		File.WriteAllText("run/accounts.json", data);
+		JsonWriter json = scope .(scope MyStreamWriter(fs), true);
+
+		using (json.Array()) {
+			for (Account account in accounts) {
+				account.ToJson(account == active, json);
+			}
+		}
 	}
 
 	public bool IsEmpty => accounts.IsEmpty;

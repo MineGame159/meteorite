@@ -60,20 +60,22 @@ public class LoginPacketHandler : PacketHandler {
 		sha.Update(packet.publicKey);
 
 		MicrosoftAccount account = (.) Meteorite.INSTANCE.accounts.active;
-		Json json = .Object();
 
-		json["accessToken"] = .String(account.authData.mcAccessToken);
-		json["selectedProfile"] = .String(account.uuid.ToString(.. scope .(), false));
-		json["serverId"] = .String(GetHexHash(sha, .. scope .()));
+		String jsonString = scope .();
+		JsonWriter json = scope .(scope StringWriter(jsonString), false);
+
+		using (json.Object()) {
+			json.String("accessToken", account.authData.mcAccessToken);
+			json.String("selectedProfile", account.uuid);
+			json.String("serverId", GetHexHash(sha, .. scope .()));
+		}
 
 		HttpResponse response = MsAuth.CLIENT.Send(scope HttpRequest(.Post)
 			..SetUrl("https://sessionserver.mojang.com/session/minecraft/join")
-			..SetBody(json)
+			..SetBodyJson(jsonString)
 		);
 
 		Debug.Assert(response.Status == .NoContent);
-
-		json.Dispose();
 		delete response;
 		
 		// Send encryption response and enable connection encryption

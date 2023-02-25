@@ -9,10 +9,10 @@ abstract class BlockEntityRenderer {
 	public abstract void Render(MatrixStack matrices, BlockState blockState, BlockEntity _, NamedMeshBuilderProvider provider, float tickDelta);
 	
 	protected ModelPart Load(StringView name) {
-		Json json = Meteorite.INSTANCE.resources.ReadJson(scope $"models/block_entity/{name}.json");
-		defer json.Dispose();
+		JsonTree tree = Meteorite.INSTANCE.resources.ReadJson(scope $"models/block_entity/{name}.json");
+		defer delete tree;
 
-		return ModelPart.Parse(json);
+		return ModelPart.Parse(tree.root);
 	}
 
 	protected uint32 GetLightUv(BlockState blockState, BlockEntity blockEntity) {

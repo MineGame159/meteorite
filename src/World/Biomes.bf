@@ -10,7 +10,8 @@ static class Biomes {
 	public static Biome VOID;
 
 	public static void Register() {
-		Json json = Meteorite.INSTANCE.resources.ReadJson("data/biomes.json");
+		JsonTree tree = Meteorite.INSTANCE.resources.ReadJson("data/biomes.json");
+		Json json = tree.root;
 
 		BuiltinRegistries.BIOMES.Parse(json, scope (key, id, json) => {
 			Biome biome = Parse(key, id, json);
@@ -20,7 +21,7 @@ static class Biomes {
 			return biome;
 		});
 
-		json.Dispose();
+		delete tree;
 	}
 
 	public static Biome Parse(ResourceKey key, int32 id, Json json) {

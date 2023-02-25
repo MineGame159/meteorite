@@ -281,11 +281,11 @@ class NetBuffer {
 
 	public Text ReadText() {
 		String str = ReadString();
-		Json json = JsonParser.Parse(str);
+		JsonTree tree = JsonParser.Parse(str);
 
-		Text text = .Parse(json);
+		Text text = .Parse(tree.root);
 
-		json.Dispose();
+		delete tree;
 		delete str;
 
 		return text;

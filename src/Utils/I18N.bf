@@ -7,13 +7,13 @@ static class I18N {
 	private static Dictionary<String, String> translations = new .() ~ DeleteDictionaryAndKeysAndValues!(_);
 
 	public static void Load() {
-		Meteorite.INSTANCE.resources.ReadJsons("lang/en_us.json", scope (json) => {
-			for (let pair in json.AsObject) {
-				String str = pair.value.AsString;
+		Meteorite.INSTANCE.resources.ReadJsons("lang/en_us.json", scope (tree) => {
+			for (let pair in tree.root.AsObject) {
+				String str = scope .()..Set(pair.value.AsString);
 				str.Replace("%s", "{}");
 
-				if (translations.ContainsKey(pair.key)) {
-					let (key, value) = translations.GetAndRemove(pair.key).Get();
+				if (translations.ContainsKeyAlt(pair.key)) {
+					let (key, value) = translations.GetAndRemoveAlt(pair.key).Get();
 
 					delete key;
 					delete value;
@@ -22,12 +22,15 @@ static class I18N {
 				translations[new .(pair.key)] = new .(str);
 			}
 
-			json.Dispose();
+			delete tree;
 		});
 	}
 
-	public static void Translate(String key, String str, params Object[] args) {
-		String translation = translations.GetValueOrDefault(key);
-		if (translation != null) str.AppendF(translation, params args);
+	public static void Translate(StringView key, String str, params Object[] args) {
+		String translation;
+
+		if (translations.TryGetValueAlt(key, out translation)) {
+			str.AppendF(translation, params args);
+		}
 	}
 }
