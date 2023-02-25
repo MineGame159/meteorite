@@ -1,74 +1,74 @@
 using System;
 
-namespace Cacti {
-	class Buffer {
-		private uint8* data ~ delete _;
-		private uint64 size, capacity, index;
+namespace Cacti;
 
-		public this(uint64 defaultCapacity = 1024) {
-			this.data = new .[defaultCapacity]*;
-			this.capacity = defaultCapacity;
-		}
+class Buffer {
+	private uint8* data ~ delete _;
+	private uint64 size, capacity, index;
 
-		public uint8* Data => data;
-		public uint64 Size => size;
-		public uint64 Capacity => capacity;
+	public this(uint64 defaultCapacity = 1024) {
+		this.data = new .[defaultCapacity]*;
+		this.capacity = defaultCapacity;
+	}
 
-		public void Clear() {
-			size = 0;
-			index = 0;
-		}
+	public uint8* Data => data;
+	public uint64 Size => size;
+	public uint64 Capacity => capacity;
 
-		public void EnsureCapacity(uint64 additionalSize) {
-			if (size + additionalSize <= capacity) return;
+	public void Clear() {
+		size = 0;
+		index = 0;
+	}
 
-			uint64 newCapacity = Math.Max(size + additionalSize, (.) (size * 1.5));
-			uint8* newData = new .[newCapacity]*;
+	public void EnsureCapacity(uint64 additionalSize) {
+		if (size + additionalSize <= capacity) return;
 
-			Internal.MemCpy(newData, data, (.) size);
-			delete data;
+		uint64 newCapacity = Math.Max(size + additionalSize, (.) (size * 1.5));
+		uint8* newData = new .[newCapacity]*;
 
-			data = newData;
-			capacity = newCapacity;
-		}
+		Internal.MemCpy(newData, data, (.) size);
+		delete data;
 
-		public void EnsureCapacity<T>(int count) where T : struct {
-			EnsureCapacity((.) (sizeof(T) * count));
-		}
+		data = newData;
+		capacity = newCapacity;
+	}
 
-		// Add
+	public void EnsureCapacity<T>(int count) where T : struct {
+		EnsureCapacity((.) (sizeof(T) * count));
+	}
 
-		public void Add<T>(T value) where T : struct {
-			*((T*) &data[size]) = value;
-			size += (.) sizeof(T);
-		}
+	// Add
 
-		public ref T Add<T>() where T : struct {
-			size += (.) sizeof(T);
-			return ref *((T*) &data[size - (.) sizeof(T)]);
-		}
+	public void Add<T>(T value) where T : struct {
+		*((T*) &data[size]) = value;
+		size += (.) sizeof(T);
+	}
 
-		public T* AddMultiple<T>(uint64 count) where T : struct {
-			uint64 size = (.) sizeof(T) * count;
+	public ref T Add<T>() where T : struct {
+		size += (.) sizeof(T);
+		return ref *((T*) &data[size - (.) sizeof(T)]);
+	}
 
-			this.size += size;
-			return (T*) &data[this.size - size];
-		}
+	public T* AddMultiple<T>(uint64 count) where T : struct {
+		uint64 size = (.) sizeof(T) * count;
 
-		public void CopyTo(Buffer dst) {
-			dst.EnsureCapacity(size);
-			Internal.MemCpy(&dst.Data[dst.Size], data, (.) size);
-			dst.[Friend]size += size;
-		}
+		this.size += size;
+		return (T*) &data[this.size - size];
+	}
 
-		// Get
+	public void CopyTo(Buffer dst) {
+		dst.EnsureCapacity(size);
+		Internal.MemCpy(&dst.Data[dst.Size], data, (.) size);
+		dst.[Friend]size += size;
+	}
 
-		public ref T Get<T>() where T : struct {
-			return ref *((T*) &data[index]);
-		}
+	// Get
 
-		public ref T Get<T>(uint64 index) where T : struct {
-			return ref *((T*) &data[index]);
-		}
+	public ref T Get<T>() where T : struct {
+		return ref *((T*) &data[index]);
+	}
+
+	public ref T Get<T>(uint64 index) where T : struct {
+		return ref *((T*) &data[index]);
 	}
 }

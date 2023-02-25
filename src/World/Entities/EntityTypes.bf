@@ -4,30 +4,30 @@ using System.Collections;
 using Cacti;
 using Cacti.Json;
 
-namespace Meteorite{
-	static class EntityTypes {
-		public static EntityType PLAYER;
-		public static EntityType SALMON;
+namespace Meteorite;
 
-		public static void Register() {
-			Json json = Meteorite.INSTANCE.resources.ReadJson("data/entity_types.json");
+static class EntityTypes {
+	public static EntityType PLAYER;
+	public static EntityType SALMON;
 
-			BuiltinRegistries.ENTITY_TYPES.Parse(json, scope (key, id, json) => {
-				EntityType type = new .(
-					key,
-					id,
-					Enum.Parse<EntityGroup>(json["group"].AsString, true),
-					json["width"].AsNumber,
-					json["height"].AsNumber
-				);
+	public static void Register() {
+		Json json = Meteorite.INSTANCE.resources.ReadJson("data/entity_types.json");
 
-				if (type.Key.Path == "player") PLAYER = type;
-				else if (type.Key.Path == "salmon") SALMON = type;
+		BuiltinRegistries.ENTITY_TYPES.Parse(json, scope (key, id, json) => {
+			EntityType type = new .(
+				key,
+				id,
+				Enum.Parse<EntityGroup>(json["group"].AsString, true),
+				json["width"].AsNumber,
+				json["height"].AsNumber
+			);
 
-				return type;
-			});
+			if (type.Key.Path == "player") PLAYER = type;
+			else if (type.Key.Path == "salmon") SALMON = type;
 
-			json.Dispose();
-		}
+			return type;
+		});
+
+		json.Dispose();
 	}
 }

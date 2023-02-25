@@ -1,17 +1,17 @@
 using System;
 
-namespace Meteorite {
-	class ConfirmTeleportC2SPacket : C2SPacket {
-		public const int32 ID = 0x00;
+namespace Meteorite;
 
-		public int teleportId;
+class ConfirmTeleportC2SPacket : C2SPacket {
+	public const int32 ID = 0x00;
 
-		public this(int teleportId) : base(ID) {
-			this.teleportId = teleportId;
-		}
+	public int teleportId;
 
-		public override void Write(NetBuffer buf) {
-			buf.WriteVarInt((.) teleportId);
-		}
+	public this(int teleportId) : base(ID) {
+		this.teleportId = teleportId;
+	}
+
+	public override void Write(NetBuffer buf) {
+		buf.WriteVarInt((.) teleportId);
 	}
 }

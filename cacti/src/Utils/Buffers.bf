@@ -2,31 +2,31 @@ using System;
 using System.Threading;
 using System.Collections;
 
-namespace Cacti {
-	static class Buffers {
-		private static List<Buffer> BUFFERS = new .() ~ DeleteContainerAndItems!(_);
-		private static Monitor MONITOR = new .() ~ delete _;
+namespace Cacti;
 
-		public static Buffer Get() {
-			MONITOR.Enter();
-			defer MONITOR.Exit();
+static class Buffers {
+	private static List<Buffer> BUFFERS = new .() ~ DeleteContainerAndItems!(_);
+	private static Monitor MONITOR = new .() ~ delete _;
 
-			if (BUFFERS.IsEmpty) return new .();
+	public static Buffer Get() {
+		MONITOR.Enter();
+		defer MONITOR.Exit();
 
-			Buffer buffer = BUFFERS[BUFFERS.Count - 1];
-			BUFFERS.RemoveAtFast(BUFFERS.Count - 1);
-			return buffer;
-		}
+		if (BUFFERS.IsEmpty) return new .();
 
-		public static void Return(Buffer buffer) {
-			if (buffer == null) return;
+		Buffer buffer = BUFFERS[BUFFERS.Count - 1];
+		BUFFERS.RemoveAtFast(BUFFERS.Count - 1);
+		return buffer;
+	}
 
-			MONITOR.Enter();
+	public static void Return(Buffer buffer) {
+		if (buffer == null) return;
 
-			buffer.Clear();
-			BUFFERS.Add(buffer);
+		MONITOR.Enter();
 
-			MONITOR.Exit();
-		}
+		buffer.Clear();
+		BUFFERS.Add(buffer);
+
+		MONITOR.Exit();
 	}
 }

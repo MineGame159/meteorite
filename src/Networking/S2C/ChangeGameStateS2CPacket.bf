@@ -1,17 +1,17 @@
 using System;
 
-namespace Meteorite {
-	class ChangeGameStateS2CPacket : S2CPacket {
-		public const int32 ID = 0x1C;
+namespace Meteorite;
 
-		public uint8 reason;
-		public float value;
+class ChangeGameStateS2CPacket : S2CPacket {
+	public const int32 ID = 0x1C;
 
-		public this() : base(ID, .Player) {}
+	public uint8 reason;
+	public float value;
 
-		public override void Read(NetBuffer buf) {
-			reason = buf.ReadUByte();
-			value = buf.ReadFloat();
-		}
+	public this() : base(ID, .Player) {}
+
+	public override void Read(NetBuffer buf) {
+		reason = buf.ReadUByte();
+		value = buf.ReadFloat();
 	}
 }

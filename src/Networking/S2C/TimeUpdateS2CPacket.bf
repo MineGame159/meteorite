@@ -1,18 +1,18 @@
 using System;
 
-namespace Meteorite {
-	class TimeUpdateS2CPacket : S2CPacket {
-		public const int32 ID = 0x5A;
+namespace Meteorite;
 
-		public int64 worldAge, timeOfDay;
+class TimeUpdateS2CPacket : S2CPacket {
+	public const int32 ID = 0x5A;
 
-		public this() : base(ID, .World) {}
+	public int64 worldAge, timeOfDay;
 
-		public override void Read(NetBuffer buf) {
-			worldAge = buf.ReadLong();
-			timeOfDay = buf.ReadLong();
+	public this() : base(ID, .World) {}
 
-			if (timeOfDay < 0) timeOfDay = -timeOfDay;
-		}
+	public override void Read(NetBuffer buf) {
+		worldAge = buf.ReadLong();
+		timeOfDay = buf.ReadLong();
+
+		if (timeOfDay < 0) timeOfDay = -timeOfDay;
 	}
 }

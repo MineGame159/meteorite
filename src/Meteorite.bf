@@ -6,262 +6,262 @@ using Cacti;
 using Cacti.Graphics;
 using Bulkan;
 
-namespace Meteorite {
-	class Meteorite : Application {
-		public static Meteorite INSTANCE;
+namespace Meteorite;
 
-		public Options options ~ delete _;
-		public ResourceLoader resources ~ delete _;
-		public TextureManager textures ~ delete _;
+class Meteorite : Application {
+	public static Meteorite INSTANCE;
 
-		public Camera camera ~ delete _;
-		public RenderTickCounter tickCounter ~ delete _;
+	public Options options ~ delete _;
+	public ResourceLoader resources ~ delete _;
+	public TextureManager textures ~ delete _;
 
-		public GameRenderer gameRenderer;
-		public LightmapManager lightmapManager;
-		public WorldRenderer worldRenderer;
-		public BlockEntityRenderDispatcher blockEntityRenderDispatcher;
-		public EntityRenderDispatcher entityRenderDispatcher;
-		public TextRenderer textRenderer;
-		public HudRenderer hud;
+	public Camera camera ~ delete _;
+	public RenderTickCounter tickCounter ~ delete _;
 
-		public ServerManager servers;
-		public AccountManager accounts;
+	public GameRenderer gameRenderer;
+	public LightmapManager lightmapManager;
+	public WorldRenderer worldRenderer;
+	public BlockEntityRenderDispatcher blockEntityRenderDispatcher;
+	public EntityRenderDispatcher entityRenderDispatcher;
+	public TextRenderer textRenderer;
+	public HudRenderer hud;
 
-		public ClientConnection connection;
-		public World world;
-		public ClientPlayerEntity player;
+	public ServerManager servers;
+	public AccountManager accounts;
 
-		private Screen screen;
-		private List<delegate void()> tasks = new .() ~ DeleteContainerAndItems!(_);
+	public ClientConnection connection;
+	public World world;
+	public ClientPlayerEntity player;
 
-		private GpuImage swapchainTarget;
-		private bool afterScreenshot;
+	private Screen screen;
+	private List<delegate void()> tasks = new .() ~ DeleteContainerAndItems!(_);
 
-		public this() : base("Meteorite") {
-			INSTANCE = this;
-			Directory.CreateDirectory("run");
+	private GpuImage swapchainTarget;
+	private bool afterScreenshot;
 
-			options = new .();
+	public this() : base("Meteorite") {
+		INSTANCE = this;
+		Directory.CreateDirectory("run");
 
-			resources = new .();
-			Gfxa.Init();
+		options = new .();
 
-			textures = new .();
+		resources = new .();
+		Gfxa.Init();
 
-			camera = new .(window);
-			tickCounter = new .(20, 0);
+		textures = new .();
 
-			EntityTypes.Register();
+		camera = new .(window);
+		tickCounter = new .(20, 0);
 
-			gameRenderer = new .();
-			lightmapManager = new .();
-			blockEntityRenderDispatcher = new .();
-			entityRenderDispatcher = new .();
-			textRenderer = new .();
-			hud = new .();
+		EntityTypes.Register();
 
-			servers = new .();
-			accounts = new .();
+		gameRenderer = new .();
+		lightmapManager = new .();
+		blockEntityRenderDispatcher = new .();
+		entityRenderDispatcher = new .();
+		textRenderer = new .();
+		hud = new .();
 
-			camera.pos.y = 160;
-			camera.yaw = 45;
+		servers = new .();
+		accounts = new .();
 
-			I18N.Load();
-			VoxelShapes.Init();
-			Blocks.Register();
-			Items.Register();
-			BlockModelLoader.LoadModels();
-			Biomes.Register();
-			ChatTypes.Register();
-			Biome.LoadColormaps();
-			Buffers.CreateGlobalIndices();
-			SkyRenderer.Init();
-			BlockColors.Init();
-			FrameUniforms.Init();
+		camera.pos.y = 160;
+		camera.yaw = 45;
 
-			Input.keyEvent.Add(new (key, scancode, action) => {
-				if (world == null || player == null || Input.capturingCharacters || action != .Release) return false;
+		I18N.Load();
+		VoxelShapes.Init();
+		Blocks.Register();
+		Items.Register();
+		BlockModelLoader.LoadModels();
+		Biomes.Register();
+		ChatTypes.Register();
+		Biome.LoadColormaps();
+		Buffers.CreateGlobalIndices();
+		SkyRenderer.Init();
+		BlockColors.Init();
+		FrameUniforms.Init();
 
-				if (key == .O) {
-					if (Screen is OptionsScreen) Screen = null;
-					else Screen = new OptionsScreen();
+		Input.keyEvent.Add(new (key, scancode, action) => {
+			if (world == null || player == null || Input.capturingCharacters || action != .Release) return false;
 
-					return true;
-				}
-
-				if (key == .R) {
-					Log.Info("Reloading shaders");
-
-					if (Gfx.Shaders.Reload() == .Err) {
-						Log.Error("Failed to reload shaders");
-					}
-
-					return true;
-				}
-
-				return false;
-			});
-
-			Input.scrollEvent.Add(new (scroll) => {
-				if (world == null || player == null) return false;
-
-				Meteorite me = .INSTANCE;
-
-				me.player.inventory.selectedSlot -= (.) scroll;
-
-				if (me.player.inventory.selectedSlot < 0) me.player.inventory.selectedSlot = 8;
-				else if (me.player.inventory.selectedSlot > 8) me.player.inventory.selectedSlot = 0;
-
-				me.connection.Send(scope SetSelectedSlotC2SPacket(me.player.inventory.selectedSlot));
+			if (key == .O) {
+				if (Screen is OptionsScreen) Screen = null;
+				else Screen = new OptionsScreen();
 
 				return true;
-			});
-
-			window.MouseHidden = true;
-			Screen = new MainMenuScreen();
-		}
-
-		public ~this() {
-			// Rendering needs to be deleted before Gfx is shut down
-			delete screen;
-			delete hud;
-			delete textRenderer;
-			delete entityRenderDispatcher;
-			delete blockEntityRenderDispatcher;
-			delete worldRenderer;
-			delete lightmapManager;
-			delete gameRenderer;
-
-			FrameUniforms.Destroy();
-			SkyRenderer.Destroy();
-			Buffers.Destroy();
-			Gfxa.Destroy();
-
-			delete servers;
-			delete accounts;
-
-			// Connection needs to be deleted before world
-			delete connection;
-			delete world;
-		}
-
-		public void Join(StringView ip, int32 port, StringView hostname) {
-			Runtime.Assert(accounts.active != null);
-			Tracy.Message(scope $"Join: {hostname} ({ip}:{port})");
-
-			connection = new .(ip, port, hostname);
-
-			if (connection.Start() == .Ok) {
-				Screen = null;
 			}
-			else {
-				Log.Error("Failed to connect to {}:{}", connection.ip, connection.port);
-				DeleteAndNullify!(connection);
+
+			if (key == .R) {
+				Log.Info("Reloading shaders");
+
+				if (Gfx.Shaders.Reload() == .Err) {
+					Log.Error("Failed to reload shaders");
+				}
+
+				return true;
 			}
+
+			return false;
+		});
+
+		Input.scrollEvent.Add(new (scroll) => {
+			if (world == null || player == null) return false;
+
+			Meteorite me = .INSTANCE;
+
+			me.player.inventory.selectedSlot -= (.) scroll;
+
+			if (me.player.inventory.selectedSlot < 0) me.player.inventory.selectedSlot = 8;
+			else if (me.player.inventory.selectedSlot > 8) me.player.inventory.selectedSlot = 0;
+
+			me.connection.Send(scope SetSelectedSlotC2SPacket(me.player.inventory.selectedSlot));
+
+			return true;
+		});
+
+		window.MouseHidden = true;
+		Screen = new MainMenuScreen();
+	}
+
+	public ~this() {
+		// Rendering needs to be deleted before Gfx is shut down
+		delete screen;
+		delete hud;
+		delete textRenderer;
+		delete entityRenderDispatcher;
+		delete blockEntityRenderDispatcher;
+		delete worldRenderer;
+		delete lightmapManager;
+		delete gameRenderer;
+
+		FrameUniforms.Destroy();
+		SkyRenderer.Destroy();
+		Buffers.Destroy();
+		Gfxa.Destroy();
+
+		delete servers;
+		delete accounts;
+
+		// Connection needs to be deleted before world
+		delete connection;
+		delete world;
+	}
+
+	public void Join(StringView ip, int32 port, StringView hostname) {
+		Runtime.Assert(accounts.active != null);
+		Tracy.Message(scope $"Join: {hostname} ({ip}:{port})");
+
+		connection = new .(ip, port, hostname);
+
+		if (connection.Start() == .Ok) {
+			Screen = null;
 		}
-
-		public void Disconnect(Text reason) {
-			if (connection == null) return;
-			Tracy.Message(scope $"Disconnect: {reason}");
-
-			DeleteAndNullify!(worldRenderer);
-			DeleteAndNullify!(world);
-			player = null;
+		else {
+			Log.Error("Failed to connect to {}:{}", connection.ip, connection.port);
 			DeleteAndNullify!(connection);
+		}
+	}
 
-			Screen = new MainMenuScreen();
+	public void Disconnect(Text reason) {
+		if (connection == null) return;
+		Tracy.Message(scope $"Disconnect: {reason}");
 
-			Log.Info("Disconnected: {}", reason);
+		DeleteAndNullify!(worldRenderer);
+		DeleteAndNullify!(world);
+		player = null;
+		DeleteAndNullify!(connection);
+
+		Screen = new MainMenuScreen();
+
+		Log.Info("Disconnected: {}", reason);
+	}
+
+	public Screen Screen {
+		get => screen;
+		set {
+			screen?.Close();
+			delete screen;
+
+			screen = value;
+			screen?.Open();
+		}
+	}
+
+	public void Execute(delegate void() task) {
+		tasks.Add(task);
+	}
+
+	[Tracy.Profile]
+	private void Tick(float tickDelta) {
+		if (connection != null && connection.closed) {
+			DeleteAndNullify!(connection);
+			window.MouseHidden = false;
 		}
 
-		public Screen Screen {
-			get => screen;
-			set {
-				screen?.Close();
-				delete screen;
+		for (let task in tasks) {
+			task();
+			delete task;
+		}
+		tasks.Clear();
 
-				screen = value;
-				screen?.Open();
-			}
+		if (world == null) return;
+
+		world.Tick();
+
+		textures.Tick();
+
+		if (!window.minimized) gameRenderer.Tick();
+	}
+	
+	[Tracy.Profile]
+	protected override void Update(double delta) {
+		Screenshots.Update();
+
+		if (player != null && window.MouseHidden) player.Turn(Input.mouseDelta);
+
+		int tickCount = tickCounter.BeginRenderTick();
+		for (int i < Math.Min(10, tickCount)) Tick(tickCounter.tickDelta);
+	}
+	
+	[Tracy.Profile]
+	protected override void Render(List<CommandBuffer> commandBuffers, GpuImage target, double delta) {
+		if (!window.minimized) {
+			CommandBuffer cmds = Gfx.CommandBuffers.GetBuffer();
+			commandBuffers.Add(cmds);
+
+			gameRenderer.Render(cmds, target, (.) delta);
+		}
+	}
+	
+	[Tracy.Profile]
+	protected override CommandBuffer AfterRender(GpuImage target) {
+		if (Screenshots.rendering) {
+			CommandBuffer cmds = Gfx.CommandBuffers.GetBuffer();
+
+			cmds.Begin();
+			cmds.PushDebugGroup("Screenshot");
+
+			cmds.CopyImageToBuffer(target, Screenshots.buffer);
+			cmds.BlitImage(Screenshots.texture, swapchainTarget);
+
+			cmds.PopDebugGroup();
+			cmds.End();
+
+			afterScreenshot = true;
+			return cmds;
 		}
 
-		public void Execute(delegate void() task) {
-			tasks.Add(task);
-		}
-
-		[Tracy.Profile]
-		private void Tick(float tickDelta) {
-			if (connection != null && connection.closed) {
-				DeleteAndNullify!(connection);
-				window.MouseHidden = false;
-			}
-
-			for (let task in tasks) {
-				task();
-				delete task;
-			}
-			tasks.Clear();
-
-			if (world == null) return;
-
-			world.Tick();
-
-			textures.Tick();
-
-			if (!window.minimized) gameRenderer.Tick();
+		return null;
+	}
+	
+	[Tracy.Profile]
+	protected override GpuImage GetTargetImage(VkSemaphore imageAvailableSemaphore) {
+		if (afterScreenshot) {
+			Screenshots.Save();
+			afterScreenshot = false;
 		}
 		
-		[Tracy.Profile]
-		protected override void Update(double delta) {
-			Screenshots.Update();
-
-			if (player != null && window.MouseHidden) player.Turn(Input.mouseDelta);
-
-			int tickCount = tickCounter.BeginRenderTick();
-			for (int i < Math.Min(10, tickCount)) Tick(tickCounter.tickDelta);
-		}
-		
-		[Tracy.Profile]
-		protected override void Render(List<CommandBuffer> commandBuffers, GpuImage target, double delta) {
-			if (!window.minimized) {
-				CommandBuffer cmds = Gfx.CommandBuffers.GetBuffer();
-				commandBuffers.Add(cmds);
-
-				gameRenderer.Render(cmds, target, (.) delta);
-			}
-		}
-		
-		[Tracy.Profile]
-		protected override CommandBuffer AfterRender(GpuImage target) {
-			if (Screenshots.rendering) {
-				CommandBuffer cmds = Gfx.CommandBuffers.GetBuffer();
-
-				cmds.Begin();
-				cmds.PushDebugGroup("Screenshot");
-
-				cmds.CopyImageToBuffer(target, Screenshots.buffer);
-				cmds.BlitImage(Screenshots.texture, swapchainTarget);
-
-				cmds.PopDebugGroup();
-				cmds.End();
-
-				afterScreenshot = true;
-				return cmds;
-			}
-
-			return null;
-		}
-		
-		[Tracy.Profile]
-		protected override GpuImage GetTargetImage(VkSemaphore imageAvailableSemaphore) {
-			if (afterScreenshot) {
-				Screenshots.Save();
-				afterScreenshot = false;
-			}
-			
-			swapchainTarget = Gfx.Swapchain.GetImage(imageAvailableSemaphore);
-			return Screenshots.rendering ? Screenshots.texture : swapchainTarget;
-		}
+		swapchainTarget = Gfx.Swapchain.GetImage(imageAvailableSemaphore);
+		return Screenshots.rendering ? Screenshots.texture : swapchainTarget;
 	}
 }

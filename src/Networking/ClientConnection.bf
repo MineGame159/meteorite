@@ -4,60 +4,60 @@ using System.Collections;
 
 using Cacti;
 
-namespace Meteorite {
-	class ClientConnection : Connection {
-		private PacketHandler handler ~ DeleteAndNullify!(_);
+namespace Meteorite;
 
-		private append String hostname = .();
+class ClientConnection : Connection {
+	private PacketHandler handler ~ DeleteAndNullify!(_);
 
-		public this(StringView ip, int32 port, StringView hostname) : base(ip, port) {
-			this.handler = new LoginPacketHandler(this);
-			this.hostname.Set(hostname);
-		}
+	private append String hostname = .();
 
-		public void SetHandler(PacketHandler handler) {
-			delete this.handler;
-			this.handler = handler;
-		}
+	public this(StringView ip, int32 port, StringView hostname) : base(ip, port) {
+		this.handler = new LoginPacketHandler(this);
+		this.hostname.Set(hostname);
+	}
 
-		protected override void OnReady() {
-			Send(scope HandshakeC2SPacket(hostname, (.) port));
-			Send(scope LoginStartC2SPacket(Meteorite.INSTANCE.accounts.active));
-		}
+	public void SetHandler(PacketHandler handler) {
+		delete this.handler;
+		this.handler = handler;
+	}
 
-		protected override void OnConnectionLost() {
-			handler?.OnConnectionLost();
-		}
+	protected override void OnReady() {
+		Send(scope HandshakeC2SPacket(hostname, (.) port));
+		Send(scope LoginStartC2SPacket(Meteorite.INSTANCE.accounts.active));
+	}
+
+	protected override void OnConnectionLost() {
+		handler?.OnConnectionLost();
+	}
+	
+	[Tracy.Profile(variable = true)]
+	protected override void OnPacket(int id, NetBuffer packet) {
+		__tracy_zone.AddText(id.ToString(.. scope .()));
 		
-		[Tracy.Profile(variable = true)]
-		protected override void OnPacket(int id, NetBuffer packet) {
-			__tracy_zone.AddText(id.ToString(.. scope .()));
-			
-			S2CPacket p = handler?.GetPacket((.) id);
+		S2CPacket p = handler?.GetPacket((.) id);
 
-			if (p != null) {
-				p.Read(packet);
+		if (p != null) {
+			p.Read(packet);
 
-				if (handler != null) handler.Handle(p);
-				else delete p;
-			}
+			if (handler != null) handler.Handle(p);
+			else delete p;
 		}
-		
-		[Tracy.Profile]
-		public void Send(C2SPacket packet) {
-			int size = NetBuffer.GetVarIntSize(packet.id) + packet.DefaultBufferSize;
-			NetBuffer buf;
+	}
+	
+	[Tracy.Profile]
+	public void Send(C2SPacket packet) {
+		int size = NetBuffer.GetVarIntSize(packet.id) + packet.DefaultBufferSize;
+		NetBuffer buf;
 
-			if (size <= 128) buf = scope:: .(size);
-			else {
-				buf = new .(size);
-				defer:: delete buf;
-			}
-
-			buf.WriteVarInt(packet.id);
-			packet.Write(buf);
-
-			Send(buf);
+		if (size <= 128) buf = scope:: .(size);
+		else {
+			buf = new .(size);
+			defer:: delete buf;
 		}
+
+		buf.WriteVarInt(packet.id);
+		packet.Write(buf);
+
+		Send(buf);
 	}
 }

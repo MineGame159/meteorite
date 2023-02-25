@@ -1,15 +1,15 @@
 using System;
 
-namespace Meteorite {
-	class DisconnectS2CPacket : S2CPacket {
-		public const int32 ID = 0x17;
+namespace Meteorite;
 
-		public Text reason ~ delete _;
+class DisconnectS2CPacket : S2CPacket {
+	public const int32 ID = 0x17;
 
-		public this() : base(ID, .World, true) {}
+	public Text reason ~ delete _;
 
-		public override void Read(NetBuffer buf) {
-			reason = buf.ReadText();
-		}
+	public this() : base(ID, .World, true) {}
+
+	public override void Read(NetBuffer buf) {
+		reason = buf.ReadText();
 	}
 }

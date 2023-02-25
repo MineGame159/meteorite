@@ -5,146 +5,146 @@ using System.Diagnostics;
 
 using Cacti;
 
-namespace Meteorite {
-	struct ChunkPos : IHashable {
-		public int32 x;
-		public int32 z;
+namespace Meteorite;
 
-		public this(int x, int z) {
-			this.x = (.) x;
-			this.z = (.) z;
-		}
+struct ChunkPos : IHashable {
+	public int32 x;
+	public int32 z;
 
-		public int GetHashCode() => Utils.CombineHashCode(x, z);
+	public this(int x, int z) {
+		this.x = (.) x;
+		this.z = (.) z;
 	}
 
-	class Section {
-		public const int SIZE = 16;
+	public int GetHashCode() => Utils.CombineHashCode(x, z);
+}
 
-		public int y;
-		public Chunk chunk;
+class Section {
+	public const int SIZE = 16;
 
-		public PalettedContainer<BlockState> blocks ~ delete _;
-		public PalettedContainer<Biome> biomes ~ delete _;
+	public int y;
+	public Chunk chunk;
 
-		public this(int y) {
-			this.y = y;
-		}
+	public PalettedContainer<BlockState> blocks ~ delete _;
+	public PalettedContainer<Biome> biomes ~ delete _;
 
-		[Inline]
-		public BlockState Get(int x, int y, int z) => blocks.Get(x, y, z);
-
-		[Inline]
-		public void Set(int x, int y, int z, BlockState blockState) {
-			blocks.Set(x, y, z, blockState);
-
-			int by = this.y * SIZE + y;
-			if (by < chunk.min.y) chunk.min.y = by;
-			else if (by > chunk.max.y) chunk.max.y = by;
-			
-			chunk.dirty = true;
-		}
-		
-		[Inline]
-		public Biome GetBiome(int x, int y, int z) => biomes.Get((x >> 2) & 3, (y >> 2) & 3, (z >> 2) & 3);
+	public this(int y) {
+		this.y = y;
 	}
 
-	class Chunk : IRefCounted {
-		private static Dictionary<Vec3i, BlockEntity> EMPTY = new .(0) ~ delete _;
+	[Inline]
+	public BlockState Get(int x, int y, int z) => blocks.Get(x, y, z);
 
-		private int refCount = 1;
-		private bool valid = true;
+	[Inline]
+	public void Set(int x, int y, int z, BlockState blockState) {
+		blocks.Set(x, y, z, blockState);
 
-		public World world;
-		public ChunkPos pos;
-
-		private Section[] sections ~ DeleteContainerAndItems!(_);
-		private SectionLightData[] sectionLightDatas ~ DeleteContainerAndItems!(_);
-
-		private Dictionary<Vec3i, BlockEntity> blockEntities ~ DeleteDictionaryAndValues!(_);
-
-		public bool dirty;
-
-		public Vec3d min, max;
-
-		public this(World world, ChunkPos pos, Section[] sections, SectionLightData[] sectionLightDatas, Dictionary<Vec3i, BlockEntity> blockEntities) {
-			this.world = world;
-			this.pos = pos;
-			this.sections = sections;
-			this.sectionLightDatas = sectionLightDatas;
-			this.blockEntities = blockEntities;
-
-			this.dirty = true;
-
-			this.min = .(pos.x * Section.SIZE, 0, pos.z * Section.SIZE);
-			this.max = .(pos.x * Section.SIZE + Section.SIZE, 0, pos.z * Section.SIZE + Section.SIZE);
-
-			for (Section section in sections) section.chunk = this;
-		}
-
-		public ~this() {
-			Debug.Assert(refCount == 0);
-		}
+		int by = this.y * SIZE + y;
+		if (by < chunk.min.y) chunk.min.y = by;
+		else if (by > chunk.max.y) chunk.max.y = by;
 		
-		public void AddRef() {
-			Interlocked.Increment(ref refCount);
-		}
+		chunk.dirty = true;
+	}
+	
+	[Inline]
+	public Biome GetBiome(int x, int y, int z) => biomes.Get((x >> 2) & 3, (y >> 2) & 3, (z >> 2) & 3);
+}
 
-		public void Release() {
-			Debug.Assert(refCount > 0);
+class Chunk : IRefCounted {
+	private static Dictionary<Vec3i, BlockEntity> EMPTY = new .(0) ~ delete _;
 
-			Interlocked.Decrement(ref refCount);
+	private int refCount = 1;
+	private bool valid = true;
 
-			if (refCount == 0 && valid) {
-				Meteorite.INSTANCE.Execute(new () => {
-					delete this;
-				});
+	public World world;
+	public ChunkPos pos;
 
-				valid = false;
-			}
-		}
+	private Section[] sections ~ DeleteContainerAndItems!(_);
+	private SectionLightData[] sectionLightDatas ~ DeleteContainerAndItems!(_);
 
-		private void ForceDelete() {
-			refCount = 0;
+	private Dictionary<Vec3i, BlockEntity> blockEntities ~ DeleteDictionaryAndValues!(_);
+
+	public bool dirty;
+
+	public Vec3d min, max;
+
+	public this(World world, ChunkPos pos, Section[] sections, SectionLightData[] sectionLightDatas, Dictionary<Vec3i, BlockEntity> blockEntities) {
+		this.world = world;
+		this.pos = pos;
+		this.sections = sections;
+		this.sectionLightDatas = sectionLightDatas;
+		this.blockEntities = blockEntities;
+
+		this.dirty = true;
+
+		this.min = .(pos.x * Section.SIZE, 0, pos.z * Section.SIZE);
+		this.max = .(pos.x * Section.SIZE + Section.SIZE, 0, pos.z * Section.SIZE + Section.SIZE);
+
+		for (Section section in sections) section.chunk = this;
+	}
+
+	public ~this() {
+		Debug.Assert(refCount == 0);
+	}
+	
+	public void AddRef() {
+		Interlocked.Increment(ref refCount);
+	}
+
+	public void Release() {
+		Debug.Assert(refCount > 0);
+
+		Interlocked.Decrement(ref refCount);
+
+		if (refCount == 0 && valid) {
+			Meteorite.INSTANCE.Execute(new () => {
+				delete this;
+			});
 
 			valid = false;
-			delete this;
 		}
+	}
 
-		public bool ReleaseWillDelete => refCount == 1;
-		
-		[Inline]
-		public BlockState Get(int x, int y, int z) {
-			if (y < 0 || y > max.y) return Blocks.AIR.defaultBlockState;
-			return sections[y / Section.SIZE].Get(x, y % Section.SIZE, z);
-		}
+	private void ForceDelete() {
+		refCount = 0;
 
-		[Inline]
-		public void Set(int x, int y, int z, BlockState blockState) {
-			sections[y / Section.SIZE].Set(x, y % Section.SIZE, z, blockState);
-		}
+		valid = false;
+		delete this;
+	}
 
-		[Inline]
-		public int GetLight(LightType type, int x, int y, int z) {
-			return sectionLightDatas[y / Section.SIZE + 1].Get(type, x, y % Section.SIZE, z);
-		}
+	public bool ReleaseWillDelete => refCount == 1;
+	
+	[Inline]
+	public BlockState Get(int x, int y, int z) {
+		if (y < 0 || y > max.y) return Blocks.AIR.defaultBlockState;
+		return sections[y / Section.SIZE].Get(x, y % Section.SIZE, z);
+	}
 
-		[Inline]
-		public Biome GetBiome(int x, int y, int z) {
-			return sections[y / Section.SIZE].GetBiome(x, y % Section.SIZE, z);
-		}
+	[Inline]
+	public void Set(int x, int y, int z, BlockState blockState) {
+		sections[y / Section.SIZE].Set(x, y % Section.SIZE, z, blockState);
+	}
 
-		[Inline]
-		public Section GetSection(int i) => sections[i];
-		
-		public Dictionary<Vec3i, BlockEntity>.ValueEnumerator BlockEntities => (blockEntities != null ? blockEntities : EMPTY).Values;
+	[Inline]
+	public int GetLight(LightType type, int x, int y, int z) {
+		return sectionLightDatas[y / Section.SIZE + 1].Get(type, x, y % Section.SIZE, z);
+	}
 
-		public int BlockEntityCount => blockEntities != null ? blockEntities.Count : 0;
+	[Inline]
+	public Biome GetBiome(int x, int y, int z) {
+		return sections[y / Section.SIZE].GetBiome(x, y % Section.SIZE, z);
+	}
 
-		public BlockEntity GetBlockEntity(int x, int y, int z) => blockEntities != null ? blockEntities.GetValueOrDefault(.(x, y, z)) : null;
+	[Inline]
+	public Section GetSection(int i) => sections[i];
+	
+	public Dictionary<Vec3i, BlockEntity>.ValueEnumerator BlockEntities => (blockEntities != null ? blockEntities : EMPTY).Values;
 
-		public void RemoveBlockEntity(int x, int y, int z) {
-			if (blockEntities != null) blockEntities.Remove(Vec3i(x, y, z));
-		}
+	public int BlockEntityCount => blockEntities != null ? blockEntities.Count : 0;
+
+	public BlockEntity GetBlockEntity(int x, int y, int z) => blockEntities != null ? blockEntities.GetValueOrDefault(.(x, y, z)) : null;
+
+	public void RemoveBlockEntity(int x, int y, int z) {
+		if (blockEntities != null) blockEntities.Remove(Vec3i(x, y, z));
 	}
 }

@@ -3,32 +3,32 @@ using System.Collections;
 
 using Cacti;
 
-namespace Meteorite {
-	class BlockEntityType : IRegistryEntry {
-		public typealias Factory = delegate BlockEntity(Vec3i);
+namespace Meteorite;
 
-		private ResourceKey key;
-		private int32 id;
+class BlockEntityType : IRegistryEntry {
+	public typealias Factory = delegate BlockEntity(Vec3i);
 
-		public Block[] blocks ~ delete _;
+	private ResourceKey key;
+	private int32 id;
 
-		private Factory factory ~ delete _;
+	public Block[] blocks ~ delete _;
 
-		public ResourceKey Key => key;
-		public int32 Id => id;
+	private Factory factory ~ delete _;
 
-		[AllowAppend]
-		public this(StringView key, int32 id, Block[] blocks, Factory factory) {
-			ResourceKey _key = append .(key);
+	public ResourceKey Key => key;
+	public int32 Id => id;
 
-			this.key = _key;
-			this.id = id;
-			this.blocks = blocks;
-			this.factory = factory;
-		}
+	[AllowAppend]
+	public this(StringView key, int32 id, Block[] blocks, Factory factory) {
+		ResourceKey _key = append .(key);
 
-		public BlockEntity Create(Vec3i pos) {
-			return factory != null ? factory(pos) : null;
-		}
+		this.key = _key;
+		this.id = id;
+		this.blocks = blocks;
+		this.factory = factory;
+	}
+
+	public BlockEntity Create(Vec3i pos) {
+		return factory != null ? factory(pos) : null;
 	}
 }

@@ -2,16 +2,16 @@ using System;
 
 using Cacti;
 
-namespace Meteorite {
-	abstract class BlockEntity {
-		public BlockEntityType type;
-		public Vec3i pos;
+namespace Meteorite;
 
-		public this(BlockEntityType type, Vec3i pos) {
-			this.type = type;
-			this.pos = pos;
-		}
+abstract class BlockEntity {
+	public BlockEntityType type;
+	public Vec3i pos;
 
-		public void Load(Tag tag) {}
+	public this(BlockEntityType type, Vec3i pos) {
+		this.type = type;
+		this.pos = pos;
 	}
+
+	public void Load(Tag tag) {}
 }

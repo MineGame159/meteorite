@@ -1,33 +1,33 @@
 using System;
 using System.Collections;
 
-namespace Meteorite {
-	static class I18N {
-		private static Dictionary<String, String> translations = new .() ~ DeleteDictionaryAndKeysAndValues!(_);
+namespace Meteorite;
 
-		public static void Load() {
-			Meteorite.INSTANCE.resources.ReadJsons("lang/en_us.json", scope (json) => {
-				for (let pair in json.AsObject) {
-					String str = pair.value.AsString;
-					str.Replace("%s", "{}");
+static class I18N {
+	private static Dictionary<String, String> translations = new .() ~ DeleteDictionaryAndKeysAndValues!(_);
 
-					if (translations.ContainsKey(pair.key)) {
-						let (key, value) = translations.GetAndRemove(pair.key).Get();
+	public static void Load() {
+		Meteorite.INSTANCE.resources.ReadJsons("lang/en_us.json", scope (json) => {
+			for (let pair in json.AsObject) {
+				String str = pair.value.AsString;
+				str.Replace("%s", "{}");
 
-						delete key;
-						delete value;
-					}
+				if (translations.ContainsKey(pair.key)) {
+					let (key, value) = translations.GetAndRemove(pair.key).Get();
 
-					translations[new .(pair.key)] = new .(str);
+					delete key;
+					delete value;
 				}
 
-				json.Dispose();
-			});
-		}
+				translations[new .(pair.key)] = new .(str);
+			}
 
-		public static void Translate(String key, String str, params Object[] args) {
-			String translation = translations.GetValueOrDefault(key);
-			if (translation != null) str.AppendF(translation, params args);
-		}
+			json.Dispose();
+		});
+	}
+
+	public static void Translate(String key, String str, params Object[] args) {
+		String translation = translations.GetValueOrDefault(key);
+		if (translation != null) str.AppendF(translation, params args);
 	}
 }

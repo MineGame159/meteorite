@@ -1,19 +1,19 @@
 using System;
 using System.Collections;
 
-namespace Meteorite {
-	class DestroyEntitiesS2CPacket : S2CPacket {
-		public const int32 ID = 0x3A;
+namespace Meteorite;
 
-		public List<int> entityIds ~ delete _;
+class DestroyEntitiesS2CPacket : S2CPacket {
+	public const int32 ID = 0x3A;
 
-		public this() : base(ID, .World) {}
+	public List<int> entityIds ~ delete _;
 
-		public override void Read(NetBuffer buf) {
-			int count = buf.ReadVarInt();
-			entityIds = new .(count);
+	public this() : base(ID, .World) {}
 
-			for (int i < count) entityIds.Add(buf.ReadVarInt());
-		}
+	public override void Read(NetBuffer buf) {
+		int count = buf.ReadVarInt();
+		entityIds = new .(count);
+
+		for (int i < count) entityIds.Add(buf.ReadVarInt());
 	}
 }

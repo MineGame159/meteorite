@@ -8,183 +8,183 @@ using Cacti.Crypto;
 
 using MiniZ;
 
-namespace Meteorite {
-	abstract class Connection {
-		private const int32 S2C_SET_COMPRESSION = 0x03;
+namespace Meteorite;
 
-		public StringView ip;
-		public int32 port;
-		public bool closed;
+abstract class Connection {
+	private const int32 S2C_SET_COMPRESSION = 0x03;
 
-		private Socket s ~ delete _;
-		private Thread t ~ delete _;
+	public StringView ip;
+	public int32 port;
+	public bool closed;
 
-		private int neededLength;
-		private int compressionThreshold = -1;
+	private Socket s ~ delete _;
+	private Thread t ~ delete _;
 
-		private AES aesEncrypt ~ delete _;
-		private AES aesDecrypt ~ delete _;
+	private int neededLength;
+	private int compressionThreshold = -1;
 
-		public this(StringView ip, int32 port) {
-			this.ip = ip;
-			this.port = port;
+	private AES aesEncrypt ~ delete _;
+	private AES aesDecrypt ~ delete _;
+
+	public this(StringView ip, int32 port) {
+		this.ip = ip;
+		this.port = port;
+	}
+
+	public ~this() {
+		Log.Info("Disconnecting");
+
+		s.Close();
+
+		t?.Join();
+	}
+
+	public void EnableCompression(uint8[16] sharedSecret) {
+		aesEncrypt = new .();
+		aesEncrypt.SetKey(sharedSecret, sharedSecret, .Encrypt);
+
+		aesDecrypt = new .();
+		aesDecrypt.SetKey(sharedSecret, sharedSecret, .Encrypt);
+	}
+
+	public Result<void> Start() {
+		Socket.Init();
+
+		s = new .();
+		s.Blocking = false;
+
+		if (s.Connect(ip, port) case .Ok) {
+			Log.Info("Connected to {}:{}", ip, port);
+
+			neededLength = -1;
+
+			t = new Thread(new => Receive);
+			t.SetName("Networking");
+			t.Start(false);
+
+			OnReady();
+			return .Ok;
 		}
-
-		public ~this() {
-			Log.Info("Disconnecting");
-
-			s.Close();
-
-			t?.Join();
+		else {
+			closed = true;
+			return .Err;
 		}
+	}
 
-		public void EnableCompression(uint8[16] sharedSecret) {
-			aesEncrypt = new .();
-			aesEncrypt.SetKey(sharedSecret, sharedSecret, .Encrypt);
+	protected abstract void OnReady();
 
-			aesDecrypt = new .();
-			aesDecrypt.SetKey(sharedSecret, sharedSecret, .Encrypt);
-		}
+	protected abstract void OnConnectionLost();
 
-		public Result<void> Start() {
-			Socket.Init();
+	protected abstract void OnPacket(int id, NetBuffer packet);
 
-			s = new .();
-			s.Blocking = false;
+	private void BeforeOnPacket(int id, NetBuffer packet) {
+		if (id == S2C_SET_COMPRESSION) compressionThreshold = packet.ReadVarInt();
+		else OnPacket(id, packet);
+	}
 
-			if (s.Connect(ip, port) case .Ok) {
-				Log.Info("Connected to {}:{}", ip, port);
+	private void Receive() {
+		Tracy.RegisterCurrentThread();
 
-				neededLength = -1;
+		Socket.FDSet set = .();
+		set.Add(s.NativeSocket);
 
-				t = new Thread(new => Receive);
-				t.SetName("Networking");
-				t.Start(false);
+		uint8* buf = new uint8[1024]*;
+		NetBuffer buffer = scope .(8192);
 
-				OnReady();
-				return .Ok;
-			}
-			else {
-				closed = true;
-				return .Err;
-			}
-		}
+		while (s.IsConnected) {
+			Socket.Select(&set, null, null, 1000);
 
-		protected abstract void OnReady();
+			if (set.IsSet(s.NativeSocket)) {
+				int received = 0;
 
-		protected abstract void OnConnectionLost();
+				if (s.Recv(buf, 1024) case .Ok(let v)) received = v;
+				else break;
 
-		protected abstract void OnPacket(int id, NetBuffer packet);
+				if (aesEncrypt != null) Decrypt(buf, received);
 
-		private void BeforeOnPacket(int id, NetBuffer packet) {
-			if (id == S2C_SET_COMPRESSION) compressionThreshold = packet.ReadVarInt();
-			else OnPacket(id, packet);
-		}
+				buffer.Write(buf, received);
 
-		private void Receive() {
-			Tracy.RegisterCurrentThread();
+				if (neededLength == -1) neededLength = buffer.ReadVarInt();
 
-			Socket.FDSet set = .();
-			set.Add(s.NativeSocket);
+				while (buffer.HasEnough(neededLength)) {
+					int lengthSize = buffer.pos;
 
-			uint8* buf = new uint8[1024]*;
-			NetBuffer buffer = scope .(8192);
+					int uncompressedLength = -1;
 
-			while (s.IsConnected) {
-				Socket.Select(&set, null, null, 1000);
-
-				if (set.IsSet(s.NativeSocket)) {
-					int received = 0;
-
-					if (s.Recv(buf, 1024) case .Ok(let v)) received = v;
-					else break;
-
-					if (aesEncrypt != null) Decrypt(buf, received);
-
-					buffer.Write(buf, received);
-
-					if (neededLength == -1) neededLength = buffer.ReadVarInt();
-
-					while (buffer.HasEnough(neededLength)) {
-						int lengthSize = buffer.pos;
-
-						int uncompressedLength = -1;
-
-						if (compressionThreshold >= 0) {
-						    int a = buffer.ReadVarInt();
-						    if (a > 0) uncompressedLength = a;
-						}
-
-						if (uncompressedLength != -1) {
-							NetBuffer packet = scope .(uncompressedLength);
-							MiniZ.ReturnStatus status;
-
-							using (Tracy.Zone _ = .(Tracy.GetLocation("Decompress packet"))) {
-								status = MiniZ.Uncompress(packet.data, ref uncompressedLength, &buffer.data[buffer.pos], (.) (neededLength + lengthSize - buffer.pos));
-							}
-
-							packet.size = uncompressedLength;
-
-							if (status == .OK) {
-								int id = packet.ReadVarInt();
-								BeforeOnPacket(id, packet);
-							}
-							else Log.Error("Failed to uncompress packet with status {}", status);
-						}
-						else {
-							int id = buffer.ReadVarInt();
-							BeforeOnPacket(id, buffer);
-						}
-
-						buffer.MoveToStart(lengthSize + neededLength);
-
-						neededLength = -1;
-						if (buffer.size > 4) neededLength = buffer.ReadVarInt();
+					if (compressionThreshold >= 0) {
+					    int a = buffer.ReadVarInt();
+					    if (a > 0) uncompressedLength = a;
 					}
+
+					if (uncompressedLength != -1) {
+						NetBuffer packet = scope .(uncompressedLength);
+						MiniZ.ReturnStatus status;
+
+						using (Tracy.Zone _ = .(Tracy.GetLocation("Decompress packet"))) {
+							status = MiniZ.Uncompress(packet.data, ref uncompressedLength, &buffer.data[buffer.pos], (.) (neededLength + lengthSize - buffer.pos));
+						}
+
+						packet.size = uncompressedLength;
+
+						if (status == .OK) {
+							int id = packet.ReadVarInt();
+							BeforeOnPacket(id, packet);
+						}
+						else Log.Error("Failed to uncompress packet with status {}", status);
+					}
+					else {
+						int id = buffer.ReadVarInt();
+						BeforeOnPacket(id, buffer);
+					}
+
+					buffer.MoveToStart(lengthSize + neededLength);
+
+					neededLength = -1;
+					if (buffer.size > 4) neededLength = buffer.ReadVarInt();
 				}
-
-				set.Add(s.NativeSocket);
 			}
 
-			delete buf;
+			set.Add(s.NativeSocket);
 		}
 
-		public void Send(NetBuffer buffer) {
-			int uncompressedLengthSize = 0;
-			if (compressionThreshold != -1) uncompressedLengthSize = NetBuffer.GetVarIntSize(0);
+		delete buf;
+	}
 
-			int size = NetBuffer.GetVarIntSize((.) buffer.size) + uncompressedLengthSize + buffer.size;
+	public void Send(NetBuffer buffer) {
+		int uncompressedLengthSize = 0;
+		if (compressionThreshold != -1) uncompressedLengthSize = NetBuffer.GetVarIntSize(0);
 
-			NetBuffer packet = scope .(size);
+		int size = NetBuffer.GetVarIntSize((.) buffer.size) + uncompressedLengthSize + buffer.size;
 
-			packet.WriteVarInt((.) (buffer.size + uncompressedLengthSize));
-			if (compressionThreshold != -1) packet.WriteVarInt(0);
-			packet.Write(buffer);
+		NetBuffer packet = scope .(size);
 
-			let result = Send(packet.[Friend]data, packet.size);
-			if (result == .Err) OnConnectionLost();
+		packet.WriteVarInt((.) (buffer.size + uncompressedLengthSize));
+		if (compressionThreshold != -1) packet.WriteVarInt(0);
+		packet.Write(buffer);
+
+		let result = Send(packet.[Friend]data, packet.size);
+		if (result == .Err) OnConnectionLost();
+	}
+
+	private Result<int> Send(uint8* data, int size) {
+		uint8* toSend = data;
+
+		if (aesEncrypt != null) {
+			uint8* encrypted = new .[size]*;
+			defer:: delete encrypted;
+
+			aesEncrypt.EncryptCfb8(.(toSend, size), encrypted);
+			toSend = encrypted;
 		}
 
-		private Result<int> Send(uint8* data, int size) {
-			uint8* toSend = data;
+		return s.Send(toSend, size);
+	}
+	
+	[Tracy.Profile]
+	private void Decrypt(uint8* data, int size) {
+		uint8* decrypted = new:ScopedAlloc! .[size]*;
 
-			if (aesEncrypt != null) {
-				uint8* encrypted = new .[size]*;
-				defer:: delete encrypted;
-
-				aesEncrypt.EncryptCfb8(.(toSend, size), encrypted);
-				toSend = encrypted;
-			}
-
-			return s.Send(toSend, size);
-		}
-		
-		[Tracy.Profile]
-		private void Decrypt(uint8* data, int size) {
-			uint8* decrypted = new:ScopedAlloc! .[size]*;
-
-			aesDecrypt.DecryptCfb8(.(data, size), decrypted);
-			Internal.MemCpy(data, decrypted, size);
-		}
+		aesDecrypt.DecryptCfb8(.(data, size), decrypted);
+		Internal.MemCpy(data, decrypted, size);
 	}
 }

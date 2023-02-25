@@ -2,76 +2,76 @@ using System;
 using System.Threading;
 using System.Collections;
 
-namespace Cacti {
-	class ThreadPool {
-		private List<Thread> threads ~ DeleteContainerAndItems!(_);
-		private WaitEvent wait ~ delete _;
+namespace Cacti;
 
-		private List<delegate void()> tasks ~ delete _;
-		private Monitor monitor ~ delete _;
+class ThreadPool {
+	private List<Thread> threads ~ DeleteContainerAndItems!(_);
+	private WaitEvent wait ~ delete _;
 
-		private bool shuttingDown;
+	private List<delegate void()> tasks ~ delete _;
+	private Monitor monitor ~ delete _;
 
-		public this(int count = 4) {
-			threads = new .();
-			wait = new .();
+	private bool shuttingDown;
 
-			tasks = new .();
-			monitor = new .();
+	public this(int count = 4) {
+		threads = new .();
+		wait = new .();
 
-			// TODO: Don't hard code number of threads
-			for (int i < count) {
-				Thread t = new .(new => Run);
-				t.SetName(scope $"Thread Pool - {i}");
-				t.Start(false);
+		tasks = new .();
+		monitor = new .();
 
-				threads.Add(t);
-			}
+		// TODO: Don't hard code number of threads
+		for (int i < count) {
+			Thread t = new .(new => Run);
+			t.SetName(scope $"Thread Pool - {i}");
+			t.Start(false);
+
+			threads.Add(t);
 		}
+	}
 
-		public ~this() {
-			using (monitor.Enter()) tasks.ClearAndDeleteItems();
+	public ~this() {
+		using (monitor.Enter()) tasks.ClearAndDeleteItems();
 
-			shuttingDown = true;
-			wait.Set(true);
+		shuttingDown = true;
+		wait.Set(true);
 
-			for (Thread t in threads) t.Join();
+		for (Thread t in threads) t.Join();
+	}
+
+	public int TaskCount {
+		get {
+			int count = 0;
+			using (monitor.Enter()) count = tasks.Count;
+			return count;
 		}
+	};
 
-		public int TaskCount {
-			get {
-				int count = 0;
-				using (monitor.Enter()) count = tasks.Count;
-				return count;
-			}
-		};
+	public void Add(delegate void() task) {
+		using (monitor.Enter()) {
+			tasks.Add(task);
+			wait.Set();
+		}
+	}
 
-		public void Add(delegate void() task) {
+	private void Run() {
+		Tracy.RegisterCurrentThread();
+
+		for (;;) {
+			delegate void() task = null;
+
 			using (monitor.Enter()) {
-				tasks.Add(task);
-				wait.Set();
+				if (tasks.Count > 0) task = tasks.PopFront();
 			}
-		}
 
-		private void Run() {
-			Tracy.RegisterCurrentThread();
-
-			for (;;) {
-				delegate void() task = null;
-
-				using (monitor.Enter()) {
-					if (tasks.Count > 0) task = tasks.PopFront();
-				}
-
-				if (task == null) {
-					wait.WaitFor();
-					if (shuttingDown) break;
-					continue;
-				}
-
-				task();
-				delete task;
+			if (task == null) {
+				wait.WaitFor();
+				if (shuttingDown) break;
+				continue;
 			}
+
+			task();
+			delete task;
 		}
 	}
 }

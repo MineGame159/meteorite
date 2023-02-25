@@ -4,30 +4,30 @@ using System.Collections;
 using Cacti;
 using Cacti.Graphics;
 
-namespace Meteorite {
-	class NamedMeshBuilderProvider {
-		private Dictionary<String, MeshBuilder> meshes = new .() ~ DeleteDictionaryAndKeysAndValues!(_);
+namespace Meteorite;
 
-		public MeshBuilder Get(String name) {
-			String outKey;
-			MeshBuilder outMb;
-			if (meshes.TryGet(name, out outKey, out outMb)) return outMb;
+class NamedMeshBuilderProvider {
+	private Dictionary<String, MeshBuilder> meshes = new .() ~ DeleteDictionaryAndKeysAndValues!(_);
 
-			MeshBuilder mb = new .(false);
+	public MeshBuilder Get(String name) {
+		String outKey;
+		MeshBuilder outMb;
+		if (meshes.TryGet(name, out outKey, out outMb)) return outMb;
 
-			meshes[new .(name)] = mb;
-			return mb;
+		MeshBuilder mb = new .(false);
+
+		meshes[new .(name)] = mb;
+		return mb;
+	}
+
+	public Dictionary<String, MeshBuilder>.Enumerator Meshes => meshes.GetEnumerator();
+
+	public void End() {
+		for (let pair in meshes) {
+			delete pair.key;
+			delete pair.value;
 		}
 
-		public Dictionary<String, MeshBuilder>.Enumerator Meshes => meshes.GetEnumerator();
-
-		public void End() {
-			for (let pair in meshes) {
-				delete pair.key;
-				delete pair.value;
-			}
-
-			meshes.Clear();
-		}
+		meshes.Clear();
 	}
 }

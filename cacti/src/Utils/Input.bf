@@ -3,39 +3,39 @@ using System.Collections;
 
 using GLFW;
 
-namespace Cacti {
-	typealias Button = GlfwInput.MouseButton;
-	typealias Key = GlfwInput.Key;
-	typealias InputAction = GlfwInput.Action;
+namespace Cacti;
 
-	static class Input {
-		public typealias ButtonCallback = delegate bool(Button button, InputAction action);
-		public typealias KeyCallback = delegate bool(Key key, int scancode, InputAction action);
-		public typealias CharCallback = delegate bool(char32 char);
-		public typealias ScrollCallback = delegate bool(float scroll);
-		public typealias MousePosCallback = delegate void();
+typealias Button = GlfwInput.MouseButton;
+typealias Key = GlfwInput.Key;
+typealias InputAction = GlfwInput.Action;
 
-		public static Vec2f mouse, mouseLast, mouseDelta;
+static class Input {
+	public typealias ButtonCallback = delegate bool(Button button, InputAction action);
+	public typealias KeyCallback = delegate bool(Key key, int scancode, InputAction action);
+	public typealias CharCallback = delegate bool(char32 char);
+	public typealias ScrollCallback = delegate bool(float scroll);
+	public typealias MousePosCallback = delegate void();
 
-		public static PriorityList<ButtonCallback> buttonEvent = new .() ~ DeleteContainerAndItems!(_);
-		public static PriorityList<KeyCallback> keyEvent = new .() ~ DeleteContainerAndItems!(_);
-		public static PriorityList<CharCallback> charEvent = new .() ~ DeleteContainerAndItems!(_);
-		public static PriorityList<ScrollCallback> scrollEvent = new .() ~ DeleteContainerAndItems!(_);
-		public static List<MousePosCallback> mousePosEvent = new .() ~ DeleteContainerAndItems!(_);
+	public static Vec2f mouse, mouseLast, mouseDelta;
 
-		public static bool capturingCharacters;
+	public static PriorityList<ButtonCallback> buttonEvent = new .() ~ DeleteContainerAndItems!(_);
+	public static PriorityList<KeyCallback> keyEvent = new .() ~ DeleteContainerAndItems!(_);
+	public static PriorityList<CharCallback> charEvent = new .() ~ DeleteContainerAndItems!(_);
+	public static PriorityList<ScrollCallback> scrollEvent = new .() ~ DeleteContainerAndItems!(_);
+	public static List<MousePosCallback> mousePosEvent = new .() ~ DeleteContainerAndItems!(_);
 
-		private static bool[512] keys, keysLast;
+	public static bool capturingCharacters;
 
-		private static void Update() {
-			mouseDelta = mouse - mouseLast;
-			mouseLast = mouse;
-			
-			Internal.MemCpy(&keysLast, &keys, keys.Count);
-		}
+	private static bool[512] keys, keysLast;
 
-		public static bool IsKeyDown(Key key) => keys[(.) key];
-		public static bool IsKeyPressed(Key key) => keys[(.) key] && !keysLast[(.) key];
-		public static bool IsKeyReleased(Key key) => !keys[(.) key] && keysLast[(.) key];
+	private static void Update() {
+		mouseDelta = mouse - mouseLast;
+		mouseLast = mouse;
+		
+		Internal.MemCpy(&keysLast, &keys, keys.Count);
 	}
+
+	public static bool IsKeyDown(Key key) => keys[(.) key];
+	public static bool IsKeyPressed(Key key) => keys[(.) key] && !keysLast[(.) key];
+	public static bool IsKeyReleased(Key key) => !keys[(.) key] && keysLast[(.) key];
 }

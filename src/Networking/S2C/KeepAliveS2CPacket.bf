@@ -1,15 +1,15 @@
 using System;
 
-namespace Meteorite {
-	class KeepAliveS2CPacket : S2CPacket {
-		public const int32 ID = 0x1F;
+namespace Meteorite;
 
-		public int64 data;
+class KeepAliveS2CPacket : S2CPacket {
+	public const int32 ID = 0x1F;
 
-		public this() : base(ID) {}
+	public int64 data;
 
-		public override void Read(NetBuffer buf) {
-			data = buf.ReadLong();
-		}
+	public this() : base(ID) {}
+
+	public override void Read(NetBuffer buf) {
+		data = buf.ReadLong();
 	}
 }

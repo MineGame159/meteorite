@@ -1,13 +1,13 @@
 using System;
 
-namespace Meteorite {
-	class PlayerInfoS2CPacket : S2CPacket {
-		public const int32 ID = 0x36;
+namespace Meteorite;
 
-		public this() : base(ID) {}
+class PlayerInfoS2CPacket : S2CPacket {
+	public const int32 ID = 0x36;
 
-		public override void Read(NetBuffer buf) {
-			// TODO
-		}
+	public this() : base(ID) {}
+
+	public override void Read(NetBuffer buf) {
+		// TODO
 	}
 }

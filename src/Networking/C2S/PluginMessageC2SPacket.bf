@@ -1,23 +1,23 @@
 using System;
 
-namespace Meteorite {
-	class PluginMessageC2SPacket : C2SPacket {
-		public const int32 ID = 0x0C;
+namespace Meteorite;
 
-		public String channel;
-		public String data ~ delete _;
+class PluginMessageC2SPacket : C2SPacket {
+	public const int32 ID = 0x0C;
 
-		[AllowAppend]
-		public this(StringView channel, StringView data) : base(ID) {
-			String c = append .(channel);
+	public String channel;
+	public String data ~ delete _;
 
-			this.channel = c;
-			this.data = new .(data);
-		}
+	[AllowAppend]
+	public this(StringView channel, StringView data) : base(ID) {
+		String c = append .(channel);
 
-		public override void Write(NetBuffer buf) {
-			buf.WriteString(channel);
-			buf.Write((.) data.Ptr, data.Length);
-		}
+		this.channel = c;
+		this.data = new .(data);
+	}
+
+	public override void Write(NetBuffer buf) {
+		buf.WriteString(channel);
+		buf.Write((.) data.Ptr, data.Length);
 	}
 }

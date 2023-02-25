@@ -1,26 +1,26 @@
 using System;
 
-namespace Cacti {
-	class Counter<T> where T : operator T + T {
-		private T[] values ~ delete _;
-		private int i;
+namespace Cacti;
 
-		public this(int size) {
-			values = new .[size];
-		}
+class Counter<T> where T : operator T + T {
+	private T[] values ~ delete _;
+	private int i;
 
-		public void Add(T value) {
-			values[i++] = value;
+	public this(int size) {
+		values = new .[size];
+	}
 
-			if (i >= values.Count) i = 0;
-		}
+	public void Add(T value) {
+		values[i++] = value;
 
-		public T Get() {
-			T count = default;
+		if (i >= values.Count) i = 0;
+	}
 
-			for (let value in values) count += value;
+	public T Get() {
+		T count = default;
 
-			return count;
-		}
+		for (let value in values) count += value;
+
+		return count;
 	}
 }

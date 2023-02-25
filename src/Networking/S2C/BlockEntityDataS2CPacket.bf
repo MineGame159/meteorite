@@ -2,25 +2,25 @@ using System;
 
 using Cacti;
 
-namespace Meteorite {
-	class BlockEntityDataS2CPacket : S2CPacket {
-		public const int32 ID = 0x07;
+namespace Meteorite;
 
-		public Vec3i pos;
-		public BlockEntityType type;
+class BlockEntityDataS2CPacket : S2CPacket {
+	public const int32 ID = 0x07;
 
-		public bool remove;
-		public Tag data ~ _.Dispose();
+	public Vec3i pos;
+	public BlockEntityType type;
 
-		public this() : base(ID, .World) {}
+	public bool remove;
+	public Tag data ~ _.Dispose();
 
-		public override void Read(NetBuffer buf) {
-			pos = buf.ReadPosition();
-			type = BlockEntityTypes.TYPES[buf.ReadVarInt()];
+	public this() : base(ID, .World) {}
 
-			Result<Tag> result = buf.ReadNbt();
-			if (result case .Ok(let tag)) data = tag;
-			else remove = true;
-		}
+	public override void Read(NetBuffer buf) {
+		pos = buf.ReadPosition();
+		type = BlockEntityTypes.TYPES[buf.ReadVarInt()];
+
+		Result<Tag> result = buf.ReadNbt();
+		if (result case .Ok(let tag)) data = tag;
+		else remove = true;
 	}
 }

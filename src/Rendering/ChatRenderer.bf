@@ -4,278 +4,278 @@ using System.Collections;
 using Cacti;
 using Cacti.Graphics;
 
-namespace Meteorite {
-	class ChatRenderer {
-		private const Color BACKGROUND = .(0, 0, 0, 125);
+namespace Meteorite;
 
-		private Meteorite me = .INSTANCE;
+class ChatRenderer {
+	private const Color BACKGROUND = .(0, 0, 0, 125);
 
-		private List<Text> messages = new .() ~ DeleteContainerAndItems!(_);
-		private List<Message> visibleMessages = new .() ~ DeleteContainerAndItems!(_);
+	private Meteorite me = .INSTANCE;
 
-		private bool typing, showCursor, wasMouseHidden, firstChar;
-		private int cursor;
+	private List<Text> messages = new .() ~ DeleteContainerAndItems!(_);
+	private List<Message> visibleMessages = new .() ~ DeleteContainerAndItems!(_);
 
-		private String toSend = new .() ~ delete _;
-		private float cursorTimer, textEndX;
-		private int renderFrom;
+	private bool typing, showCursor, wasMouseHidden, firstChar;
+	private int cursor;
 
-		private List<String> sentMessages = new .(16) ~ DeleteContainerAndItems!(_);
-		private int previousMessageI;
+	private String toSend = new .() ~ delete _;
+	private float cursorTimer, textEndX;
+	private int renderFrom;
 
-		public this() {
-			Input.keyEvent.Add(new => OnKey);
-			Input.charEvent.Add(new => OnChar);
-			Input.scrollEvent.Add(new => OnScroll, 10);
-		}
+	private List<String> sentMessages = new .(16) ~ DeleteContainerAndItems!(_);
+	private int previousMessageI;
 
-		public void AddMessage(Text message) {
-			messages.AddFront(message.Copy());
-			if (messages.Count > 100) delete messages.PopBack();
+	public this() {
+		Input.keyEvent.Add(new => OnKey);
+		Input.charEvent.Add(new => OnChar);
+		Input.scrollEvent.Add(new => OnScroll, 10);
+	}
 
-			visibleMessages.AddFront(new .(message));
-			
-			Log.Info("Chat: {}", message);
-		}
+	public void AddMessage(Text message) {
+		messages.AddFront(message.Copy());
+		if (messages.Count > 100) delete messages.PopBack();
+
+		visibleMessages.AddFront(new .(message));
 		
-		[Tracy.Profile]
-		public void Render(RenderPass pass, float delta) {
-			pass.Bind(Gfxa.TEX_QUADS_PIPELINE);
+		Log.Info("Chat: {}", message);
+	}
+	
+	[Tracy.Profile]
+	public void Render(RenderPass pass, float delta) {
+		pass.Bind(Gfxa.TEX_QUADS_PIPELINE);
 
-			Mat4 pc = me.camera.proj2d;
-			pass.SetPushConstants(pc);
+		Mat4 pc = me.camera.proj2d;
+		pass.SetPushConstants(pc);
 
-			me.textRenderer.Begin();
-			MeshBuilder mb = scope .(false);
+		me.textRenderer.Begin();
+		MeshBuilder mb = scope .(false);
 
-			RenderMessages(pass, mb, delta);
-			if (typing) RenderTyping(pass, mb, delta, true);
+		RenderMessages(pass, mb, delta);
+		if (typing) RenderTyping(pass, mb, delta, true);
+
+		pass.Bind(0, Gfxa.PIXEL_DESCRIPTOR);
+		pass.Draw(mb.End(.Frame, Buffers.QUAD_INDICES));
+
+		pass.Bind(0, me.textRenderer.Descriptor);
+		me.textRenderer.End(pass);
+
+		if (typing) {
+			mb = scope .(false);
+			RenderTyping(pass, mb, delta, false);
 
 			pass.Bind(0, Gfxa.PIXEL_DESCRIPTOR);
 			pass.Draw(mb.End(.Frame, Buffers.QUAD_INDICES));
+		}
+	}
 
-			pass.Bind(0, me.textRenderer.Descriptor);
-			me.textRenderer.End(pass);
+	private void RenderMessages(RenderPass pass, MeshBuilder mb, float delta) {
+		// Remove visible messages if they are displayed for too long
+		for (let message in visibleMessages) {
+			message.timer += delta;
 
-			if (typing) {
-				mb = scope .(false);
-				RenderTyping(pass, mb, delta, false);
-
-				pass.Bind(0, Gfxa.PIXEL_DESCRIPTOR);
-				pass.Draw(mb.End(.Frame, Buffers.QUAD_INDICES));
+			if (message.timer >= 10) {
+				@message.Remove();
+				delete message;
+				continue;
 			}
 		}
 
-		private void RenderMessages(RenderPass pass, MeshBuilder mb, float delta) {
-			// Remove visible messages if they are displayed for too long
-			for (let message in visibleMessages) {
-				message.timer += delta;
+		// Render messages while having the chat open
+		float y = 2 + me.textRenderer.Height + 28;
 
-				if (message.timer >= 10) {
-					@message.Remove();
-					delete message;
-					continue;
-				}
+		if (typing) {
+			for (int i = Math.Max(0, renderFrom); i < Math.Min(messages.Count, renderFrom + 16); i++) {
+				float x = 4;
+				messages[i].Visit(scope [&](text, color) => x = me.textRenderer.Render(x, y, text, color));
+
+				y += me.textRenderer.Height + 2;
 			}
 
-			// Render messages while having the chat open
-			float y = 2 + me.textRenderer.Height + 28;
-
-			if (typing) {
-				for (int i = Math.Max(0, renderFrom); i < Math.Min(messages.Count, renderFrom + 16); i++) {
-					float x = 4;
-					messages[i].Visit(scope [&](text, color) => x = me.textRenderer.Render(x, y, text, color));
-
-					y += me.textRenderer.Height + 2;
-				}
-
-				return;
-			}
-
-			// Render visible messages while the chat is closed
-			for (let message in visibleMessages) {
-				if (@message.Index < 10) {
-					float x = 4;
-					message.text.Visit(scope [&](text, color) => {
-						Color c = color;
-
-						if (message.timer >= 9) {
-							float f = 10 - message.timer;
-							c.a = (.) (c.A * f * 255);
-						}
-
-						x = me.textRenderer.Render(x, y, text, c);
-					});
-					
-					y += me.textRenderer.Height + 2;
-				}
-			}
+			return;
 		}
 
-		private void RenderTyping(RenderPass pass, MeshBuilder mb, float delta, bool first) {
-			if (first) {
-				cursorTimer += delta * 2;
-				if (cursorTimer >= 1) {
-					showCursor = !showCursor;
-					cursorTimer = 0;
-				}
-	
-				Quad(mb, 2, 2, me.window.Width / 2 - 4, me.textRenderer.Height * 1.75f, BACKGROUND);
-				textEndX = me.textRenderer.Render(4, 2, toSend, .WHITE);
+		// Render visible messages while the chat is closed
+		for (let message in visibleMessages) {
+			if (@message.Index < 10) {
+				float x = 4;
+				message.text.Visit(scope [&](text, color) => {
+					Color c = color;
+
+					if (message.timer >= 9) {
+						float f = 10 - message.timer;
+						c.a = (.) (c.A * f * 255);
+					}
+
+					x = me.textRenderer.Render(x, y, text, c);
+				});
 				
-				if (showCursor && cursor == toSend.Length) {
-					me.textRenderer.Render(textEndX, 2, "_", .WHITE);
-				}
-			}
-			else {
-				if (showCursor && cursor != toSend.Length) {
-					float x = 3 + me.textRenderer.GetWidth(toSend.Substring(0, cursor));
-					Quad(mb, x, 4, 1, me.textRenderer.Height + 2, .WHITE);
-				}
+				y += me.textRenderer.Height + 2;
 			}
 		}
+	}
 
-		private void Quad(MeshBuilder mb, float x, float y, float width, float height, Color color) {
-			mb.Quad(
-				mb.Vertex<Pos2DUVColorVertex>(.(.(x, y), .(0, 0), color)),
-				mb.Vertex<Pos2DUVColorVertex>(.(.(x, y + height), .(0, 1), color)),
-				mb.Vertex<Pos2DUVColorVertex>(.(.(x + width, y + height), .(1, 1), color)),
-				mb.Vertex<Pos2DUVColorVertex>(.(.(x + width, y), .(1, 0), color))
-			);
+	private void RenderTyping(RenderPass pass, MeshBuilder mb, float delta, bool first) {
+		if (first) {
+			cursorTimer += delta * 2;
+			if (cursorTimer >= 1) {
+				showCursor = !showCursor;
+				cursorTimer = 0;
+			}
+
+			Quad(mb, 2, 2, me.window.Width / 2 - 4, me.textRenderer.Height * 1.75f, BACKGROUND);
+			textEndX = me.textRenderer.Render(4, 2, toSend, .WHITE);
+			
+			if (showCursor && cursor == toSend.Length) {
+				me.textRenderer.Render(textEndX, 2, "_", .WHITE);
+			}
 		}
+		else {
+			if (showCursor && cursor != toSend.Length) {
+				float x = 3 + me.textRenderer.GetWidth(toSend.Substring(0, cursor));
+				Quad(mb, x, 4, 1, me.textRenderer.Height + 2, .WHITE);
+			}
+		}
+	}
 
-		private bool OnKey(Key key, int scancode, InputAction action) {
-			if (me.Screen != null || action == .Release) return false;
+	private void Quad(MeshBuilder mb, float x, float y, float width, float height, Color color) {
+		mb.Quad(
+			mb.Vertex<Pos2DUVColorVertex>(.(.(x, y), .(0, 0), color)),
+			mb.Vertex<Pos2DUVColorVertex>(.(.(x, y + height), .(0, 1), color)),
+			mb.Vertex<Pos2DUVColorVertex>(.(.(x + width, y + height), .(1, 1), color)),
+			mb.Vertex<Pos2DUVColorVertex>(.(.(x + width, y), .(1, 0), color))
+		);
+	}
 
-			if (typing) {
-				if (key == .Escape || key == .Enter || key == .KpEnter) {
-					typing = false;
-					me.window.MouseHidden = wasMouseHidden;
+	private bool OnKey(Key key, int scancode, InputAction action) {
+		if (me.Screen != null || action == .Release) return false;
 
-					Input.capturingCharacters = false;
+		if (typing) {
+			if (key == .Escape || key == .Enter || key == .KpEnter) {
+				typing = false;
+				me.window.MouseHidden = wasMouseHidden;
 
-					if ((key == .Enter || key == .KpEnter) && !toSend.IsEmpty) {
-						me.connection.Send(scope ChatC2SPacket(toSend));
+				Input.capturingCharacters = false;
 
-						sentMessages.AddFront(new .(toSend));
-						if (sentMessages.Count > 16) delete sentMessages.PopBack();
-					}
+				if ((key == .Enter || key == .KpEnter) && !toSend.IsEmpty) {
+					me.connection.Send(scope ChatC2SPacket(toSend));
 
-					return true;
+					sentMessages.AddFront(new .(toSend));
+					if (sentMessages.Count > 16) delete sentMessages.PopBack();
 				}
-				if (key == .Up) {
-					if (sentMessages.Count > previousMessageI + 1) {
-						toSend.Set(sentMessages[++previousMessageI]);
-						cursor = toSend.Length;
-					}
 
-					return true;
+				return true;
+			}
+			if (key == .Up) {
+				if (sentMessages.Count > previousMessageI + 1) {
+					toSend.Set(sentMessages[++previousMessageI]);
+					cursor = toSend.Length;
 				}
-				if (key == .Down) {
-					previousMessageI--;
-					if (previousMessageI < -1) previousMessageI = -1;
 
-					if (sentMessages.Count > previousMessageI) {
-						toSend.Set(previousMessageI < 0 ? "" : sentMessages[previousMessageI]);
-						cursor = toSend.Length;
-					}
+				return true;
+			}
+			if (key == .Down) {
+				previousMessageI--;
+				if (previousMessageI < -1) previousMessageI = -1;
 
-					return true;
+				if (sentMessages.Count > previousMessageI) {
+					toSend.Set(previousMessageI < 0 ? "" : sentMessages[previousMessageI]);
+					cursor = toSend.Length;
 				}
-				if (key == .Backspace) {
-					if (!toSend.IsEmpty && cursor > 0) {
-						if (cursor == toSend.Length) toSend.RemoveFromEnd(1);
-						else toSend.Remove(cursor - 1);
 
-						cursor--;
-					}
+				return true;
+			}
+			if (key == .Backspace) {
+				if (!toSend.IsEmpty && cursor > 0) {
+					if (cursor == toSend.Length) toSend.RemoveFromEnd(1);
+					else toSend.Remove(cursor - 1);
 
-					previousMessageI = -1;
-					return true;
-				}
-				if (key == .Delete) {
-					if (!toSend.IsEmpty && cursor < toSend.Length) {
-						toSend.Remove(cursor);
-					}
-
-					previousMessageI = -1;
-					return true;
-				}
-				if (key == .Left) {
 					cursor--;
-					if (cursor < 0) cursor = 0;
-
-					return true;
 				}
-				if (key == .Right) {
-					cursor++;
-					if (cursor > toSend.Length) cursor = toSend.Length;
-
-					return true;
-				}
-			}
-			else {
-				if (key == .T || key == .Slash || key == .KpDivide) {
-					typing = true;
-					showCursor = false;
-					firstChar = true;
-					cursor = 0;
-					toSend.Clear();
-					cursorTimer = 0;
-					renderFrom = 0;
-					previousMessageI = -1;
-
-					wasMouseHidden = me.window.MouseHidden;
-					me.window.MouseHidden = false;
-
-					Input.capturingCharacters = true;
-
-					if (key == .Slash || key == .KpDivide) toSend.Append('/');
-					return true;
-				}
-			}
-
-			return false;
-		}
-
-		private bool OnChar(char32 char) {
-			if (me.Screen != null) return false;
-
-			if (typing) {
-				if (firstChar) {
-					firstChar = false;
-					return false;
-				}
-
-				toSend.Insert(cursor, char);
-				cursor++;
 
 				previousMessageI = -1;
 				return true;
 			}
+			if (key == .Delete) {
+				if (!toSend.IsEmpty && cursor < toSend.Length) {
+					toSend.Remove(cursor);
+				}
 
-			return false;
-		}
-
-		private bool OnScroll(float scroll) {
-			if (me.Screen != null) return false;
-
-			if (typing) {
-				renderFrom += (.) scroll;
-				renderFrom = Math.Clamp(renderFrom, 0, messages.Count - 16);
+				previousMessageI = -1;
 				return true;
 			}
+			if (key == .Left) {
+				cursor--;
+				if (cursor < 0) cursor = 0;
 
-			return false;
+				return true;
+			}
+			if (key == .Right) {
+				cursor++;
+				if (cursor > toSend.Length) cursor = toSend.Length;
+
+				return true;
+			}
+		}
+		else {
+			if (key == .T || key == .Slash || key == .KpDivide) {
+				typing = true;
+				showCursor = false;
+				firstChar = true;
+				cursor = 0;
+				toSend.Clear();
+				cursorTimer = 0;
+				renderFrom = 0;
+				previousMessageI = -1;
+
+				wasMouseHidden = me.window.MouseHidden;
+				me.window.MouseHidden = false;
+
+				Input.capturingCharacters = true;
+
+				if (key == .Slash || key == .KpDivide) toSend.Append('/');
+				return true;
+			}
 		}
 
-		class Message {
-			public Text text ~ delete _;
-			public float timer;
+		return false;
+	}
 
-			public this(Text message) {
-				text = message.Copy();
+	private bool OnChar(char32 char) {
+		if (me.Screen != null) return false;
+
+		if (typing) {
+			if (firstChar) {
+				firstChar = false;
+				return false;
 			}
+
+			toSend.Insert(cursor, char);
+			cursor++;
+
+			previousMessageI = -1;
+			return true;
+		}
+
+		return false;
+	}
+
+	private bool OnScroll(float scroll) {
+		if (me.Screen != null) return false;
+
+		if (typing) {
+			renderFrom += (.) scroll;
+			renderFrom = Math.Clamp(renderFrom, 0, messages.Count - 16);
+			return true;
+		}
+
+		return false;
+	}
+
+	class Message {
+		public Text text ~ delete _;
+		public float timer;
+
+		public this(Text message) {
+			text = message.Copy();
 		}
 	}
 }
