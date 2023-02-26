@@ -38,7 +38,8 @@ class GameRenderer {
 
 	private float delta;
 	private bool afterScreenshot;
-
+	
+	[Tracy.Profile]
 	public this() {
 		mainColorI = attachments.CreateColor("Main Color");
 		mainNormalI = attachments.CreateColor("Main Normal", .RGBA16);

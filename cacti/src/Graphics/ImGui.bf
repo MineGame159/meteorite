@@ -16,6 +16,7 @@ static class ImGuiCacti {
 	public static bool customSize = false;
 	public static Vec2i size;
 
+	[Tracy.Profile]
 	public static void Init(Window window) {
 		// TODO: For some reason when the application is built on a GitHub action runner the size of ImGui.IO struct is smaller than what it should be
 		//       But it looks like it doesn't break anything surprisingly
@@ -39,7 +40,8 @@ static class ImGuiCacti {
 		ImGuiImplCacti.Shutdown();
 		ImGui.DestroyContext();
 	}
-
+	
+	[Tracy.Profile]
 	public static bool NewFrame() {
 		if (!initialized) return false;
 
@@ -58,7 +60,8 @@ static class ImGuiCacti {
 		newFrameCalled = true;
 		return true;
 	}
-
+	
+	[Tracy.Profile]
 	public static CommandBuffer Render(GpuImage target) {
 		if (!initialized) return null;
 

@@ -73,7 +73,8 @@ class Shader : DoubleRefCounted{
 		this.handle = handle;
 		this.type = type;
 	}
-
+	
+	[Tracy.Profile]
 	private Result<void> Reflect(uint size, void* code) {
 		ShaderReflect reflect = scope .();
 		reflect.Create(code, size).GetOrPropagate!();

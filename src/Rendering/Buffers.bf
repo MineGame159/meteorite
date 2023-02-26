@@ -11,7 +11,8 @@ extension Buffers {
 	public static void Destroy() {
 		ReleaseAndNullify!(QUAD_INDICES);
 	}
-
+	
+	[Tracy.Profile]
 	public static void CreateGlobalIndices() {
 		const int count = 8192 * 32;
 		uint32* buffer = new uint32[6 * count]*;

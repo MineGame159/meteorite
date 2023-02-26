@@ -10,7 +10,8 @@ namespace Meteorite;
 class AccountManager : IEnumerable<Account> {
 	public List<Account> accounts = new .() ~ DeleteContainerAndItems!(_);
 	public Account active;
-
+	
+	[Tracy.Profile]
 	public this() {
 		// Open file and add a default cracked account if the file is not found
 		FileStream fs = scope .();

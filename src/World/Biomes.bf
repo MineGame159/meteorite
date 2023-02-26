@@ -8,7 +8,8 @@ namespace Meteorite;
 
 static class Biomes {
 	public static Biome VOID;
-
+	
+	[Tracy.Profile]
 	public static void Register() {
 		JsonTree tree = Meteorite.INSTANCE.resources.ReadJson("data/biomes.json");
 		Json json = tree.root;

@@ -7,7 +7,8 @@ namespace Meteorite;
 class Biome : IRegistryEntry {
 	private static Color[] GRASS_COLORS ~ delete _;
 	private static Color[] FOLIAGE_COLORS ~ delete _;
-
+	
+	[Tracy.Profile]
 	public static void LoadColormaps() {
 		{
 			// Grass

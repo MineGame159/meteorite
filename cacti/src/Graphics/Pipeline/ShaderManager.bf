@@ -125,15 +125,8 @@ class ShaderManager {
 		__tracy_zone.AddText(sourceName);
 
 		// Compile to SPIR-V
-		let (compiler, options, kind) = GetCompiler!(info);
-
-		Shaderc.CompilationResult result = compiler.CompileIntoSpv(source, kind, sourceName, "main", options);
+		Shaderc.CompilationResult result = Compile(info, source, sourceName).GetOrPropagate!();
 		defer delete result;
-
-		if (result.Status != .Success) {
-			Log.Error("Failed to compile shader '{}': {}", sourceName, result.ErrorMessage);
-			return .Err;
-		}
 
 		// Create
 		VkShaderModule module = CreateRaw(result, sourceName).GetOrPropagate!();
@@ -157,9 +150,11 @@ class ShaderManager {
 		return .Ok;
 	}
 	
-	private mixin GetCompiler(Info info) {
-		Shaderc.Compiler compiler = scope:mixin .();
-		Shaderc.CompileOptions options = scope:mixin .(options);
+	[Tracy.Profile]
+	private Result<Shaderc.CompilationResult> Compile(Info info, StringView source, StringView sourceName) {
+		// Initialize compiler
+		Shaderc.Compiler compiler = scope .();
+		Shaderc.CompileOptions options = scope .(options);
 		Shaderc.ShaderKind kind;
 
 		switch (info.type) {
@@ -176,7 +171,17 @@ class ShaderManager {
 			options.AddMacroDefinition(define.name, define.value);
 		}
 
-		(compiler, options, kind)
+		// Compile
+		Shaderc.CompilationResult result = compiler.CompileIntoSpv(source, kind, sourceName, "main", options);
+
+		if (result.Status != .Success) {
+			Log.Error("Failed to compile shader '{}': {}", sourceName, result.ErrorMessage);
+
+			delete result;
+			return .Err;
+		}
+
+		return result;
 	}
 
 	[Tracy.Profile]

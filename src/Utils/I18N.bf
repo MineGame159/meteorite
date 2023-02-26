@@ -1,11 +1,14 @@
 using System;
 using System.Collections;
 
+using Cacti;
+
 namespace Meteorite;
 
 static class I18N {
 	private static Dictionary<String, String> translations = new .() ~ DeleteDictionaryAndKeysAndValues!(_);
 
+	[Tracy.Profile]
 	public static void Load() {
 		Meteorite.INSTANCE.resources.ReadJsons("lang/en_us.json", scope (tree) => {
 			for (let pair in tree.root.AsObject) {

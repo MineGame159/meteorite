@@ -53,7 +53,8 @@ static class Gfx {
 
 	private static List<DoubleRefCounted> toRelease = new .() ~ delete _;
 	private static List<delegate void()> newFrameActions = new .() ~ delete _;
-
+	
+	[Tracy.Profile]
 	public static Result<void> Init(Window window) {
 		// Initialize Vulkan library
 		VulkanNative.Initialize();
@@ -209,7 +210,8 @@ static class Gfx {
 	}
 
 	// Initialization
-
+	
+	[Tracy.Profile]
 	private static Result<void> CreateInstance() {
 		VkApplicationInfo appInfo = .() {
 			pApplicationName = Window.Title.ToScopeCStr!(),
@@ -277,7 +279,8 @@ static class Gfx {
 	}
 
 	typealias DebugCallbackFunction = function VkBool32(VkDebugUtilsMessageSeverityFlagsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData);
-
+	
+	[Tracy.Profile]
 	private static Result<void> SetupDebugCallback() {
 		if (!DebugUtilsExt) return .Ok;
 
@@ -308,14 +311,16 @@ static class Gfx {
 		Log.Log(level, .(pCallbackData.pMessage));
 		return false;
 	}
-
+	
+	[Tracy.Profile]
 	private static Result<void> CreateSurface() {
 		Glfw.CreateWindowSurface(.(Instance.Handle), Window.[Friend]handle, null, &Surface);
 		if (Surface == .Null) return Log.ErrorResult("Failed to create Vulkan surface");
 
 		return .Ok;
 	}
-
+	
+	[Tracy.Profile]
 	private static Result<void> FindPhysicalDevice() {
 		uint32 count = 0;
 		vkEnumeratePhysicalDevices(Instance, &count, null);
@@ -352,7 +357,8 @@ static class Gfx {
 
 		return .Ok;
 	}
-
+	
+	[Tracy.Profile]
 	private static Result<void> CreateDevice() {
 		QueueFamilyIndices indices = FindQueueFamilies(PhysicalDevice);
 
@@ -429,7 +435,8 @@ static class Gfx {
 			return graphicsFamily.HasValue && presentFamily.HasValue;
 		} }
 	}
-
+	
+	[Tracy.Profile]
 	public static QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device) {
 		QueueFamilyIndices indices = .();
 

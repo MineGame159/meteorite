@@ -12,7 +12,8 @@ class TextRenderer {
 	private MeshBuilder mb;
 
 	public int Height => font.height;
-
+	
+	[Tracy.Profile]
 	public this() {
 		JsonTree tree = Meteorite.INSTANCE.resources.ReadJson("font/default.json");
 

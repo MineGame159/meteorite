@@ -41,7 +41,8 @@ class ResourceLoader {
 			}
 		}
 	}
-
+	
+	[Tracy.Profile]
 	public bool ReadBytes(StringView path, List<uint8> buffer) {
 		FileStream fs = scope .();
 		if (!GetStream(path, fs)) return false;
@@ -58,7 +59,8 @@ class ResourceLoader {
 			}
 		}
 	}
-
+	
+	[Tracy.Profile]
 	public bool ReadString(StringView path, String buffer) {
 		FileStream fs = scope .();
 		if (!GetStream(path, fs)) return false;
@@ -68,7 +70,8 @@ class ResourceLoader {
 
 		return true;
 	}
-
+	
+	[Tracy.Profile]
 	public bool ReadLines(StringView path, delegate void(StringView) callback) {
 		FileStream fs = scope .();
 		if (!GetStream(path, fs)) return false;
@@ -78,28 +81,32 @@ class ResourceLoader {
 
 		return true;
 	}
-
+	
+	[Tracy.Profile]
 	public Result<ImageInfo> ReadImageInfo(StringView path) {
 		String path2 = GetPath(scope $"textures/{path}", .. scope .());
 		if (path2 == "") return .Err;
 
 		return ImageInfo.Read(path2);
 	}
-
+	
+	[Tracy.Profile]
 	public Result<Image> ReadImage(StringView path, bool flip = false) {
 		String path2 = GetPath(scope $"textures/{path}", .. scope .());
 		if (path2 == "") return .Err;
 
 		return Image.Read(path2, flip: flip);
 	}
-
+	
+	[Tracy.Profile]
 	public Result<JsonTree> ReadJson(StringView path) {
 		FileStream fs = scope .();
 		if (!GetStream(path, fs)) return .Err;
 
 		return JsonParser.Parse(fs);
 	}
-
+	
+	[Tracy.Profile]
 	public void ReadJsons(StringView path, delegate void(JsonTree tree) callback) {
 		for (int i < locations.Count) {
 			String fullPath = scope $"{locations[i]}/{path}";

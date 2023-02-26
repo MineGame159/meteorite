@@ -49,7 +49,8 @@ class Pipeline : DoubleRefCounted {
 
 		Gfx.Pipelines.[Friend]pipelines.Remove(this);
 	}
-
+	
+	[Tracy.Profile]
 	private Result<void> Init() {
 		shaderInfo.Clear();
 		shaderInfo.Merge(vertexShader.Info).GetOrPropagate!();

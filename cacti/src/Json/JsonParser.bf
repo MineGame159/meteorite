@@ -18,7 +18,8 @@ class JsonParser {
 	public static Result<JsonTree> Parse(Stream stream) => scope Self(stream).Parse();
 
 	public static Result<JsonTree> Parse(StringView string) => scope Self(scope SpanMemoryStream(.((.) string.Ptr, string.Length))).Parse();
-
+	
+	[Tracy.Profile]
 	private Result<JsonTree> Parse() {
 		Handle!(Advance());
 		Handle!(Advance());

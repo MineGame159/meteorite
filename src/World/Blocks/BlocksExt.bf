@@ -12,6 +12,8 @@ extension Blocks {
 	private static JsonTree JSON;
 	private static String STR1, STR2;
 
+	private static Tracy.Zone ZONE;
+
 	private static void BeforeRegister() {
 		JSON = Meteorite.INSTANCE.resources.ReadJson("data/block_states.json");
 		STR1 = new .();

@@ -28,7 +28,8 @@ class ServerManager : IEnumerable<Server> {
 	private List<Server> servers = new .() ~ DeleteContainerAndItems!(_);
 
 	public bool IsEmpty => servers.IsEmpty;
-
+	
+	[Tracy.Profile]
 	public this() {
 		// Open file and add a default localhost server if the file is not found
 		FileStream fs = scope .();

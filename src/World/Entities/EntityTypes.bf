@@ -9,7 +9,8 @@ namespace Meteorite;
 static class EntityTypes {
 	public static EntityType PLAYER;
 	public static EntityType SALMON;
-
+	
+	[Tracy.Profile]
 	public static void Register() {
 		JsonTree tree = Meteorite.INSTANCE.resources.ReadJson("data/entity_types.json");
 

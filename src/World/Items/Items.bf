@@ -1,5 +1,7 @@
 using System;
 
+using Cacti;
+
 namespace Meteorite;
 
 static class Items {
@@ -1190,6 +1192,7 @@ static class Items {
 	public static Item FROGSPAWN;
 	public static Item ECHO_SHARD;
 
+	[Tracy.Profile]
 	public static void Register() {
 		let defaultSettings = scope ItemSettings();
 		let singleStackSettings = scope ItemSettings().StackSize(1);

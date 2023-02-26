@@ -39,7 +39,8 @@ static class SkyRenderer {
 
 	private static Descriptor SUN_DESCRIPTOR => .SampledImage(SUN, Gfxa.NEAREST_SAMPLER);
 	private static Descriptor MOON_DESCRIPTOR => .SampledImage(MOON, Gfxa.NEAREST_SAMPLER);
-
+	
+	[Tracy.Profile]
 	public static void Init() {
 		PIPELINE1 = Gfx.Pipelines.Create(scope PipelineInfo("Sky 1")
 			.VertexFormat(PosVertex.FORMAT)

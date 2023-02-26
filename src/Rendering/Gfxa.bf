@@ -83,6 +83,7 @@ static class Gfxa {
 	public static Sampler NEAREST_MIPMAP_SAMPLER;
 
 	// Init
+	[Tracy.Profile]
 	public static void Init() {
 		Gfx.Shaders.SetReadCallback(new (path, output) => {
 			bool result = Meteorite.INSTANCE.resources.ReadString(scope $"shaders/{path}", output);
@@ -177,7 +178,8 @@ static class Gfxa {
 		ReleaseAndNullify!(LINES_PIPELINE);
 		ReleaseAndNullify!(TEX_QUADS_PIPELINE);
 	}
-
+	
+	[Tracy.Profile]
 	public static Result<GpuImage> CreateImage(StringView path, bool flip = false) {
 		Image image = Meteorite.INSTANCE.resources.ReadImage(path, flip).GetOrPropagate!();
 		defer delete image;

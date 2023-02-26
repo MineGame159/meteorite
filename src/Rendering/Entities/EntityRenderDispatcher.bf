@@ -11,7 +11,8 @@ class EntityRenderDispatcher {
 
 	private NamedMeshBuilderProvider provider = new .() ~ delete _;
 	private MatrixStack matrices = new .() ~ delete _;
-
+	
+	[Tracy.Profile]
 	public this() {
 		renderers[EntityTypes.SALMON] = new SalmonEntityRenderer();
 	}

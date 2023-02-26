@@ -59,7 +59,7 @@ class HttpRequest : HttpMessage {
 		spaceI = string.IndexOf(' ');
 		if (spaceI == -1) return .Err;
 
-		Url = .(false, "", string[...(spaceI - 1)]);
+		Url = .("", false, "", string[...(spaceI - 1)]);
 
 		return .Ok;
 	}

@@ -238,7 +238,7 @@ static class Tracy {
 		zone
 	}
 
-	[AttributeUsage(.Method)]
+	[AttributeUsage(.Method | .Constructor)]
 	public struct Profile : Attribute, IOnMethodInit {
 		public StringView name;
 		public bool variable;

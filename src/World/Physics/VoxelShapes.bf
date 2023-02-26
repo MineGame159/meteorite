@@ -22,7 +22,8 @@ static class VoxelShapes {
 		
 		delete SHAPES;
 	}
-
+	
+	[Tracy.Profile]
 	public static void Init() {
 		JsonTree tree = Meteorite.INSTANCE.resources.ReadJson("data/voxel_shapes.json");
 		Json json = tree.root;

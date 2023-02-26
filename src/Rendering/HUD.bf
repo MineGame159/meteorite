@@ -26,7 +26,8 @@ class HudRenderer {
 	private char8*[?] aos = .("None", "Vanilla", "SSAO", "Both");
 
 	private bool debug = false;
-
+	
+	[Tracy.Profile]
 	public this() {
 		crosshairPipeline = Gfx.Pipelines.Create(scope PipelineInfo("Crosshair")
 			.VertexFormat(Pos2DUVColorVertex.FORMAT)

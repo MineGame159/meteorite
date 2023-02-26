@@ -16,8 +16,11 @@ class HttpClient {
 	public this() {
 		Socket.Init();
 	}
-
+	
+	[Tracy.Profile(variable=true)]
 	public Result<HttpResponse> Send(HttpRequest request) {
+		__tracy_zone.AddText(request.Url.string);
+
 		// Setup headers
 		request.SetHeader(.Host, request.Url.hostname);
 		request.SetHeader(.Connection, "close");

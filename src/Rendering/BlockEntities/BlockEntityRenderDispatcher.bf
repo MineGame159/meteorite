@@ -11,7 +11,8 @@ class BlockEntityRenderDispatcher {
 
 	private NamedMeshBuilderProvider provider = new .() ~ delete _;
 	private MatrixStack matrices = new .() ~ delete _;
-
+	
+	[Tracy.Profile]
 	public this() {
 		renderers[BlockEntityTypes.CHEST] = new ChestBlockEntityRenderer();
 		renderers[BlockEntityTypes.TRAPPED_CHEST] = new ChestBlockEntityRenderer();

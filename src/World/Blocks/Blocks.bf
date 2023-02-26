@@ -1,5 +1,7 @@
 using System;
 
+using Cacti;
+
 namespace Meteorite;
 
 static class Properties {
@@ -1086,6 +1088,7 @@ static class Blocks {
 	public static Block FROGSPAWN;
 	public static Block REINFORCED_DEEPSLATE;
 
+	[Tracy.Profile]
 	public static void Register() {
 		BeforeRegister();
 

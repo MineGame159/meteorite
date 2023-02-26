@@ -12,7 +12,8 @@ static class BlockModelLoader {
 	private static float MAX_SCALE = 1f / Math.Cos(0.7853981852531433f) - 1f;
 
 	private static Dictionary<String, JsonTree> MODEL_CACHE;
-
+	
+	[Tracy.Profile]
 	public static void LoadModels() {
 		Stopwatch sw = scope .(true);
 		//let omg = Profiler.StartSampling();
@@ -89,6 +90,7 @@ static class BlockModelLoader {
 		Log.Info("Loaded block models in {:0.000} ms", sw.Elapsed.TotalMilliseconds);
 	}
 
+	[Tracy.Profile]
 	private static JsonTree GetMergedBlockstateJson(Block block) {
 		String path = scope $"blockstates/{block.Key.Path}.json";
 		JsonTree json = null;
@@ -117,7 +119,8 @@ static class BlockModelLoader {
 
 		return json;
 	}
-
+	
+	[Tracy.Profile]
 	private static void ParseElement(Block block, Dictionary<String, List<Quad>> textures, Model model, Json modelJson, Json json, Vec3f blockStateRotation, bool uvlock) {
 		// Parse from
 		Json fromJson = json["from"];
@@ -505,7 +508,8 @@ static class BlockModelLoader {
 
 		return name;
 	}
-
+	
+	[Tracy.Profile]
 	private static List<RawModel> GetMultipartModels(BlockState blockState, Json blockstateJson) {
 		List<RawModel> modelJsons = new .();
 		String str1 = scope .();
@@ -606,7 +610,8 @@ static class BlockModelLoader {
 			}
 		}
 	}
-
+	
+	[Tracy.Profile]
 	private static Result<RawModel> GetVariantModel(Block block, BlockState blockState, Json blockstateJson) {
 		// Merge models
 		Json a = GetVariant(blockstateJson["variants"], blockState);
@@ -636,7 +641,8 @@ static class BlockModelLoader {
 		
 		return RawModel(json, rotation, variant.GetBool("uvlock"));
 	}
-
+	
+	[Tracy.Profile]
 	private static Result<Json> GetMergedModel(Json json) {
 		void Merge(Json json, Json j) {
 			if (j.Contains("elements") && json.Contains("elements")) json.Merge(j, scope (key) => key != "elements");

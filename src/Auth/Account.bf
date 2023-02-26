@@ -68,7 +68,8 @@ class MicrosoftAccount : Account {
 	public append MsAuthData authData = .();
 
 	public this() : base(.Microsoft) {}
-
+	
+	[Tracy.Profile]
 	public override Result<void> Authenticate() {
 		// Authenticate
 		MsAuth.Auth(authData).GetOrPropagate!();

@@ -18,7 +18,8 @@ enum BlockColorType {
 static class BlockColors {
 	private static Dictionary<Block, BlockColorType> colors = new .() ~ delete _;
 	private static Color[16] redstoneColors;
-
+	
+	[Tracy.Profile]
 	public static void Init() {
 		Meteorite.INSTANCE.resources.ReadJsons("data/block_colors.json", scope (tree) => {
 			for (let pair in tree.root.AsObject) {

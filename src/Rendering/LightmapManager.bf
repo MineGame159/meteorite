@@ -11,7 +11,8 @@ class LightmapManager {
 
 	private float flickerIntensity;
 	private bool dirty;
-
+	
+	[Tracy.Profile]
 	public this() {
 		image = Gfx.Images.Create("Lightmap", .RGBA, .Normal, .(16, 16));
 	}

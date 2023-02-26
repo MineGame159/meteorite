@@ -7,7 +7,8 @@ namespace Meteorite;
 
 static class ChatTypes {
 	public static ChatType[] TYPES ~ DeleteContainerAndItems!(_);
-
+	
+	[Tracy.Profile]
 	public static void Register() {
 		JsonTree tree = Meteorite.INSTANCE.resources.ReadJson("data/chat_types.json");
 		Json json = tree.root;

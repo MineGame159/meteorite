@@ -18,7 +18,8 @@ static class MsAuth {
 	private static HttpServer SERVER;
 	private static WaitEvent SERVER_STOP_EVENT;
 	private static String LOGIN_CODE;
-
+	
+	[Tracy.Profile]
 	public static Result<void> Auth(MsAuthData data) {
 		if (data.msaAccessToken.IsEmpty) {
 			AskToLogin(data).GetOrPropagate!();

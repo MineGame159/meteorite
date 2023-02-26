@@ -38,7 +38,8 @@ class Meteorite : Application {
 
 	private GpuImage swapchainTarget;
 	private bool afterScreenshot;
-
+	
+	[Tracy.Profile]
 	public this() : base("Meteorite") {
 		INSTANCE = this;
 		Directory.CreateDirectory("run");

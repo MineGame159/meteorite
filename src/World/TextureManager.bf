@@ -62,7 +62,8 @@ class TextureManager {
 			buffer.Upload(&bufferData[0], (.) (sizeof(BufferTexture) * bufferData.Count));
 		}
 	}
-
+	
+	[Tracy.Profile]
 	public uint16 Add(StringView path) {
 		Result<ImageInfo> imageResult = Meteorite.INSTANCE.resources.ReadImageInfo(path);
 
@@ -132,7 +133,8 @@ class TextureManager {
 		missingTexture = (.) (textures.Count - 1);
 		return missingTexture.Value;
 	}
-
+	
+	[Tracy.Profile]
 	public void Finish() {
 		animatedTextures = new .();
 

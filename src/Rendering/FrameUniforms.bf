@@ -18,7 +18,8 @@ static class FrameUniforms {
 	}
 
 	private static GpuBuffer buffer;
-
+	
+	[Tracy.Profile]
 	public static void Init() {
 		buffer = Gfx.Buffers.Create("Frame Uniforms", .Uniform, .Mappable, sizeof(Data));
 	}

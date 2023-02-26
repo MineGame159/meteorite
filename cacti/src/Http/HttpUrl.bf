@@ -2,8 +2,9 @@ using System;
 
 namespace Cacti.Http;
 
-struct HttpUrl : this(bool https, StringView hostname, StringView path) {
+struct HttpUrl : this(StringView string, bool https, StringView hostname, StringView path) {
 	public static Result<Self> Parse(StringView url) {
+		StringView string = url;
 		var url;
 
 		// HTTPS
@@ -31,6 +32,10 @@ struct HttpUrl : this(bool https, StringView hostname, StringView path) {
 		}
 
 		// Return
-		return HttpUrl(https, url, path);
+		return HttpUrl(string, https, url, path);
  	}
+
+	public override void ToString(String str) {
+		str.AppendF("{}://{}{}", https ? "https" : "http", hostname, path);
+	}
 }
