@@ -17,6 +17,17 @@ class ChunkRenderer : IEnumerable<Chunk> {
 	private ThreadPool threadPool = new .();
 	private List<Chunk> visibleChunks = new .() ~ delete _;
 
+	public this() {
+		Input.keyEvent.Add(new (key, scancode, action) => {
+			if (key == .A && action == .Release && Input.IsKeyDown(.F3) && !Input.capturingCharacters) {
+				me.world.ReloadChunks();
+				return true;
+			}
+
+			return false;
+		});
+	}
+
 	public ~this() {
 		// Deleting a thread pool will block for the currently running tasks to finish
 		delete threadPool;
@@ -29,8 +40,8 @@ class ChunkRenderer : IEnumerable<Chunk> {
 			for (LayerData layerData in data.layerDatas) {
 				if (!layerData.hasData) continue;
 
-				for (Buffer buffer in layerData.buffers) {
-					Buffers.Return(buffer);
+				for (var buffer in ref layerData.buffers) {
+					Buffers.Return(ref buffer);
 				}
 			}
 		}
@@ -52,7 +63,7 @@ class ChunkRenderer : IEnumerable<Chunk> {
 			if (chunk.dirty && (data.status == .NotReady || data.status == .Ready) && AreNeighboursLoaded(chunk)) {
 				data.status = .Building;
 				chunk.AddRef();
-
+				
 				threadPool.Add(new () => BuildChunk(chunk));
 			}
 			
@@ -71,7 +82,7 @@ class ChunkRenderer : IEnumerable<Chunk> {
 
 				// Get GPU buffer
 				if (data.gpuBuffer == null) {
-					data.gpuBuffer = Gfx.Buffers.Create(scope $"Chunk {chunk.pos.x}, {chunk.pos.z}", .Vertex, .TransferDst, totalSize);
+					data.gpuBuffer = Gfx.Buffers.Create(scope $"Chunk {chunk.pos.x}, {chunk.pos.z}", .Vertex, .Mappable, totalSize);
 				}
 				else {
 					Gfx.Buffers.EnsureSize(ref data.gpuBuffer, totalSize);
@@ -90,18 +101,24 @@ class ChunkRenderer : IEnumerable<Chunk> {
 						var draw = ref layerData.draws[i++];
 
 						if (buffer.Size > 0) {
-							draw.vertexOffset = (.) (offset / sizeof(BlockVertex));
-							draw.indexCount = (.) (buffer.Size / (sizeof(BlockVertex) * 4) * 6);
+							uint64 bufferSize = buffer.Size;
+
+							// TODO: Asynchronous uploads cause chunks to flicker
+							//data.gpuBuffer.View(offset, buffer.Size).Upload(buffer.Data, buffer.Size);
+
+							Gfx.Uploads.UploadBuffer(data.gpuBuffer.View(offset, buffer.Size), buffer.Data, buffer.Size, new [&draw, =offset, =bufferSize]() => {
+								draw.valid = true;
+								draw.vertexOffset = (.) (offset / sizeof(BlockVertex));
+								draw.indexCount = (.) (bufferSize / (sizeof(BlockVertex) * 4) * 6);
+							});
 							
-							Gfx.Uploads.UploadBuffer(data.gpuBuffer.View(offset, buffer.Size), buffer.Data, buffer.Size, new [&]() => draw.valid = true);
 							offset += buffer.Size;
 						}
 						else {
 							draw.valid = false;
 						}
 
-						Buffers.Return(buffer);
-						buffer = null;
+						Buffers.Return(ref buffer);
 					}
 
 					layerData.hasData = false;
@@ -161,7 +178,7 @@ class ChunkRenderer : IEnumerable<Chunk> {
 			ChunkData data = Data!(chunk);
 			LayerData layerData = data.GetLayerData(layer);
 
-			if (data.gpuBuffer == null) continue;
+			if (data.gpuBuffer == null || data.gpuBuffer.Size == 0) continue;
 
 			// Bind chunk specific state
 			pass.Bind(data.gpuBuffer);
@@ -211,7 +228,7 @@ class ChunkRenderer : IEnumerable<Chunk> {
 
 						ChunkRenderLayer layer = blockState.block == Blocks.WATER ? .Transparent : .Solid; // TODO
 						
-						BlockRenderer.Render(me.world, chunk, x, by, z, blockState, data.GetLayerData(layer, true).buffers);
+						BlockRenderer.Render(me.world, chunk, .(x, by, z), blockState, data.GetLayerData(layer, true).buffers);
 					}
 				}
 			}
@@ -223,9 +240,13 @@ class ChunkRenderer : IEnumerable<Chunk> {
 		// If there are no other references to the chunk apart from this one then return CPU side buffers early and do not return from the Building state
 		if (chunk.ReleaseWillDelete) {
 			for (LayerData layerData in Data!(chunk).layerDatas) {
-				for (Buffer buffer in layerData.buffers) {
-					Buffers.Return(buffer);
+				if (!layerData.hasData) continue;
+
+				for (var buffer in ref layerData.buffers) {
+					Buffers.Return(ref buffer);
 				}
+
+				layerData.hasData = false;
 			}
 
 			Data!(chunk).status = .Building;
@@ -236,7 +257,7 @@ class ChunkRenderer : IEnumerable<Chunk> {
 
 	private mixin Data(Chunk chunk) {
 		if (chunk.[Friend]renderData == null) {
-			chunk.[Friend]renderData = new .();
+			chunk.[Friend]renderData = new .(chunk);
 		}
 
 		chunk.[Friend]renderData
@@ -274,12 +295,16 @@ class ChunkRenderer : IEnumerable<Chunk> {
 	}
 	
 	public class ChunkData {
+		private Chunk chunk;
+
 		public Status status = .NotReady;
 
 		public GpuBuffer gpuBuffer ~ ReleaseAndNullify!(_);
 		public LayerData[Enum.GetCount<ChunkRenderLayer>()] layerDatas;
 
-		public this() {
+		public this(Chunk chunk) {
+			this.chunk = chunk;
+
 			for (let layer in Enum.GetValues<ChunkRenderLayer>()) {
 				layerDatas[(.) layer] = new .(layer);
 			}
@@ -287,6 +312,12 @@ class ChunkRenderer : IEnumerable<Chunk> {
 
 		public ~this() {
 			for (let layerData in layerDatas) {
+				if (layerData.hasData) {
+					for (var buffer in ref layerData.buffers) {
+						Buffers.Return(ref buffer);
+					}
+				}
+
 				delete layerData;
 			}
 		}

@@ -19,14 +19,14 @@ static class Buffers {
 		return buffer;
 	}
 
-	public static void Return(Buffer buffer) {
+	public static void Return(ref Buffer buffer) {
 		if (buffer == null) return;
 
-		MONITOR.Enter();
+		using (MONITOR.Enter()) {
+			buffer.Clear();
+			BUFFERS.Add(buffer);
+		}
 
-		buffer.Clear();
-		BUFFERS.Add(buffer);
-
-		MONITOR.Exit();
+		buffer = null;
 	}
 }

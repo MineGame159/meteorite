@@ -116,8 +116,23 @@ public class LoginPacketHandler : PacketHandler {
 	public override S2CPacket GetPacket(int32 id) => Impl.GetPacket(id);
 
 	public override void Handle(S2CPacket packet) {
-		if (packet.synchronised) me.Execute(new () => Impl.Dispatch(this, packet));
+		if (packet.synchronised) me.Execute(new PacketTask(this, packet));
 		else Impl.Dispatch(this, packet);
+	}
+
+	class PacketTask : this(LoginPacketHandler handler, S2CPacket packet), ITask {
+		private bool ran;
+
+		public ~this() {
+			if (!ran) {
+				delete packet;
+			}
+		}
+
+		public void Run() {
+			Impl.Dispatch(handler, packet);
+			ran = true;
+		}
 	}
 
 	[PacketHandlerImpl]

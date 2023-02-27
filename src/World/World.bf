@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Collections;
 using System.Diagnostics;
 
@@ -11,6 +12,7 @@ class World : IBlockGetter {
 	public DimensionType dimension ~ delete _;
 
 	private Dictionary<ChunkPos, Chunk> chunks;
+	private append Monitor chunksMonitor = .();
 
 	private Dictionary<int, Entity> entities = new .() ~ DeleteDictionaryAndValues!(_);
 
@@ -37,59 +39,88 @@ class World : IBlockGetter {
 	public int EntityCount => entities.Count;
 
 	public int BlockEntityCount { get {
-		int count = 0;
-		for (Chunk chunk in Chunks) count += chunk.BlockEntityCount;
-		return count;
+		using (chunksMonitor.Enter()) {
+			int count = 0;
+			for (Chunk chunk in Chunks) count += chunk.BlockEntityCount;
+			return count;
+		}
 	} }
 
+	public Monitor.MonitorLockInstance LockChunks() => chunksMonitor.Enter();
+
 	public void AddChunk(Chunk chunk) {
-		ChunkPos p;
-		Chunk c;
-		bool replacing = chunks.TryGet(chunk.pos, out p, out c);
-
-		if (replacing) {
-			c.Release();
+		using (chunksMonitor.Enter()) {
+			ChunkPos p;
+			Chunk c;
+			bool replacing = chunks.TryGet(chunk.pos, out p, out c);
+	
+			if (replacing) {
+				c.Release();
+			}
+	
+			chunks[chunk.pos] = chunk;
 		}
-
-		chunks[chunk.pos] = chunk;
 	}
 
-	public Chunk GetChunk(int x, int z) {
+	public Chunk GetChunk(int x, int z, bool synchronized = true) {
+		if (synchronized) {
+			using (chunksMonitor.Enter()) {
+				return chunks.GetValueOrDefault(.(x, z));
+			}
+		}
+
 		return chunks.GetValueOrDefault(.(x, z));
 	}
 
 	public bool IsChunkLoaded(int x, int z) {
-		return chunks.ContainsKey(.(x, z));
+		using (chunksMonitor.Enter()) {
+			return chunks.ContainsKey(.(x, z));
+		}
 	}
 
 	public BlockState GetBlock(int x, int y, int z) {
-		Chunk chunk = GetChunk(x >> 4, z >> 4);
-		return chunk != null ? chunk.Get(x & 15, y, z & 15) : Blocks.AIR.defaultBlockState;
+		using (chunksMonitor.Enter()) {
+			Chunk chunk = GetChunk(x >> 4, z >> 4, false);
+			return chunk != null ? chunk.Get(x & 15, y, z & 15) : Blocks.AIR.defaultBlockState;
+		}
 	}
+
 	public BlockState GetBlock(Vec3i pos) => GetBlock(pos.x, pos.y, pos.z); // Bruh
 
 	public void SetBlock(int x, int y, int z, BlockState blockState) {
-		Chunk chunk = GetChunk(x >> 4, z >> 4);
-		if (chunk != null) chunk.Set(x & 15, y, z & 15, blockState);
+		using (chunksMonitor.Enter()) {
+			Chunk chunk = GetChunk(x >> 4, z >> 4, false);
+			if (chunk != null) chunk.Set(x & 15, y, z & 15, blockState);
+		}
 	}
 
 	public BlockEntity GetBlockEntity(int x, int y, int z) {
-		Chunk chunk = GetChunk(x >> 4, z >> 4);
-		return chunk != null ? chunk.GetBlockEntity(x & 15, y, z & 15) : null;
+		using (chunksMonitor.Enter()) {
+			Chunk chunk = GetChunk(x >> 4, z >> 4, false);
+			return chunk != null ? chunk.GetBlockEntity(x & 15, y, z & 15) : null;
+		}
 	}
 
 	public void RemoveBlockEntity(int x, int y, int z) {
-		Chunk chunk = GetChunk(x >> 4, z >> 4);
-		if (chunk != null) chunk.RemoveBlockEntity(x & 15, y, z & 15);
+		using (chunksMonitor.Enter()) {
+			Chunk chunk = GetChunk(x >> 4, z >> 4, false);
+			if (chunk != null) chunk.RemoveBlockEntity(x & 15, y, z & 15);
+		}
 	}
 
 	public Biome GetBiome(int x, int y, int z) {
-		Chunk chunk = GetChunk(x >> 4, z >> 4);
-		return chunk != null ? chunk.GetBiome(x & 15, y, z & 15) : Biomes.VOID;
+		using (chunksMonitor.Enter()) {
+			Chunk chunk = GetChunk(x >> 4, z >> 4, false);
+			return chunk != null ? chunk.GetBiome(x & 15, y, z & 15) : Biomes.VOID;
+		}
 	}
 
 	public void ReloadChunks() {
-		for (Chunk chunk in chunks.Values) chunk.dirty = true;
+		Log.Debug("Reloading chunks");
+
+		using (chunksMonitor.Enter()) {
+			for (Chunk chunk in chunks.Values) chunk.dirty = true;
+		}
 	}
 
 	public void AddEntity(Entity entity) {
@@ -121,11 +152,13 @@ class World : IBlockGetter {
 			int x = ((.) Meteorite.INSTANCE.player.pos.x >> 4);
 			int z = ((.) Meteorite.INSTANCE.player.pos.z >> 4);
 
-			for (Chunk chunk in Chunks) {
-				if (IsChunkInRange(chunk.pos.x, chunk.pos.z, x, z)) continue;
-
-				@chunk.Remove();
-				chunk.Release();
+			using (chunksMonitor.Enter()) {
+				for (Chunk chunk in Chunks) {
+					if (IsChunkInRange(chunk.pos.x, chunk.pos.z, x, z)) continue;
+	
+					@chunk.Remove();
+					chunk.Release();
+				}
 			}
 		}
 	}

@@ -132,20 +132,22 @@ class PlayPacketHandler : PacketHandler {
 	}
 
 	private void OnLightData(LightDataS2CPacket packet) {
-		Chunk chunk = me.world.GetChunk(packet.pos.x, packet.pos.z);
-		if (chunk == null) return;
-
-		int skyLightSectionI = 0;
-		int blockLightSectionI = 0;
-
-		for (int i < chunk.[Friend]sectionLightDatas.Count) {
-			SectionLightData section = chunk.[Friend]sectionLightDatas[i];
-
-			if (packet.data.emptySkyLightMask.IsSet(i)) section.Clear(.Sky);
-			else if (packet.data.skyLightMask.IsSet(i)) section.Set(.Sky, packet.data.skyLightSections[skyLightSectionI++]);
-			
-			if (packet.data.emptyBlockLightMask.IsSet(i)) section.Clear(.Block);
-			else if (packet.data.blockLightMask.IsSet(i)) section.Set(.Block, packet.data.blockLightSections[blockLightSectionI++]);
+		using (me.world.LockChunks()) {
+			Chunk chunk = me.world.GetChunk(packet.pos.x, packet.pos.z, false);
+			if (chunk == null) return;
+	
+			int skyLightSectionI = 0;
+			int blockLightSectionI = 0;
+	
+			for (int i < chunk.[Friend]sectionLightDatas.Count) {
+				SectionLightData section = chunk.[Friend]sectionLightDatas[i];
+	
+				if (packet.data.emptySkyLightMask.IsSet(i)) section.Clear(.Sky);
+				else if (packet.data.skyLightMask.IsSet(i)) section.Set(.Sky, packet.data.skyLightSections[skyLightSectionI++]);
+				
+				if (packet.data.emptyBlockLightMask.IsSet(i)) section.Clear(.Block);
+				else if (packet.data.blockLightMask.IsSet(i)) section.Set(.Block, packet.data.blockLightSections[blockLightSectionI++]);
+			}
 		}
 	}
 
@@ -154,13 +156,15 @@ class PlayPacketHandler : PacketHandler {
 	}
 
 	private void OnMultiBlockChange(MultiBlockChangeS2CPacket packet) {
-		Chunk chunk = me.world.GetChunk(packet.sectionPos.x, packet.sectionPos.z);
-		if (chunk == null) return;
-
-		Section section = chunk.GetSection(packet.sectionPos.y);
-
-		for (let block in packet.blocks) {
-			section.Set(block.pos.x, block.pos.y, block.pos.z, block.blockState);
+		using (me.world.LockChunks()) {
+			Chunk chunk = me.world.GetChunk(packet.sectionPos.x, packet.sectionPos.z, false);
+			if (chunk == null) return;
+	
+			Section section = chunk.GetSection(packet.sectionPos.y);
+	
+			for (let block in packet.blocks) {
+				section.Set(block.pos.x, block.pos.y, block.pos.z, block.blockState);
+			}
 		}
 	}
 
@@ -275,8 +279,23 @@ class PlayPacketHandler : PacketHandler {
 	public override S2CPacket GetPacket(int32 id) => Impl.GetPacket(id);
 
 	public override void Handle(S2CPacket packet) {
-		if (packet.synchronised) me.Execute(new () => Impl.Dispatch(this, packet));
+		if (packet.synchronised) me.Execute(new PacketTask(this, packet));
 		else Impl.Dispatch(this, packet);
+	}
+
+	class PacketTask : this(PlayPacketHandler handler, S2CPacket packet), ITask {
+		private bool ran;
+
+		public ~this() {
+			if (!ran) {
+				delete packet;
+			}
+		}
+
+		public void Run() {
+			Impl.Dispatch(handler, packet);
+			ran = true;
+		}
 	}
 
 	[PacketHandlerImpl]

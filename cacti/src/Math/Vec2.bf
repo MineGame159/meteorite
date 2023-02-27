@@ -14,6 +14,7 @@ struct Vec2<T> : IEquatable<Self>, IEquatable, IHashable where T : var {
 
 	public const Self ZERO = .(0);
 	public const Self ONE = .(1);
+	public const Self NEG_ONE = .((.) -1);
 
 	// Fields
 

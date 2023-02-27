@@ -175,7 +175,7 @@ static class BlockCollision {
 			Vec3d currentPos = .(blockX, blockY, blockZ);
 			// don't fall out of if statement, we could end up redundantly grabbing a block, and we only need to
 			// collision check against the current shape since the below shape isn't tall
-			if (belowShape.GetBoundingBox().max.y > 1) {
+			if (belowShape != null && belowShape.GetBoundingBox().max.y > 1) {
 				// we should always check both shapes, so no short-circuit here, to handle cases where the bounding box
 				// hits the current solid but misses the tall solid
 				return belowShape.IntersectBoxSwept(entityPosition, entityVelocity, belowPos, boundingBox, finalResult) | (currentCollidable && currentShape.IntersectBoxSwept(entityPosition, entityVelocity, currentPos, boundingBox, finalResult));
@@ -191,7 +191,7 @@ static class BlockCollision {
 				BlockState belowBlock = getter.GetBlock(blockX, blockY - 1, blockZ);
 				VoxelShape belowShape = belowBlock.CollisionShape;
 				// only do sweep if the below block is big enough to possibly hit
-				if (belowShape.GetBoundingBox().max.y > 1) belowShape.IntersectBoxSwept(entityPosition, entityVelocity, belowPos, boundingBox, finalResult);
+				if (belowShape != null && belowShape.GetBoundingBox().max.y > 1) belowShape.IntersectBoxSwept(entityPosition, entityVelocity, belowPos, boundingBox, finalResult);
 			}
 			return true;
 		}

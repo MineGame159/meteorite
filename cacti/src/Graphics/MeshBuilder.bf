@@ -167,15 +167,15 @@ class MeshBuilder {
 			ibo case .Create
 		);
 
-		Buffers.Return(vertices);
-		Buffers.Return(indices);
+		Buffers.Return(ref vertices);
+		Buffers.Return(ref indices);
 
 		return mesh;
 	}
 
 	public void Cancel() {
-		Buffers.Return(vertices);
-		Buffers.Return(indices);
+		Buffers.Return(ref vertices);
+		Buffers.Return(ref indices);
 	}
 
 	class UploadCallback {

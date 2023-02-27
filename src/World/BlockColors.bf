@@ -74,6 +74,6 @@ static class BlockColors {
 			}
 		}
 
-		return .(255, 255, 255);
+		return .WHITE;
 	}
 }

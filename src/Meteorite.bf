@@ -34,7 +34,7 @@ class Meteorite : Application {
 	public ClientPlayerEntity player;
 
 	private Screen screen;
-	private List<delegate void()> tasks = new .() ~ DeleteContainerAndItems!(_);
+	private List<ITask> tasks = new .() ~ DeleteContainerAndItems!(_);
 
 	private GpuImage swapchainTarget;
 	private bool afterScreenshot;
@@ -188,9 +188,8 @@ class Meteorite : Application {
 		}
 	}
 
-	public void Execute(delegate void() task) {
-		tasks.Add(task);
-	}
+	public void Execute(ITask task) => tasks.Add(task);
+	public void Execute(delegate void() task) => tasks.Add(new DelegateTask(task));
 
 	[Tracy.Profile]
 	private void Tick(float tickDelta) {
@@ -200,9 +199,10 @@ class Meteorite : Application {
 		}
 
 		for (let task in tasks) {
-			task();
+			task.Run();
 			delete task;
 		}
+		
 		tasks.Clear();
 
 		if (world == null) return;
